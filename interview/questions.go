@@ -57,13 +57,13 @@ func InitQuestions() error {
 }
 
 // QuestionSelectionRules defines how many questions to ask from each category
+// For hard level, we use 1 question per category (6 total)
 var QuestionSelectionRules = map[string]int{
-	"Purpose of Study":       2,
-	"Academic Background":    2,
-	"University Choice":      2,
-	"Financial Capability":   2,
-	"Family/Sponsor Info":    1,
-	"Post-Graduation Plans":  2,
+	"Purpose of Study":       1,
+	"Academic Background":    1,
+	"University Choice":      1,
+	"Financial Capability":   1,
+	"Post-Graduation Plans":  1,
 	"Immigration Intent":     1,
 }
 
@@ -73,7 +73,6 @@ var CategoryOrder = []string{
 	"Academic Background",
 	"University Choice",
 	"Financial Capability",
-	"Family/Sponsor Info",
 	"Post-Graduation Plans",
 	"Immigration Intent",
 }
@@ -158,14 +157,13 @@ func SelectQuestionsForSession(level string) []Question {
 		return selectedQuestions
 	}
 
-	// For medium level, select exactly 1 question from each of all 7 categories
+	// For medium level, select exactly 1 question from each of 6 categories
 	if level == "medium" {
 		mediumCategories := []string{
 			"Purpose of Study",
 			"Academic Background",
 			"University Choice",
 			"Financial Capability",
-			"Family/Sponsor Info",
 			"Post-Graduation Plans",
 			"Immigration Intent",
 		}
@@ -196,41 +194,41 @@ func SelectQuestionsForSession(level string) []Question {
 		return selectedQuestions
 	}
 
-	// Default behavior for hard level or empty level (12 questions total)
-	for _, category := range CategoryOrder {
-		count, ok := QuestionSelectionRules[category]
-		if !ok {
-			continue
+	// For hard level, select exactly 1 question from each of 6 categories (same as medium)
+	if level == "hard" || level == "" {
+		hardCategories := []string{
+			"Purpose of Study",
+			"Academic Background",
+			"University Choice",
+			"Financial Capability",
+			"Post-Graduation Plans",
+			"Immigration Intent",
 		}
 
-		questions, ok := QuestionsByCategory[category]
-		if !ok || len(questions) == 0 {
-			continue
-		}
+		for _, category := range hardCategories {
+			questions, ok := QuestionsByCategory[category]
+			if !ok || len(questions) == 0 {
+				continue
+			}
 
-		// Select random questions from this category
-		available := make([]string, len(questions))
-		copy(available, questions)
-		
-		// Shuffle and take the required count
-		rand.Shuffle(len(available), func(i, j int) {
-			available[i], available[j] = available[j], available[i]
-		})
+			// Select one random question from this category
+			available := make([]string, len(questions))
+			copy(available, questions)
+			
+			// Shuffle and take 1 question
+			rand.Shuffle(len(available), func(i, j int) {
+				available[i], available[j] = available[j], available[i]
+			})
 
-		// Take up to 'count' questions
-		toTake := count
-		if toTake > len(available) {
-			toTake = len(available)
-		}
-
-		for i := 0; i < toTake; i++ {
 			questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(category))
 			selectedQuestions = append(selectedQuestions, Question{
 				ID:       questionID,
 				Category: category,
-				Text:     available[i],
+				Text:     available[0],
 			})
 		}
+
+		return selectedQuestions
 	}
 
 	return selectedQuestions

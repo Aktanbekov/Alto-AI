@@ -55,3 +55,11 @@ docker-compose*.yml
 *.temp
 tmp/
 temp/
+
+# iOS/Mobile deployment files
+frontend/ios/
+**/ios/
+**/*.xcodeproj
+**/*.xcworkspace
+**/Podfile
+**/*.plist

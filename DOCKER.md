@@ -55,19 +55,27 @@ docker rm altoai-mvp
 Create a `.env` file in the root directory with your configuration:
 
 ```env
-# Database (if using PostgreSQL)
-DATABASE_URL=postgres://user:password@host:port/dbname
+# Database (PostgreSQL - required)
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_USER=altoai
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_DB=altoai_db
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
 GOOGLE_REDIRECT_URL=http://localhost:8080/auth/google/callback
 
-# JWT Secret
-JWT_SECRET=your_jwt_secret_key
+# JWT Configuration
+JWT_SECRET=your-very-secure-random-secret-key-min-32-chars
+ACCESS_TOKEN_EXPIRY=30m
+REFRESH_TOKEN_EXPIRY=720h
 
-# API Configuration
-PORT=8080
+# Application Configuration
+APP_PORT=8080
+GIN_MODE=release
+FRONTEND_URL=http://localhost:8080
 ```
 
 ## Production Deployment
@@ -102,6 +110,8 @@ The Dockerfile uses a multi-stage build:
 1. **Frontend Builder**: Builds the React frontend using Node.js
 2. **Backend Builder**: Builds the Go backend application
 3. **Runtime Image**: Minimal Alpine Linux image with only the compiled binaries and static files
+
+**Note**: The application requires a PostgreSQL database. Use `docker-compose.yml` to run both the application and database together, or connect to an external PostgreSQL instance.
 
 ## Troubleshooting
 

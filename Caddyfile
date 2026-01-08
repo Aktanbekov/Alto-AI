@@ -1,0 +1,13 @@
+altovisas.com, www.altovisas.com {
+    # Caddy automatically handles .well-known/acme-challenge for Let's Encrypt
+    # This must come before the reverse_proxy directive
+    
+    # Proxy all requests to the app (Caddy will intercept ACME challenges automatically)
+    reverse_proxy altoai-mvp:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+

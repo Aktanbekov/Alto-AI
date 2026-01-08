@@ -16,13 +16,12 @@ func TestLoadQuestions(t *testing.T) {
 		t.Error("Questions should be loaded")
 	}
 	
-	// Check that categories exist
+	// Check that categories exist (6 categories, Family/Sponsor Info removed)
 	requiredCategories := []string{
 		"Purpose of Study",
 		"Academic Background",
 		"University Choice",
 		"Financial Capability",
-		"Family/Sponsor Info",
 		"Post-Graduation Plans",
 		"Immigration Intent",
 	}
@@ -51,10 +50,10 @@ func TestQuestionSelection(t *testing.T) {
 	}
 	
 	// Check that we have the right number of questions for default level
-	// 12 questions from rules + 2 mandatory (college and major) = 14 total
-	expectedTotal := 2 + 2 + 2 + 2 + 1 + 2 + 1 + 2 // 14 total (12 + 2 mandatory)
+	// 6 questions (1 from each of 6 categories) + 2 mandatory (college and major) = 8 total
+	expectedTotal := 8 // 6 category questions + 2 mandatory
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions (12 + 2 mandatory), got %d", expectedTotal, len(selected))
+		t.Errorf("Expected %d questions (6 + 2 mandatory), got %d", expectedTotal, len(selected))
 	}
 	
 	// Verify first two questions are college and major
@@ -152,10 +151,10 @@ func TestMediumLevelSelection(t *testing.T) {
 		t.Error("Should select questions for medium level session")
 	}
 	
-	// Medium level should have exactly 7 questions + 2 mandatory (college and major) = 9 total
-	expectedTotal := 9
+	// Medium level should have exactly 6 questions + 2 mandatory (college and major) = 8 total
+	expectedTotal := 8
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions for medium level (7 + 2 mandatory), got %d", expectedTotal, len(selected))
+		t.Errorf("Expected %d questions for medium level (6 + 2 mandatory), got %d", expectedTotal, len(selected))
 	}
 	
 	// Verify first two questions are college and major
@@ -168,13 +167,12 @@ func TestMediumLevelSelection(t *testing.T) {
 		}
 	}
 	
-	// Check that we have exactly one question from each of all 7 categories
+	// Check that we have exactly one question from each of all 6 categories
 	requiredCategories := map[string]bool{
 		"Purpose of Study":      false,
 		"Academic Background":   false,
 		"University Choice":     false,
 		"Financial Capability":  false,
-		"Family/Sponsor Info":  false,
 		"Post-Graduation Plans": false,
 		"Immigration Intent":    false,
 	}
@@ -208,16 +206,16 @@ func TestHardLevelSelection(t *testing.T) {
 		t.Fatalf("LoadQuestions failed: %v", err)
 	}
 	
-	// Test hard level selection (should use default rules = 12 questions)
+	// Test hard level selection (should use 6 questions, 1 from each category)
 	selected := interview.SelectQuestionsForSession("hard")
 	if len(selected) == 0 {
 		t.Error("Should select questions for hard level session")
 	}
 	
-	// Hard level should have exactly 12 questions + 2 mandatory (college and major) = 14 total
-	expectedTotal := 14
+	// Hard level should have exactly 6 questions + 2 mandatory (college and major) = 8 total
+	expectedTotal := 8
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions for hard level (12 + 2 mandatory), got %d", expectedTotal, len(selected))
+		t.Errorf("Expected %d questions for hard level (6 + 2 mandatory), got %d", expectedTotal, len(selected))
 	}
 	
 	// Verify first two questions are college and major
@@ -230,8 +228,20 @@ func TestHardLevelSelection(t *testing.T) {
 		}
 	}
 	
-	// Check that all selected questions have valid structure
+	// Check that we have exactly one question from each of all 6 categories
+	requiredCategories := map[string]bool{
+		"Purpose of Study":      false,
+		"Academic Background":   false,
+		"University Choice":     false,
+		"Financial Capability":  false,
+		"Post-Graduation Plans": false,
+		"Immigration Intent":    false,
+	}
+	
 	for _, q := range selected {
+		if _, ok := requiredCategories[q.Category]; ok {
+			requiredCategories[q.Category] = true
+		}
 		if q.ID == "" {
 			t.Error("Selected question should have ID")
 		}
@@ -240,6 +250,13 @@ func TestHardLevelSelection(t *testing.T) {
 		}
 		if q.Category == "" {
 			t.Error("Selected question should have category")
+		}
+	}
+	
+	// Verify all required categories are present
+	for category, found := range requiredCategories {
+		if !found {
+			t.Errorf("Hard level should include a question from category: %s", category)
 		}
 	}
 }

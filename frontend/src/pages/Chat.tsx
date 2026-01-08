@@ -267,12 +267,13 @@ export default function Chat() {
   const aiQuestions = messages.filter(m => m.sender === "ai" && !m.text.includes("Failed to") && !m.text.includes("Your answer is too short")).length;
   
   // Calculate progress based on selected level
-  // Easy: 4 questions, Medium: 7 questions, Hard: 12 questions, Default: 10 questions
+  // Easy: 4 questions, Medium: 6 questions, Hard: 6 questions, Default: 6 questions
+  // Plus 2 mandatory questions (college and major) for all levels
   const getTotalQuestions = () => {
-    if (selectedLevel === "easy") return 4;
-    if (selectedLevel === "medium") return 7;
-    if (selectedLevel === "hard") return 12;
-    return 10; // default
+    if (selectedLevel === "easy") return 4 + 2; // 4 category questions + 2 mandatory
+    if (selectedLevel === "medium") return 6 + 2; // 6 category questions + 2 mandatory
+    if (selectedLevel === "hard") return 6 + 2; // 6 category questions + 2 mandatory
+    return 6 + 2; // default: 6 category questions + 2 mandatory
   };
 
   const totalQuestions = getTotalQuestions();

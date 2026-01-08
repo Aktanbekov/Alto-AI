@@ -41,7 +41,7 @@ func googleConf() *oauth2.Config {
 	if redirectURL == "" {
 		// Default based on environment
 		if os.Getenv("GIN_MODE") == "release" {
-			redirectURL = "http://localhost:3000/auth/google/callback" // Docker default
+			redirectURL = "http://localhost:8080/auth/google/callback" // Docker default (same port as app)
 		} else {
 			redirectURL = "http://localhost:8080/auth/google/callback" // Local dev
 		}
@@ -237,14 +237,17 @@ func HandleGoogleCallback(c *gin.Context) {
 
 	// Get frontend URL from environment or use default
 	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		// Default to same origin in production, or dev server in development
-		// Check if we're in production (no dev server running)
-		if os.Getenv("GIN_MODE") == "release" {
-			frontendURL = "http://localhost:3000" // Docker default
-		} else {
-			frontendURL = "http://localhost:5173" // Vite dev server
+	
+	// In Docker/release mode, always use port 8080 (same as the app server)
+	// This ensures OAuth redirects work correctly in Docker even if .env has dev server URL
+	if os.Getenv("GIN_MODE") == "release" {
+		// Override with Docker port if FRONTEND_URL points to dev server port
+		if frontendURL == "" || frontendURL == "http://localhost:5173" || frontendURL == "http://localhost:3000" {
+			frontendURL = "http://localhost:8080"
 		}
+	} else if frontendURL == "" {
+		// Development mode - use Vite dev server
+		frontendURL = "http://localhost:5173"
 	}
 
 	// Set refresh token cookie (HttpOnly, Secure)

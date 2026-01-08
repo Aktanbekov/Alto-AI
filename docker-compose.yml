@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -14,14 +12,22 @@ services:
     restart: unless-stopped
     networks:
       - altoai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-altoai} -d ${POSTGRES_DB:-altoai_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   altoai-mvp:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: altoai-mvp
-    ports:
-      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8080"
     environment:
       - GIN_MODE=release
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
@@ -32,6 +38,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-altoai_password}
       - POSTGRES_DB=${POSTGRES_DB:-altoai_db}
       - JWT_SECRET=${JWT_SECRET}
+      - ACCESS_TOKEN_EXPIRY=${ACCESS_TOKEN_EXPIRY:-30m}
+      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-720h}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     env_file:
@@ -42,8 +50,29 @@ services:
     networks:
       - altoai-network
 
+  caddy:
+    image: caddy:2
+    container_name: altoai-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    networks:
+      - altoai-network
+    depends_on:
+      - altoai-mvp
+
 volumes:
   postgres_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
     driver: local
 
 networks:

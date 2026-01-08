@@ -8,8 +8,10 @@ docker-compose up --build
 ```
 
 This will:
+- Start PostgreSQL database container
 - Build the Docker image
-- Start the container
+- Start the application container
+- Automatically create and migrate the database schema
 - Show logs in the terminal
 
 ### 2. Access the application:
@@ -140,10 +142,14 @@ docker-compose up --build
 ## Environment Variables
 
 Make sure your `.env` file is in the root directory with all required variables:
-- Database connection (if using PostgreSQL)
-- Google OAuth credentials
-- JWT secret
-- Other API keys
+
+**Required Variables:**
+- PostgreSQL connection: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+- JWT: `JWT_SECRET`, `ACCESS_TOKEN_EXPIRY`, `REFRESH_TOKEN_EXPIRY`
+- Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL`
+- Application: `APP_PORT`, `GIN_MODE`, `FRONTEND_URL`
+
+**Note**: The application now requires PostgreSQL. The `docker-compose.yml` file automatically sets up a PostgreSQL container. If you're using Docker directly (not docker-compose), you'll need to provide a PostgreSQL connection.
 
 The `.env` file is automatically loaded by docker-compose.
 

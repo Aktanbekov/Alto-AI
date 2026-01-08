@@ -32,8 +32,34 @@ func New() (*gin.Engine, error) {
 	// Initialize Google auth with the user repository
 	auth.SetUserRepo(userRepo)
 
-	// health
+	// health endpoint (supports both GET and HEAD for health checks)
 	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"ok": true}) })
+	r.HEAD("/health", func(c *gin.Context) { c.Status(200) })
+
+	// Serve static files from frontend/dist
+	r.Static("/assets", "./frontend/dist/assets")
+	r.StaticFile("/vite.svg", "./frontend/dist/vite.svg")
+	
+	// Serve index.html for all non-API routes (React Router)
+	r.NoRoute(func(c *gin.Context) {
+		// Don't serve index.html for API routes
+		path := c.Request.URL.Path
+		if len(path) >= 4 && path[:4] == "/api" {
+			c.JSON(404, gin.H{"error": "Not found"})
+			return
+		}
+		// Don't serve index.html for auth/google routes (they're handled separately)
+		if len(path) >= 5 && path[:5] == "/auth" {
+			c.JSON(404, gin.H{"error": "Not found"})
+			return
+		}
+		// Don't serve index.html for .well-known paths (used by Let's Encrypt, etc.)
+		if len(path) >= 11 && path[:11] == "/.well-known" {
+			c.JSON(404, gin.H{"error": "Not found"})
+			return
+		}
+		c.File("./frontend/dist/index.html")
+	})
 
 	// AUTH - Google
 	r.GET("/auth/google", auth.HandleGoogleLogin)

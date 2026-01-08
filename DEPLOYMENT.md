@@ -40,14 +40,17 @@ APP_PORT=8080
 GIN_MODE=release
 FRONTEND_URL=https://yourdomain.com
 
-# Database (used by docker-compose, also set in app environment)
+# Database (PostgreSQL - required)
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
 POSTGRES_USER=altoai
 POSTGRES_PASSWORD=strong_password_here
 POSTGRES_DB=altoai_db
-POSTGRES_PORT=5432
 
 # JWT
 JWT_SECRET=your-very-secure-random-secret-key-min-32-chars
+ACCESS_TOKEN_EXPIRY=30m
+REFRESH_TOKEN_EXPIRY=720h
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id
@@ -86,7 +89,11 @@ COOKIE_DOMAIN=.yourdomain.com
 
 ### 2. Database
 
-The PostgreSQL database is automatically created and managed by Docker Compose. Data is persisted in a Docker volume named `postgres_data`.
+**Important**: The application now uses PostgreSQL for persistent storage. The PostgreSQL database is automatically created and managed by Docker Compose. Data is persisted in a Docker volume named `postgres_data`.
+
+The database schema is automatically migrated on startup, including:
+- Users table with email verification, password reset, and profile fields (college, major)
+- Automatic column additions for new features
 
 **Backup the database**:
 ```bash
@@ -284,7 +291,20 @@ docker system df
    docker-compose logs postgres
    ```
 
-3. Verify environment variables match between services
+3. Verify environment variables match between services:
+   - `POSTGRES_HOST` should be `postgres` (service name in docker-compose)
+   - `POSTGRES_PORT` should be `5432`
+   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` must match between services
+
+4. Check if database is ready:
+   ```bash
+   docker exec altoai-postgres pg_isready -U altoai
+   ```
+
+5. Verify database connection from app container:
+   ```bash
+   docker exec altoai-mvp env | grep POSTGRES
+   ```
 
 ### Port conflicts
 

@@ -11,15 +11,13 @@
         "What are your test scores (e.g., GRE, GMAT, TOEFL, IELTS)?",
         "How good is your English (language proficiency)?",
         "Why are you planning to continue your education (instead of working)?",
-        "Who is your current employer, and what is your job there?",
+        "Are you employed, and what is your job there?",
         "Why do you want to pursue a graduate degree (Master’s or Ph.D.) at this time?",
         "What will be your major or field of study in the US?",
-        "Can you provide your work experience certificate or CV for review?",
         "How will you manage the cultural and educational differences in the U.S.?",
         "How will this study program relate to your past work or studies?",
         "Why did you choose this specific course or major?",
-        "What do you know about the U.S. education system or universities?",
-        "Could you explain your academic background (your prior degrees and achievements)?"
+        "What do you know about the U.S. education system or universities?"
     ],
     "University Choice": [
         "Why did you choose this university for your studies?",
@@ -33,9 +31,6 @@
     ],
     "Financial Capability": [
         "How do you plan to finance your education and living expenses in the US?",
-        "Who is going to sponsor your education?",
-        "What is your sponsor’s annual income?",
-        "What is your monthly income (current earnings)?",
         "What is your current salary?",
         "How much does your school program cost per year?",
         "How will you meet these expenses?",
@@ -46,14 +41,6 @@
         "If your program lasts multiple years, how will you fund the entire duration of your studies?",
         "How will you cover any remaining costs if your sponsor cannot cover everything?",
         "Do you plan to work while studying in the US (e.g., on-campus job)?"
-    ],
-    "Family/Sponsor Info": [
-        "Are any of your siblings living in the United States?",
-        "Do you have any other relatives (aunts, uncles, etc.) in the United States?",
-        "Why is your sibling in the US, and what do they do there?",
-        "Which city is your sibling in, and how long have they been in the US?",
-        "What do your parents do for a living (occupation)?",
-        "How long have your parents been working at their current jobs?"
     ],
     "Post-Graduation Plans": [
         "What are your plans after graduation?",
@@ -66,6 +53,7 @@
         "How will this degree contribute to your career growth or future opportunities?"
     ],
     "Immigration Intent": [
+        "Are any of your siblings living in the United States? Is so what do they do there?",
         "Do you intend to return to your home country after completing your studies?",
         "How can you prove that you will return home after finishing your studies?",
         "Do you plan to immigrate to the United States permanently, or will you return home?",

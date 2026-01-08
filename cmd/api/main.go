@@ -16,8 +16,12 @@ import (
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️ No .env file found")
+	// Only try to load .env file in development (when running locally)
+	// In Docker, environment variables are set by docker-compose via env_file
+	if os.Getenv("GIN_MODE") != "release" {
+		if err := godotenv.Load(); err != nil {
+			// Silently ignore - env vars may be set via environment
+		}
 	}
 	
 	// Initialize interview questions

@@ -62,8 +62,9 @@ COPY --from=backend-builder /app/main .
 # Copy the built frontend from frontend-builder
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
-# Copy interview questions file
+# Copy interview questions file (to both locations for path resolution)
 COPY --from=backend-builder /app/interview/questions.json ./interview/questions.json
+COPY --from=backend-builder /app/interview/questions.json ./questions.json
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app
