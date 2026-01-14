@@ -39,6 +39,8 @@ func New() (*gin.Engine, error) {
 	// Serve static files from frontend/dist
 	r.Static("/assets", "./frontend/dist/assets")
 	r.StaticFile("/vite.svg", "./frontend/dist/vite.svg")
+	r.StaticFile("/logo.svg", "./frontend/dist/logo.svg")
+	r.StaticFile("/logo.png", "./frontend/dist/logo.png")
 	
 	// Serve index.html for all non-API routes (React Router)
 	r.NoRoute(func(c *gin.Context) {

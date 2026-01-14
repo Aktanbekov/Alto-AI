@@ -101,7 +101,7 @@ export default function HomePage() {
             onClick={() => navigate("/")}
             className="flex items-center gap-2 sm:gap-3 cursor-pointer bg-transparent border-none outline-none p-0"
           >
-            <span className="text-3xl sm:text-4xl">🤖</span>
+            <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
             <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               AI Interviewer
             </span>
@@ -111,7 +111,7 @@ export default function HomePage() {
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
             <a href="#features" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">Features</a>
             <a href="#how-it-works" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">How It Works</a>
-            <a href="#pricing" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">Pricing</a>
+            {/* <a href="#pricing" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">Pricing</a> */}
             {!loading && (
               user ? (
                 <ProfileDropdown user={user} onLogout={handleLogout} />
@@ -162,13 +162,13 @@ export default function HomePage() {
               >
                 How It Works
               </a>
-              <a
+              {/* <a
                 href="#pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block py-3 text-gray-600 hover:text-indigo-600 font-medium transition-colors min-h-[44px] flex items-center"
               >
                 Pricing
-              </a>
+              </a> */}
               {!loading && (
                 user ? (
                   <div className="pt-2 border-t border-gray-200">
@@ -226,12 +226,12 @@ export default function HomePage() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
-                <span>Free 7-day trial</span>
+                <span>Free</span>
               </div>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Cancel anytime</span>
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="flex-1 w-full lg:min-w-[300px] relative animate-fade-in-scale" style={{ animationDelay: "0.2s" }}>
@@ -325,7 +325,7 @@ export default function HomePage() {
                 ✨
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Personalized</h3>
-              <p className="text-sm sm:text-base text-gray-600">Tailored questions based on your industry, role, and experience level for maximum relevance.</p>
+              <p className="text-sm sm:text-base text-gray-600">Tailored questions based on your visa, goal, and experience for maximum relevance.</p>
             </div>
           </div>
         </div>
@@ -347,7 +347,7 @@ export default function HomePage() {
                 1
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Create Your Profile</h3>
-              <p className="text-sm sm:text-base text-gray-600">Tell us about your background, the role you're applying for, and your experience level.</p>
+              <p className="text-sm sm:text-base text-gray-600">Tell us about your background, the visa you're applying for, and your goals level.</p>
             </div>
             <div
               ref={addToRefs}
@@ -386,7 +386,7 @@ export default function HomePage() {
           >
             Start Your Free Trial Now
           </button>
-          <p className="text-sm sm:text-base text-indigo-100 mt-4 sm:mt-6">No credit card required • 7-day free trial • Cancel anytime</p>
+          {/* <p className="text-sm sm:text-base text-indigo-100 mt-4 sm:mt-6">No credit card required • 7-day free trial • Cancel anytime</p> */}
         </div>
       </section>
 
@@ -396,7 +396,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-3xl">🤖</span>
+                <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 w-auto" />
                 <span className="text-xl font-bold text-white">AI Interviewer</span>
               </div>
               <p className="text-sm">Empowering candidates with AI-powered interview practice.</p>

@@ -78,7 +78,7 @@ const LevelSelection = () => {
                         onClick={() => navigate("/")}
                         className="flex items-center gap-2 sm:gap-3 cursor-pointer bg-transparent border-none outline-none p-0"
                     >
-                        <span className="text-3xl sm:text-4xl">🤖</span>
+                        <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
                         <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                             AI Interviewer
                         </span>
