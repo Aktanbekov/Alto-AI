@@ -209,7 +209,7 @@ export default function Chat() {
         setIsTyping(true);
         changeEmoji("thinking");
         const response: ChatResponse = await sendChatMessage([], null, levelToUse);
-        
+
         // Store the level in state if we got it from URL
         if (levelFromUrl && !selectedLevel) {
           setSelectedLevel(levelFromUrl);
@@ -242,13 +242,13 @@ export default function Chat() {
       } catch (error) {
         setIsTyping(false);
         changeEmoji("default");
-        
+
         // Check if it's an authentication error
         if (error instanceof Error && (error.message.includes("401") || error.message.includes("Unauthorized") || error.message.includes("authentication"))) {
           navigate("/login");
           return;
         }
-        
+
         const errorMessage: Message = {
           id: 1,
           text: `Failed to start interview: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -265,7 +265,7 @@ export default function Chat() {
   // Calculate progress based on messages
   const qaPairs = messages.filter(m => m.sender === "user").length;
   const aiQuestions = messages.filter(m => m.sender === "ai" && !m.text.includes("Failed to") && !m.text.includes("Your answer is too short")).length;
-  
+
   // Calculate progress based on selected level
   // Easy: 4 questions, Medium: 6 questions, Hard: 6 questions, Default: 6 questions
   // Plus 2 mandatory questions (college and major) for all levels
@@ -314,8 +314,8 @@ export default function Chat() {
 
     // Get overall feedback from the last AI message if it contains overall feedback
     const lastAiMessage = [...messages].reverse().find(m => m.sender === "ai");
-    const overallFeedback = lastAiMessage?.text?.includes("Thank you for completing") 
-      ? lastAiMessage.text 
+    const overallFeedback = lastAiMessage?.text?.includes("Thank you for completing")
+      ? lastAiMessage.text
       : "Review your answers above to see detailed feedback for each question.";
 
     return {
@@ -333,7 +333,7 @@ export default function Chat() {
   // Filter out the overall feedback message (the last AI message when finished)
   const displayMessages = useMemo(() => {
     if (!finished) return messages;
-    
+
     // Check if the last AI message contains overall feedback keywords
     const lastAiMessage = [...messages].reverse().find(m => m.sender === "ai");
     if (lastAiMessage && (
@@ -354,7 +354,7 @@ export default function Chat() {
   // Validate user input before sending
   const validateAnswer = (answer: string): { valid: boolean; error?: string } => {
     const trimmed = answer.trim();
-    
+
     // Check if empty
     if (!trimmed) {
       return { valid: false, error: "Your answer is too short." };
@@ -394,7 +394,7 @@ export default function Chat() {
       // Get the last question BEFORE adding error message
       const aiMessages = messages.filter(m => m.sender === "ai");
       const lastQuestion = aiMessages[aiMessages.length - 1];
-      
+
       // Show simple error message
       const errorMessage: Message = {
         id: messages.length + 1,
@@ -403,7 +403,7 @@ export default function Chat() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      
+
       // Resend the question if we found one
       if (lastQuestion && lastQuestion.text !== "Your answer is too short.") {
         const resendQuestion: Message = {
@@ -414,7 +414,7 @@ export default function Chat() {
         };
         setMessages((prev) => [...prev, resendQuestion]);
       }
-      
+
       // Clear input but don't send to API
       setInputValue("");
       return;
@@ -597,7 +597,7 @@ export default function Chat() {
       setScores(null);
       setFinished(false);
       setAnswerAnalyses([]);
-      
+
       // Clear any timeouts
       timeoutRefs.current.forEach((timeout) => clearTimeout(timeout));
       timeoutRefs.current = [];
@@ -635,13 +635,13 @@ export default function Chat() {
       } catch (error) {
         setIsTyping(false);
         changeEmoji("default");
-        
+
         // Check if it's an authentication error
         if (error instanceof Error && (error.message.includes("401") || error.message.includes("Unauthorized") || error.message.includes("authentication"))) {
           navigate("/login");
           return;
         }
-        
+
         const errorMessage: Message = {
           id: 1,
           text: `Failed to start interview: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -788,20 +788,19 @@ export default function Chat() {
                   <div className="flex items-center gap-3 flex-wrap">
                     <p className="text-indigo-100 text-xs sm:text-sm truncate">F1 Visa • Interview Practice</p>
                     {selectedLevel && (
-                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-sm ${
-                        selectedLevel === "easy" ? "bg-green-500/20 border border-green-300/30" :
-                        selectedLevel === "medium" ? "bg-blue-500/20 border border-blue-300/30" :
-                        "bg-purple-500/20 border border-purple-300/30"
-                      }`}>
+                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-sm ${selectedLevel === "easy" ? "bg-green-500/20 border border-green-300/30" :
+                          selectedLevel === "medium" ? "bg-blue-500/20 border border-blue-300/30" :
+                            "bg-purple-500/20 border border-purple-300/30"
+                        }`}>
                         <span className="text-sm">
                           {selectedLevel === "easy" ? "🌱" :
-                           selectedLevel === "medium" ? "🎯" :
-                           "🏆"}
+                            selectedLevel === "medium" ? "🎯" :
+                              "🏆"}
                         </span>
                         <span className="text-xs sm:text-sm font-medium text-white">
                           {selectedLevel === "easy" ? "Easy" :
-                           selectedLevel === "medium" ? "Medium" :
-                           "Hard"}
+                            selectedLevel === "medium" ? "Medium" :
+                              "Hard"}
                         </span>
                       </div>
                     )}
