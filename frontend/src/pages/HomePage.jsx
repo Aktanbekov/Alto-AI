@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { getMe } from "../api";
 import ProfileDropdown from "../components/ProfileDropdown";
@@ -405,23 +405,23 @@ export default function HomePage() {
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm">
                 <li><a href="#features" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">FAQ</a></li>
+                {/* <li><a href="#pricing" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Pricing</a></li> */}
+                <li><Link to="/faq" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">FAQ</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Careers</a></li>
+                <li><Link to="/about" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">About Us</Link></li>
+                {/* <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Blog</a></li> */}
+                {/* <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Careers</a></li> */}
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Terms of Service</a></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Terms of Service</Link></li>
                 <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Contact</a></li>
               </ul>
             </div>

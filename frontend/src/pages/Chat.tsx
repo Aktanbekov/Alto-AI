@@ -786,7 +786,7 @@ export default function Chat() {
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate mb-1">Interview Session</h1>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <p className="text-indigo-100 text-xs sm:text-sm truncate">Software Engineer Position • Technical Round</p>
+                    <p className="text-indigo-100 text-xs sm:text-sm truncate">F1 Visa • Interview Practice</p>
                     {selectedLevel && (
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-sm ${
                         selectedLevel === "easy" ? "bg-green-500/20 border border-green-300/30" :

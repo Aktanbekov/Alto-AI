@@ -5,6 +5,7 @@
     "react-router-dom": "^7.9.3"
   },
   "devDependencies": {
-    "@types/react": "^19.2.0"
+    "@types/react": "^19.2.0",
+    "baseline-browser-mapping": "^2.9.14"
   }
 }

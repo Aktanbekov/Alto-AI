@@ -43,10 +43,16 @@ func (s *emailService) GenerateCode() (string, error) {
 }
 
 func (s *emailService) sendEmail(to, subject, body string) error {
-	// If SMTP is not configured, log and return nil (for development)
+	// If SMTP is not configured, log and return error
 	if s.smtpHost == "" || s.smtpPort == "" {
-		fmt.Printf("[EMAIL] To: %s, Subject: %s\n%s\n", to, subject, body)
-		return nil
+		fmt.Printf("[EMAIL] SMTP not configured. Would send to: %s, Subject: %s\n%s\n", to, subject, body)
+		return fmt.Errorf("SMTP not configured: SMTP_HOST and SMTP_PORT must be set")
+	}
+	
+	// Check if SMTP credentials are provided
+	if s.smtpUser == "" || s.smtpPassword == "" {
+		fmt.Printf("[EMAIL] SMTP credentials missing. Would send to: %s, Subject: %s\n%s\n", to, subject, body)
+		return fmt.Errorf("SMTP credentials not configured: SMTP_USER and SMTP_PASSWORD must be set")
 	}
 
 	from := s.fromEmail

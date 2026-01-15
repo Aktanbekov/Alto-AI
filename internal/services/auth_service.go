@@ -199,9 +199,13 @@ func (s *authService) Register(ctx context.Context, dto models.CreateUserDTO) er
 		return err
 	}
 
-	// Send verification email
+	// Send verification email (non-blocking - don't fail registration if email fails)
+	// User is created successfully and can verify using resend verification code later
 	if err := s.emailSvc.SendVerificationCode(user.Email, user.Name, code); err != nil {
-		return errors.New("failed to send verification email")
+		// Log the error but don't fail registration
+		// The user is created and can verify their email later using resend verification
+		fmt.Printf("[WARNING] Failed to send verification email to %s: %v\n", user.Email, err)
+		fmt.Printf("[INFO] Verification code for %s: %s (expires in 15 minutes)\n", user.Email, code)
 	}
 
 	return nil
