@@ -13,15 +13,52 @@
 - 💬 **Natural Conversation** - Experience realistic interview scenarios with context-aware AI
 - 📈 **Progress Tracking** - Monitor your improvement with detailed analytics and insights
 - ⚡ **Instant Feedback** - Get real-time feedback on your answers and suggestions for improvement
+- 🎓 **Smart Analysis System** - Category-aware evaluation that only scores relevant criteria
+- 📊 **Accurate Grading** - Dynamic scoring based on question type with automatic classification validation
 - 🔒 **Private & Secure** - Your interviews are completely confidential
 - ⏰ **24/7 Availability** - Practice anytime, anywhere
 - 🎨 **Modern UI** - Beautiful, responsive design with smooth animations
+
+## 🧠 Analysis System
+
+The platform features an advanced AI-powered analysis system that evaluates your answers across multiple criteria:
+
+### Evaluation Criteria
+
+1. **Migration Intent** - Evidence of return to home country
+2. **Financial Understanding** - Knowledge of costs and funding sources
+3. **Academic Credibility** - Educational fit and progression
+4. **Specificity & Research** - Depth of knowledge about program/university
+5. **Consistency** - Alignment with previous answers
+6. **Communication Quality** - Clarity, confidence, and fluency
+7. **Red Flags** - Potential concerns or contradictions
+
+### Category-Aware Evaluation
+
+The system intelligently evaluates only the criteria relevant to each question category:
+
+- **Financial Capability**: Evaluates financial understanding, communication, and red flags
+- **University Choice**: Evaluates specificity/research, communication, and red flags
+- **Post-Graduation Plans**: Evaluates migration intent, consistency, communication, and red flags
+- **Academic Background**: Evaluates academic credibility, communication, and red flags
+- **Immigration Intent**: Evaluates migration intent, communication, and red flags
+- **Purpose of Study**: Evaluates specificity/research, academic credibility, communication, and red flags
+
+Irrelevant criteria are marked as "N/A" and don't affect your score, ensuring fair and accurate evaluation.
+
+### Dynamic Grading
+
+- Scoring adapts to the number of relevant criteria (3-5 criteria per question)
+- Classification thresholds adjust automatically based on criteria count
+- Automatic validation ensures grades match actual performance
+- Visual feedback shows relevant criteria in color and irrelevant ones in gray
 
 ## 🚀 Tech Stack
 
 ### Backend
 - **Go 1.24.2** - High-performance backend
 - **Gin** - Web framework
+- **OpenAI GPT-3.5-turbo** - AI analysis engine
 - **PostgreSQL** - Database (optional, can use in-memory)
 - **JWT** - Authentication
 - **OAuth2** - Google authentication
@@ -40,6 +77,7 @@
 - **npm** or **yarn**
 - **PostgreSQL** (optional, for production)
 - **Docker** (optional, for containerized deployment)
+- **OpenAI API Key** (required for AI analysis)
 
 ## 🛠️ Installation
 
@@ -65,6 +103,9 @@ cp .env.example .env
 
 Edit `.env` with your configuration:
 ```env
+# OpenAI API (Required for AI analysis)
+OPENAI_API_KEY=your_openai_api_key
+
 # Google OAuth
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
@@ -142,14 +183,20 @@ For more Docker details, see [DOCKER.md](DOCKER.md)
    - Or use email/password (if implemented)
 
 3. **Start Interview Practice**
-   - After login, you'll be redirected to the Interview Practice chat
+   - After login, choose your difficulty level (Easy, Medium, or Hard)
    - The AI interviewer will greet you and ask questions
    - Answer naturally and receive instant feedback
 
-4. **Track Your Progress**
+4. **Review Your Analysis**
+   - After each answer, see detailed feedback
+   - View which criteria were evaluated (green/yellow/red)
+   - See N/A criteria marked in gray (not relevant to this question)
+   - Get specific suggestions for improvement
+
+5. **Track Your Progress**
    - Monitor your interview progress with the progress bar
-   - View message count and session time
-   - Get tips and suggestions
+   - View overall grade and category scores
+   - Review all answers and analyses at the end
 
 ## 📁 Project Structure
 
@@ -165,13 +212,24 @@ altoai_mvp/
 │   │   │   ├── LoginPage.jsx    # Login page
 │   │   │   └── Chat.tsx          # Interview practice chat
 │   │   ├── components/
+│   │   │   ├── AnswerFeedbackCard.tsx  # Analysis display component
+│   │   │   ├── ProfileDropdown.tsx
 │   │   │   └── ProtectedRoute.tsx
 │   │   ├── App.jsx               # Main app component
 │   │   └── api.js                # API client
 │   └── package.json
+├── interview/
+│   ├── analyzer.go              # AI analysis engine
+│   ├── questions.go              # Question selection logic
+│   ├── models.go                 # Data models
+│   ├── llm.go                    # LLM integration
+│   ├── evaluation.go             # Evaluation utilities
+│   ├── session_store.go          # Session management
+│   └── questions.json            # Question database
 ├── internal/
 │   ├── auth/                     # Authentication handlers
-│   ├── handlers/                 # HTTP handlers
+│   ├── handlers/
+│   │   └── chat_handler.go       # Interview chat handler
 │   ├── middleware/              # Middleware (CORS, JWT, etc.)
 │   ├── models/                   # Data models
 │   ├── repository/               # Data access layer
@@ -180,6 +238,7 @@ altoai_mvp/
 ├── pkg/
 │   ├── errors/                   # Error handling
 │   └── response/                 # Response utilities
+├── tests/                        # Test files
 ├── docker-compose.yml            # Docker Compose config
 ├── Dockerfile                    # Docker build file
 ├── go.mod                        # Go dependencies
@@ -196,6 +255,11 @@ altoai_mvp/
 ### Health Check
 - `GET /health` - Health check endpoint
 
+### Interview Practice
+- `POST /api/v1/chat` - Send chat message and get interview question/analysis
+  - Request body: `{ "messages": [...], "session_id": "...", "level": "easy|medium|hard" }`
+  - Response: `{ "content": "...", "session_id": "...", "question_id": "...", "finished": false, "analysis": {...} }`
+
 ### API v1
 - `GET /api/v1/users` - List users
 - `POST /api/v1/users` - Create user
@@ -207,6 +271,7 @@ altoai_mvp/
 
 | Variable | Description | Required |
 |----------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for AI analysis | Yes |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID | Yes |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | Yes |
 | `GOOGLE_REDIRECT_URL` | OAuth redirect URL | Yes |
@@ -288,6 +353,13 @@ go build -o bin/api ./cmd/api
 ./bin/api
 ```
 
+## 📚 Documentation
+
+- [DOCKER.md](DOCKER.md) - Docker setup and deployment
+- [LOCAL_DEV_SETUP.md](LOCAL_DEV_SETUP.md) - Local development guide
+- [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) - Google OAuth configuration
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Production deployment guide
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -309,6 +381,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built with [Gin](https://gin-gonic.com/) and [React](https://reactjs.org/)
+- AI analysis powered by [OpenAI](https://openai.com/)
 - UI design inspired by modern interview platforms
 - Thanks to all contributors and users
 
@@ -319,5 +392,3 @@ For support, email support@altoai.com or open an issue in this repository.
 ---
 
 ⭐ If you find this project helpful, please give it a star!
-
-
