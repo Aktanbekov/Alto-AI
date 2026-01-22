@@ -43,27 +43,17 @@ func TestQuestionSelection(t *testing.T) {
 		t.Fatalf("LoadQuestions failed: %v", err)
 	}
 	
-	// Test default/medium level selection
+	// Test default/hard level selection
 	selected := interview.SelectQuestionsForSession("")
 	if len(selected) == 0 {
 		t.Error("Should select questions for session")
 	}
 	
-	// Check that we have the right number of questions for default level
-	// 6 questions (1 from each of 6 categories) + 2 mandatory (college and major) = 8 total
-	expectedTotal := 8 // 6 category questions + 2 mandatory
+	// Check that we have the right number of questions for default level (hard)
+	// Hard level: 2 questions from each of 6 categories = 12 total
+	expectedTotal := 12
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions (6 + 2 mandatory), got %d", expectedTotal, len(selected))
-	}
-	
-	// Verify first two questions are college and major
-	if len(selected) >= 2 {
-		if selected[0].ID != "q0_college" {
-			t.Error("First question should be college question")
-		}
-		if selected[1].ID != "q0_major" {
-			t.Error("Second question should be major question")
-		}
+		t.Errorf("Expected %d questions for hard level (2 from each category), got %d", expectedTotal, len(selected))
 	}
 	
 	// Check that all selected questions have valid structure
@@ -92,27 +82,17 @@ func TestEasyLevelSelection(t *testing.T) {
 		t.Error("Should select questions for easy level session")
 	}
 	
-	// Easy level should have exactly 4 questions + 2 mandatory (college and major) = 6 total
-	expectedTotal := 6
+	// Easy level should have exactly 4 questions (1 from each of 4 categories)
+	expectedTotal := 4
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions for easy level (4 + 2 mandatory), got %d", expectedTotal, len(selected))
-	}
-	
-	// Verify first two questions are college and major
-	if len(selected) >= 2 {
-		if selected[0].ID != "q0_college" {
-			t.Error("First question should be college question")
-		}
-		if selected[1].ID != "q0_major" {
-			t.Error("Second question should be major question")
-		}
+		t.Errorf("Expected %d questions for easy level (1 from each of 4 categories), got %d", expectedTotal, len(selected))
 	}
 	
 	// Check that we have exactly one question from each required category
 	requiredCategories := map[string]bool{
 		"Purpose of Study":      false,
+		"Academic Background":   false,
 		"University Choice":     false,
-		"Financial Capability":  false,
 		"Post-Graduation Plans": false,
 	}
 	
@@ -151,23 +131,13 @@ func TestMediumLevelSelection(t *testing.T) {
 		t.Error("Should select questions for medium level session")
 	}
 	
-	// Medium level should have exactly 6 questions + 2 mandatory (college and major) = 8 total
-	expectedTotal := 8
+	// Medium level should have exactly 7 questions (1 from each of 6 categories + 1 extra from random category)
+	expectedTotal := 7
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions for medium level (6 + 2 mandatory), got %d", expectedTotal, len(selected))
+		t.Errorf("Expected %d questions for medium level (6 + 1 extra), got %d", expectedTotal, len(selected))
 	}
 	
-	// Verify first two questions are college and major
-	if len(selected) >= 2 {
-		if selected[0].ID != "q0_college" {
-			t.Error("First question should be college question")
-		}
-		if selected[1].ID != "q0_major" {
-			t.Error("Second question should be major question")
-		}
-	}
-	
-	// Check that we have exactly one question from each of all 6 categories
+	// Check that we have at least one question from each of all 6 categories
 	requiredCategories := map[string]bool{
 		"Purpose of Study":      false,
 		"Academic Background":   false,
@@ -176,6 +146,9 @@ func TestMediumLevelSelection(t *testing.T) {
 		"Post-Graduation Plans": false,
 		"Immigration Intent":    false,
 	}
+	
+	// Track selected question texts to check for duplicates
+	selectedTexts := make(map[string]bool)
 	
 	for _, q := range selected {
 		if _, ok := requiredCategories[q.Category]; ok {
@@ -190,6 +163,11 @@ func TestMediumLevelSelection(t *testing.T) {
 		if q.Category == "" {
 			t.Error("Selected question should have category")
 		}
+		// Check for duplicates
+		if selectedTexts[q.Text] {
+			t.Errorf("Duplicate question found: %s", q.Text)
+		}
+		selectedTexts[q.Text] = true
 	}
 	
 	// Verify all required categories are present
@@ -206,41 +184,34 @@ func TestHardLevelSelection(t *testing.T) {
 		t.Fatalf("LoadQuestions failed: %v", err)
 	}
 	
-	// Test hard level selection (should use 6 questions, 1 from each category)
+	// Test hard level selection (should use 2 questions from each category)
 	selected := interview.SelectQuestionsForSession("hard")
 	if len(selected) == 0 {
 		t.Error("Should select questions for hard level session")
 	}
 	
-	// Hard level should have exactly 6 questions + 2 mandatory (college and major) = 8 total
-	expectedTotal := 8
+	// Hard level should have exactly 12 questions (2 from each of 6 categories)
+	expectedTotal := 12
 	if len(selected) != expectedTotal {
-		t.Errorf("Expected %d questions for hard level (6 + 2 mandatory), got %d", expectedTotal, len(selected))
+		t.Errorf("Expected %d questions for hard level (2 from each category), got %d", expectedTotal, len(selected))
 	}
 	
-	// Verify first two questions are college and major
-	if len(selected) >= 2 {
-		if selected[0].ID != "q0_college" {
-			t.Error("First question should be college question")
-		}
-		if selected[1].ID != "q0_major" {
-			t.Error("Second question should be major question")
-		}
+	// Check that we have exactly 2 questions from each of all 6 categories
+	requiredCategories := map[string]int{
+		"Purpose of Study":      0,
+		"Academic Background":   0,
+		"University Choice":     0,
+		"Financial Capability":  0,
+		"Post-Graduation Plans": 0,
+		"Immigration Intent":    0,
 	}
 	
-	// Check that we have exactly one question from each of all 6 categories
-	requiredCategories := map[string]bool{
-		"Purpose of Study":      false,
-		"Academic Background":   false,
-		"University Choice":     false,
-		"Financial Capability":  false,
-		"Post-Graduation Plans": false,
-		"Immigration Intent":    false,
-	}
+	// Track selected question texts to check for duplicates
+	selectedTexts := make(map[string]bool)
 	
 	for _, q := range selected {
-		if _, ok := requiredCategories[q.Category]; ok {
-			requiredCategories[q.Category] = true
+		if count, ok := requiredCategories[q.Category]; ok {
+			requiredCategories[q.Category] = count + 1
 		}
 		if q.ID == "" {
 			t.Error("Selected question should have ID")
@@ -251,13 +222,17 @@ func TestHardLevelSelection(t *testing.T) {
 		if q.Category == "" {
 			t.Error("Selected question should have category")
 		}
+		// Check for duplicates
+		if selectedTexts[q.Text] {
+			t.Errorf("Duplicate question found: %s", q.Text)
+		}
+		selectedTexts[q.Text] = true
 	}
 	
-	// Verify all required categories are present
-	for category, found := range requiredCategories {
-		if !found {
-			t.Errorf("Hard level should include a question from category: %s", category)
+	// Verify all required categories have exactly 2 questions
+	for category, count := range requiredCategories {
+		if count != 2 {
+			t.Errorf("Hard level should have exactly 2 questions from category %s, got %d", category, count)
 		}
 	}
 }
-

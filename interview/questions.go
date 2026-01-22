@@ -105,29 +105,16 @@ func LoadQuestions(path string) error {
 
 // SelectQuestionsForSession selects questions according to the rules
 // level can be "easy", "medium", "hard", or "" for default
-// Always includes college and major questions at the start
 func SelectQuestionsForSession(level string) []Question {
 	var selectedQuestions []Question
 	rand.Seed(time.Now().UnixNano())
-
-	// Always add college and major questions first
-	selectedQuestions = append(selectedQuestions, Question{
-		ID:       "q0_college",
-		Category: "University Choice",
-		Text:     "Which college or university will you attend?",
-	})
-	selectedQuestions = append(selectedQuestions, Question{
-		ID:       "q0_major",
-		Category: "Academic Background",
-		Text:     "What is your major?",
-	})
 
 	// For easy level, select exactly 1 question from each of 4 specific categories
 	if level == "easy" {
 		easyCategories := []string{
 			"Purpose of Study",
+			"Academic Background",
 			"University Choice",
-			"Financial Capability",
 			"Post-Graduation Plans",
 		}
 
@@ -157,9 +144,9 @@ func SelectQuestionsForSession(level string) []Question {
 		return selectedQuestions
 	}
 
-	// For medium level, select exactly 1 question from each of 6 categories
+	// For medium level, select exactly 1 question from each of 6 categories, then 1 extra from a random category
 	if level == "medium" {
-		mediumCategories := []string{
+		allCategories := []string{
 			"Purpose of Study",
 			"Academic Background",
 			"University Choice",
@@ -168,7 +155,10 @@ func SelectQuestionsForSession(level string) []Question {
 			"Immigration Intent",
 		}
 
-		for _, category := range mediumCategories {
+		selectedTexts := make(map[string]bool) // Track selected questions to avoid duplicates
+
+		// First, select 1 question from each category
+		for _, category := range allCategories {
 			questions, ok := QuestionsByCategory[category]
 			if !ok || len(questions) == 0 {
 				continue
@@ -183,20 +173,54 @@ func SelectQuestionsForSession(level string) []Question {
 				available[i], available[j] = available[j], available[i]
 			})
 
+			selectedText := available[0]
+			selectedTexts[selectedText] = true
+
 			questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(category))
 			selectedQuestions = append(selectedQuestions, Question{
 				ID:       questionID,
 				Category: category,
-				Text:     available[0],
+				Text:     selectedText,
 			})
+		}
+
+		// Add 1 extra question from a random category (avoid duplicates)
+		if len(allCategories) > 0 {
+			// Pick a random category
+			randomCategory := allCategories[rand.Intn(len(allCategories))]
+			questions, ok := QuestionsByCategory[randomCategory]
+			
+			if ok && len(questions) > 0 {
+				// Filter out already selected questions
+				available := make([]string, 0)
+				for _, q := range questions {
+					if !selectedTexts[q] {
+						available = append(available, q)
+					}
+				}
+
+				// If there are available questions, select one
+				if len(available) > 0 {
+					rand.Shuffle(len(available), func(i, j int) {
+						available[i], available[j] = available[j], available[i]
+					})
+
+					questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(randomCategory))
+					selectedQuestions = append(selectedQuestions, Question{
+						ID:       questionID,
+						Category: randomCategory,
+						Text:     available[0],
+					})
+				}
+			}
 		}
 
 		return selectedQuestions
 	}
 
-	// For hard level, select exactly 1 question from each of 6 categories (same as medium)
+	// For hard level, select exactly 2 questions from each of 6 categories (check for duplicates)
 	if level == "hard" || level == "" {
-		hardCategories := []string{
+		allCategories := []string{
 			"Purpose of Study",
 			"Academic Background",
 			"University Choice",
@@ -205,27 +229,49 @@ func SelectQuestionsForSession(level string) []Question {
 			"Immigration Intent",
 		}
 
-		for _, category := range hardCategories {
+		selectedTexts := make(map[string]bool) // Track selected questions to avoid duplicates
+
+		for _, category := range allCategories {
 			questions, ok := QuestionsByCategory[category]
 			if !ok || len(questions) == 0 {
 				continue
 			}
 
-			// Select one random question from this category
-			available := make([]string, len(questions))
-			copy(available, questions)
-			
-			// Shuffle and take 1 question
+			// Filter out already selected questions from this category
+			available := make([]string, 0)
+			for _, q := range questions {
+				if !selectedTexts[q] {
+					available = append(available, q)
+				}
+			}
+
+			// If we don't have enough questions, use what we have
+			if len(available) == 0 {
+				continue
+			}
+
+			// Shuffle available questions
 			rand.Shuffle(len(available), func(i, j int) {
 				available[i], available[j] = available[j], available[i]
 			})
 
-			questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(category))
-			selectedQuestions = append(selectedQuestions, Question{
-				ID:       questionID,
-				Category: category,
-				Text:     available[0],
-			})
+			// Select up to 2 questions from this category
+			count := 2
+			if len(available) < count {
+				count = len(available)
+			}
+
+			for i := 0; i < count; i++ {
+				selectedText := available[i]
+				selectedTexts[selectedText] = true
+
+				questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(category))
+				selectedQuestions = append(selectedQuestions, Question{
+					ID:       questionID,
+					Category: category,
+					Text:     selectedText,
+				})
+			}
 		}
 
 		return selectedQuestions

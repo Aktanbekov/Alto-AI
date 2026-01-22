@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -71,6 +72,18 @@ func HandleGoogleLogin(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "missing GOOGLE_CLIENT_ID"})
 		return
 	}
+	// Get redirect parameter from query string
+	redirect := c.Query("redirect")
+	if redirect == "" {
+		redirect = "/choose-level" // Default redirect
+	}
+	// Store redirect in a cookie so we can use it in the callback
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	if cookieDomain == "" {
+		cookieDomain = "" // Empty means same origin
+	}
+	isSecure := os.Getenv("GIN_MODE") == "release"
+	c.SetCookie("oauth_redirect", redirect, 300, "/", cookieDomain, isSecure, false) // 5 minutes expiry, not HttpOnly so frontend can read if needed
 	url := conf.AuthCodeURL("state-123", oauth2.AccessTypeOffline)
 	c.Redirect(http.StatusFound, url)
 }
@@ -250,6 +263,19 @@ func HandleGoogleCallback(c *gin.Context) {
 		frontendURL = "http://localhost:5173"
 	}
 
+	// Get redirect destination from cookie (set during login initiation)
+	redirectPath := "/choose-level" // Default
+	if redirectCookie, err := c.Cookie("oauth_redirect"); err == nil && redirectCookie != "" {
+		redirectPath = redirectCookie
+		// Clear the cookie after reading
+		cookieDomain := os.Getenv("COOKIE_DOMAIN")
+		if cookieDomain == "" {
+			cookieDomain = ""
+		}
+		isSecure := os.Getenv("GIN_MODE") == "release"
+		c.SetCookie("oauth_redirect", "", -1, "/", cookieDomain, isSecure, false)
+	}
+
 	// Set refresh token cookie (HttpOnly, Secure)
 	cookieDomain := os.Getenv("COOKIE_DOMAIN")
 	if cookieDomain == "" {
@@ -258,7 +284,8 @@ func HandleGoogleCallback(c *gin.Context) {
 	isSecure := os.Getenv("GIN_MODE") == "release"
 	c.SetCookie("refresh_token", refreshToken, 30*24*60*60, "/", cookieDomain, isSecure, true)
 
-	// Redirect to frontend with access token in query parameter
-	// Frontend will extract it and store in memory
-	c.Redirect(http.StatusFound, frontendURL+"/?access_token="+accessToken)
+	// Redirect to frontend with access token and redirect in query parameters
+	// Frontend will extract it and store in memory, then redirect to the intended destination
+	redirectURL := frontendURL + "/?access_token=" + url.QueryEscape(accessToken) + "&redirect=" + url.QueryEscape(redirectPath)
+	c.Redirect(http.StatusFound, redirectURL)
 }

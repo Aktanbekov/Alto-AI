@@ -57,19 +57,28 @@ type Session struct {
 	Summary *SessionSummary `json:"summary,omitempty"`
 }
 
-// AnalysisScores represents the 3–15 grading system for a single answer
+// AnalysisScores represents the dynamic grading system for a single answer
+// Criteria are nullable (*int) to support N/A when not relevant to the question
 type AnalysisScores struct {
-	MigrationIntent   int `json:"migration_intent"`   // 1–5
-	GoalUnderstanding int `json:"goal_understanding"` // 1–5
-	AnswerLength      int `json:"answer_length"`      // 1–5
-	TotalScore        int `json:"total_score"`        // 3–15 (sum of all criteria)
+	MigrationIntent       *int `json:"migration_intent"`        // 1–5 or null
+	FinancialUnderstanding *int `json:"financial_understanding"` // 1–5 or null
+	AcademicCredibility   *int `json:"academic_credibility"`    // 1–5 or null
+	SpecificityResearch   *int `json:"specificity_research"`    // 1–5 or null
+	Consistency           *int `json:"consistency"`             // 1–5 or null
+	CommunicationQuality  *int `json:"communication_quality"`   // 1–5 or null
+	RedFlags              *int `json:"red_flags"`               // 1–5 or null (inverted: 5 = no flags, 1 = major flags)
+	TotalScore            int  `json:"total_score"`              // Sum of non-null criteria
 }
 
 // FeedbackByCriterion contains feedback for each scoring criterion
 type FeedbackByCriterion struct {
-	MigrationIntent   string `json:"migration_intent"`
-	GoalUnderstanding string `json:"goal_understanding"`
-	AnswerLength      string `json:"answer_length"`
+	MigrationIntent       string `json:"migration_intent"`
+	FinancialUnderstanding string `json:"financial_understanding"`
+	AcademicCredibility   string `json:"academic_credibility"`
+	SpecificityResearch   string `json:"specificity_research"`
+	Consistency           string `json:"consistency"`
+	CommunicationQuality  string `json:"communication_quality"`
+	RedFlags              string `json:"red_flags"`
 }
 
 // StructuredFeedback contains detailed feedback in the new format

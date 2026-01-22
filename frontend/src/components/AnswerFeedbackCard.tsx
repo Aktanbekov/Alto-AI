@@ -1,16 +1,24 @@
 import React from "react";
 
 interface AnalysisScores {
-  migration_intent: number;
-  goal_understanding: number;
-  answer_length: number;
+  migration_intent: number | null;
+  financial_understanding: number | null;
+  academic_credibility: number | null;
+  specificity_research: number | null;
+  consistency: number | null;
+  communication_quality: number | null;
+  red_flags: number | null;
   total_score: number;
 }
 
 interface FeedbackByCriterion {
   migration_intent: string;
-  goal_understanding: string;
-  answer_length: string;
+  financial_understanding: string;
+  academic_credibility: string;
+  specificity_research: string;
+  consistency: string;
+  communication_quality: string;
+  red_flags: string;
 }
 
 interface StructuredFeedback {
@@ -40,13 +48,37 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
 
   const { scores, classification, feedback } = analysis;
   const totalScore = scores.total_score || 0;
-  const percentage = ((totalScore - 3) / 12) * 100;
+  
+  // Count relevant criteria (non-null)
+  const countRelevantCriteria = () => {
+    let count = 0;
+    if (scores.migration_intent !== null && scores.migration_intent !== undefined) count++;
+    if (scores.financial_understanding !== null && scores.financial_understanding !== undefined) count++;
+    if (scores.academic_credibility !== null && scores.academic_credibility !== undefined) count++;
+    if (scores.specificity_research !== null && scores.specificity_research !== undefined) count++;
+    if (scores.consistency !== null && scores.consistency !== undefined) count++;
+    if (scores.communication_quality !== null && scores.communication_quality !== undefined) count++;
+    if (scores.red_flags !== null && scores.red_flags !== undefined) count++;
+    return count || 1; // Avoid division by zero
+  };
+
+  const criteriaCount = countRelevantCriteria();
+  const maxScore = criteriaCount * 5;
+  const minScore = criteriaCount * 1;
+  const scoreRange = maxScore - minScore;
+  const percentage = scoreRange > 0 
+    ? Math.max(0, Math.min(100, ((totalScore - minScore) / scoreRange) * 100))
+    : 0;
   
   // Helper to check if feedback has content
   const hasFeedback = feedback && (
     feedback.by_criterion?.migration_intent ||
-    feedback.by_criterion?.goal_understanding ||
-    feedback.by_criterion?.answer_length ||
+    feedback.by_criterion?.financial_understanding ||
+    feedback.by_criterion?.academic_credibility ||
+    feedback.by_criterion?.specificity_research ||
+    feedback.by_criterion?.consistency ||
+    feedback.by_criterion?.communication_quality ||
+    feedback.by_criterion?.red_flags ||
     (feedback.improvements && feedback.improvements.length > 0)
   );
 
@@ -109,7 +141,10 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
 
   const style = getClassificationStyle();
 
-  const getScoreColor = (score: number) => {
+  const getScoreColor = (score: number | null) => {
+    if (score === null || score === undefined) {
+      return "text-gray-500 bg-gray-100 border-gray-300"; // Gray for N/A
+    }
     if (score >= 4) return "text-green-600 bg-green-50 border-green-300";
     if (score === 3) return "text-yellow-600 bg-yellow-50 border-yellow-300";
     return "text-red-600 bg-red-50 border-red-300";
@@ -120,8 +155,12 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
     { label: string; icon: string }
   > = {
     migration_intent: { label: "Intent", icon: "🏠" },
-    goal_understanding: { label: "Goal", icon: "🎯" },
-    answer_length: { label: "Length", icon: "📏" },
+    financial_understanding: { label: "Financial", icon: "💰" },
+    academic_credibility: { label: "Academic", icon: "🎓" },
+    specificity_research: { label: "Research", icon: "🔍" },
+    consistency: { label: "Consistency", icon: "🔗" },
+    communication_quality: { label: "Communication", icon: "💬" },
+    red_flags: { label: "Red Flags", icon: "⚠️" },
     total_score: { label: "Total", icon: "📊" },
   };
 
@@ -163,16 +202,20 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
         {/* Content */}
         <div className="p-4">
           {/* Score Breakdown */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-4 gap-2 mb-4">
             {(
               [
                 "migration_intent",
-                "goal_understanding",
-                "answer_length",
+                "financial_understanding",
+                "academic_credibility",
+                "specificity_research",
+                "consistency",
+                "communication_quality",
+                "red_flags",
               ] as (keyof AnalysisScores)[]
             ).map((key) => {
               const meta = criteriaLabels[key];
-              const score = scores[key] || 0;
+              const score = scores[key]; // Keep null as null, don't convert to 0
               return (
                 <div
                   key={key}
@@ -182,6 +225,9 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
                 >
                   <div className="text-xl mb-1">{meta.icon}</div>
                   <div className="text-xs font-medium">{meta.label}</div>
+                  {score === null && (
+                    <div className="text-[10px] text-gray-400 mt-0.5">N/A</div>
+                  )}
                 </div>
               );
             })}
@@ -192,8 +238,12 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
             <div className="space-y-3">
               {/* Feedback by Criterion */}
               {(feedback.by_criterion?.migration_intent || 
-                feedback.by_criterion?.goal_understanding || 
-                feedback.by_criterion?.answer_length) && (
+                feedback.by_criterion?.financial_understanding ||
+                feedback.by_criterion?.academic_credibility ||
+                feedback.by_criterion?.specificity_research ||
+                feedback.by_criterion?.consistency ||
+                feedback.by_criterion?.communication_quality ||
+                feedback.by_criterion?.red_flags) && (
                 <div className="bg-white border-l-4 border-blue-500 p-3 rounded-lg shadow-sm">
                   <p className="text-xs font-semibold text-gray-500 mb-2">
                     DETAILED FEEDBACK
@@ -201,20 +251,44 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
                   <div className="space-y-2 text-sm text-gray-700">
                     {feedback.by_criterion.migration_intent && (
                       <div>
-                        <span className="font-medium">Intent: </span>
+                        <span className="font-medium">Return Intent: </span>
                         {feedback.by_criterion.migration_intent}
                       </div>
                     )}
-                    {feedback.by_criterion.goal_understanding && (
+                    {feedback.by_criterion.financial_understanding && (
                       <div>
-                        <span className="font-medium">Goal: </span>
-                        {feedback.by_criterion.goal_understanding}
+                        <span className="font-medium">Financial Understanding: </span>
+                        {feedback.by_criterion.financial_understanding}
                       </div>
                     )}
-                    {feedback.by_criterion.answer_length && (
+                    {feedback.by_criterion.academic_credibility && (
                       <div>
-                        <span className="font-medium">Length: </span>
-                        {feedback.by_criterion.answer_length}
+                        <span className="font-medium">Academic Credibility: </span>
+                        {feedback.by_criterion.academic_credibility}
+                      </div>
+                    )}
+                    {feedback.by_criterion.specificity_research && (
+                      <div>
+                        <span className="font-medium">Specificity & Research: </span>
+                        {feedback.by_criterion.specificity_research}
+                      </div>
+                    )}
+                    {feedback.by_criterion.consistency && (
+                      <div>
+                        <span className="font-medium">Consistency: </span>
+                        {feedback.by_criterion.consistency}
+                      </div>
+                    )}
+                    {feedback.by_criterion.communication_quality && (
+                      <div>
+                        <span className="font-medium">Communication Quality: </span>
+                        {feedback.by_criterion.communication_quality}
+                      </div>
+                    )}
+                    {feedback.by_criterion.red_flags && (
+                      <div>
+                        <span className="font-medium">Red Flags: </span>
+                        {feedback.by_criterion.red_flags}
                       </div>
                     )}
                   </div>

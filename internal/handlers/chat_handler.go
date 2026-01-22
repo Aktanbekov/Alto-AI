@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"altoai_mvp/interview"
-	"altoai_mvp/internal/middleware"
-	"altoai_mvp/internal/models"
 	"altoai_mvp/internal/services"
 	"altoai_mvp/pkg/response"
 	"fmt"
@@ -43,6 +41,14 @@ type ChatResponse struct {
 	Grade           string                      `json:"grade,omitempty"`            // Letter grade (A-F) for the answer
 	Suggestions     []string                    `json:"suggestions,omitempty"`      // Improvement suggestions
 	ImprovedVersion string                      `json:"improved_version,omitempty"` // Suggested improved answer
+	AllAnalyses     []AnswerAnalysis            `json:"all_analyses,omitempty"`     // All answers with analyses (when finished)
+}
+
+type AnswerAnalysis struct {
+	QuestionID   string                      `json:"question_id"`
+	QuestionText string                      `json:"question_text"`
+	AnswerText   string                      `json:"answer_text"`
+	Analysis     *interview.AnalysisResponse `json:"analysis,omitempty"`
 }
 
 func (h *ChatHandler) Chat(c *gin.Context) {
@@ -212,24 +218,6 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		return
 	}
 
-	// Save college/major to database if these questions are answered
-	if currentQ.ID == "q0_college" || currentQ.ID == "q0_major" {
-		claims := c.MustGet("user").(*middleware.MyClaims)
-		user, err := h.userSvc.GetByEmail(c.Request.Context(), claims.Email)
-		if err == nil {
-			updateDTO := models.UpdateUserDTO{}
-			if currentQ.ID == "q0_college" {
-				updateDTO.College = &lastUserMessage
-			} else if currentQ.ID == "q0_major" {
-				updateDTO.Major = &lastUserMessage
-			}
-			_, err = h.userSvc.Update(c.Request.Context(), user.ID, updateDTO)
-			if err != nil {
-				log.Printf("Failed to save %s to database: %v", currentQ.ID, err)
-			}
-		}
-	}
-
 	// Record the answer
 	answer := interview.Answer{
 		QuestionID:   currentQ.ID,
@@ -268,6 +256,9 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		// All questions answered
 		session.Status = interview.SessionStatusFinished
 
+		// Add delay to ensure analysis is fully processed before returning results
+		time.Sleep(1 * time.Second)
+
 		// Generate session summary before completing
 		summary, err := interview.GenerateSessionSummary(session)
 		if err == nil && summary != nil {
@@ -276,14 +267,29 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 
 		interview.SaveSession(session)
 
+		// Build all analyses array from session answers
+		allAnalyses := make([]AnswerAnalysis, 0, len(session.Answers))
+		for _, ans := range session.Answers {
+			if ans.Analysis != nil {
+				allAnalyses = append(allAnalyses, AnswerAnalysis{
+					QuestionID:   ans.QuestionID,
+					QuestionText: ans.QuestionText,
+					AnswerText:   ans.Text,
+					Analysis:     ans.Analysis,
+				})
+			}
+		}
+
 		completionMsg := buildCompletionMessage(session)
 		response.OK(c, ChatResponse{
-			Content:   completionMsg,
-			SessionID: session.ID,
-			Finished:  true,
-			Scores:    &session.Scores,
-			Analysis:  analysis,
-			Grade:     getGradeFromAnalysis(analysis),
+			Content:     completionMsg,
+			SessionID:   session.ID,
+			QuestionID:  currentQ.ID, // Include question ID for the last answered question
+			Finished:    true,
+			Scores:      &session.Scores,
+			Analysis:    analysis,
+			Grade:       getGradeFromAnalysis(analysis),
+			AllAnalyses: allAnalyses, // Include all analyses when finished
 		})
 		return
 	}

@@ -100,8 +100,15 @@ export async function sendChatMessage(messages, sessionId = null, level = null) 
     throw new Error(error.error || "Failed to send message");
   }
 
-  const data = await res.json();
-  return data.data; // Return full response object, not just content
+  try {
+    const data = await res.json();
+    return data.data; // Return full response object, not just content
+  } catch (jsonError) {
+    console.error('JSON parsing error:', jsonError);
+    const text = await res.text().catch(() => '');
+    console.error('Response text:', text.substring(0, 500));
+    throw new Error(`Failed to parse response: ${jsonError instanceof Error ? jsonError.message : 'Invalid JSON'}`);
+  }
 }
 
 export async function login(email, password) {
@@ -121,10 +128,12 @@ export async function login(email, password) {
 
   const data = await res.json();
   // Store access token from response
-  if (data.access_token) {
-    setAccessToken(data.access_token);
+  // Backend wraps response in {"data": {...}}, so we need to access data.data
+  const responseData = data.data || data;
+  if (responseData.access_token) {
+    setAccessToken(responseData.access_token);
   }
-  return data;
+  return responseData;
 }
 
 export async function logout() {
@@ -154,10 +163,12 @@ export async function refreshToken() {
 
   const data = await res.json();
   // Store new access token from response
-  if (data.access_token) {
-    setAccessToken(data.access_token);
+  // Backend wraps response in {"data": {...}}, so we need to access data.data
+  const responseData = data.data || data;
+  if (responseData.access_token) {
+    setAccessToken(responseData.access_token);
   }
-  return data;
+  return responseData;
 }
 
 export async function register(email, name, password) {
@@ -238,10 +249,12 @@ export async function verifyEmail(email, code) {
 
   const data = await res.json();
   // Store access token from response
-  if (data.access_token) {
-    setAccessToken(data.access_token);
+  // Backend wraps response in {"data": {...}}, so we need to access data.data
+  const responseData = data.data || data;
+  if (responseData.access_token) {
+    setAccessToken(responseData.access_token);
   }
-  return data;
+  return responseData;
 }
 
 export async function resendVerificationCode(email) {

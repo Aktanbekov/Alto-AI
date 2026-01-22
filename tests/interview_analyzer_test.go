@@ -10,25 +10,29 @@ import (
 
 func TestScoreToPercentage(t *testing.T) {
 	tests := []struct {
-		name     string
-		score    int
-		expected float64
+		name          string
+		score         int
+		criteriaCount int
+		expected      float64
 	}{
-		{"Minimum score - 3", 3, 0.0},
-		{"Maximum score - 15", 15, 100.0},
-		{"Middle score - 9", 9, 50.0},
-		{"Good score - 13", 13, 83.33},
-		{"Average score - 11", 11, 66.67},
-		{"Below minimum - 0", 0, 0.0},
-		{"Above maximum - 20", 20, 100.0},
+		{"3 criteria - minimum (3)", 3, 3, 0.0},
+		{"3 criteria - maximum (15)", 15, 3, 100.0},
+		{"3 criteria - middle (9)", 9, 3, 50.0},
+		{"4 criteria - minimum (4)", 4, 4, 0.0},
+		{"4 criteria - maximum (20)", 20, 4, 100.0},
+		{"4 criteria - middle (12)", 12, 4, 50.0},
+		{"7 criteria - minimum (7)", 7, 7, 0.0},
+		{"7 criteria - maximum (35)", 35, 7, 100.0},
+		{"7 criteria - middle (21)", 21, 7, 50.0},
+		{"7 criteria - good (28)", 28, 7, 75.0},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := interview.ScoreToPercentage(tt.score)
+			result := interview.ScoreToPercentage(tt.score, tt.criteriaCount)
 			// Allow small floating point differences
 			if result < tt.expected-0.1 || result > tt.expected+0.1 {
-				t.Errorf("ScoreToPercentage(%d) = %.2f, want approximately %.2f", tt.score, result, tt.expected)
+				t.Errorf("ScoreToPercentage(%d, %d) = %.2f, want approximately %.2f", tt.score, tt.criteriaCount, result, tt.expected)
 			}
 		})
 	}

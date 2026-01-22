@@ -15,25 +15,33 @@ export default function HomePage() {
   // Handle Google OAuth callback - extract access_token from query parameter
   useEffect(() => {
     const accessToken = searchParams.get("access_token");
+    const redirect = searchParams.get("redirect");
     if (accessToken) {
       setAccessToken(accessToken);
-      // Remove access_token from URL
+      // Remove access_token and redirect from URL
       searchParams.delete("access_token");
+      if (redirect) {
+        searchParams.delete("redirect");
+      }
       setSearchParams(searchParams, { replace: true });
       // Refresh user data
       getMe().then((userData) => {
         setUser(userData);
+        // Redirect to intended destination if specified
+        if (redirect) {
+          navigate(redirect);
+        }
       }).catch(() => {
         setUser(null);
       });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, navigate]);
 
   const startInterview = () => {
     if (user) {
       navigate("/choose-level");
     } else {
-      navigate("/login");
+      navigate("/login?redirect=/choose-level");
     }
   };
 

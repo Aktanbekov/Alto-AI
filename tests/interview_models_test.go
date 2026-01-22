@@ -7,11 +7,22 @@ import (
 )
 
 func TestAnalysisScoresJSON(t *testing.T) {
+	mi := 5
+	fu := 4
+	ac := 4
+	sr := 4
+	co := 5
+	cq := 5
+	rf := 5
 	scores := interview.AnalysisScores{
-		MigrationIntent:  5,
-		GoalUnderstanding: 4,
-		AnswerLength:     5,
-		TotalScore:       14,
+		MigrationIntent:        &mi,
+		FinancialUnderstanding: &fu,
+		AcademicCredibility:    &ac,
+		SpecificityResearch:    &sr,
+		Consistency:            &co,
+		CommunicationQuality:   &cq,
+		RedFlags:              &rf,
+		TotalScore:            32,
 	}
 
 	jsonData, err := json.Marshal(scores)
@@ -24,14 +35,14 @@ func TestAnalysisScoresJSON(t *testing.T) {
 		t.Fatalf("Failed to unmarshal AnalysisScores: %v", err)
 	}
 
-	if unmarshaled.MigrationIntent != scores.MigrationIntent {
-		t.Errorf("MigrationIntent mismatch: got %d, want %d", unmarshaled.MigrationIntent, scores.MigrationIntent)
+	if unmarshaled.MigrationIntent == nil || *unmarshaled.MigrationIntent != *scores.MigrationIntent {
+		t.Errorf("MigrationIntent mismatch: got %v, want %d", unmarshaled.MigrationIntent, *scores.MigrationIntent)
 	}
-	if unmarshaled.GoalUnderstanding != scores.GoalUnderstanding {
-		t.Errorf("GoalUnderstanding mismatch: got %d, want %d", unmarshaled.GoalUnderstanding, scores.GoalUnderstanding)
+	if unmarshaled.FinancialUnderstanding == nil || *unmarshaled.FinancialUnderstanding != *scores.FinancialUnderstanding {
+		t.Errorf("FinancialUnderstanding mismatch: got %v, want %d", unmarshaled.FinancialUnderstanding, *scores.FinancialUnderstanding)
 	}
-	if unmarshaled.AnswerLength != scores.AnswerLength {
-		t.Errorf("AnswerLength mismatch: got %d, want %d", unmarshaled.AnswerLength, scores.AnswerLength)
+	if unmarshaled.SpecificityResearch == nil || *unmarshaled.SpecificityResearch != *scores.SpecificityResearch {
+		t.Errorf("SpecificityResearch mismatch: got %v, want %d", unmarshaled.SpecificityResearch, *scores.SpecificityResearch)
 	}
 	if unmarshaled.TotalScore != scores.TotalScore {
 		t.Errorf("TotalScore mismatch: got %d, want %d", unmarshaled.TotalScore, scores.TotalScore)
@@ -42,9 +53,13 @@ func TestStructuredFeedbackJSON(t *testing.T) {
 	feedback := interview.StructuredFeedback{
 		Overall: "Good answer overall",
 		ByCriterion: interview.FeedbackByCriterion{
-			MigrationIntent:  "No migration intent shown",
-			GoalUnderstanding: "Clear goals",
-			AnswerLength:     "Appropriate length",
+			MigrationIntent:       "Strong return intent",
+			FinancialUnderstanding: "Good financial understanding",
+			AcademicCredibility:   "Strong academic fit",
+			SpecificityResearch:   "Good research",
+			Consistency:           "Consistent",
+			CommunicationQuality:  "Clear communication",
+			RedFlags:              "No red flags",
 		},
 		Improvements: []string{"Be more specific", "Add examples"},
 	}
@@ -68,20 +83,35 @@ func TestStructuredFeedbackJSON(t *testing.T) {
 }
 
 func TestAnalysisResponseJSON(t *testing.T) {
+	mi := 5
+	fu := 4
+	ac := 4
+	sr := 4
+	co := 5
+	cq := 5
+	rf := 5
 	response := interview.AnalysisResponse{
 		Scores: interview.AnalysisScores{
-			MigrationIntent:  5,
-			GoalUnderstanding: 4,
-			AnswerLength:     5,
-			TotalScore:       14,
+			MigrationIntent:        &mi,
+			FinancialUnderstanding: &fu,
+			AcademicCredibility:    &ac,
+			SpecificityResearch:    &sr,
+			Consistency:            &co,
+			CommunicationQuality:   &cq,
+			RedFlags:              &rf,
+			TotalScore:            32,
 		},
-		Classification: "Good",
+		Classification: "Excellent",
 		Feedback: interview.StructuredFeedback{
 			Overall: "Good answer",
 			ByCriterion: interview.FeedbackByCriterion{
-				MigrationIntent:  "Good",
-				GoalUnderstanding: "Good",
-				AnswerLength:     "Good",
+				MigrationIntent:       "Good",
+				FinancialUnderstanding: "Good",
+				AcademicCredibility:   "Good",
+				SpecificityResearch:   "Good",
+				Consistency:           "Good",
+				CommunicationQuality:  "Good",
+				RedFlags:              "Good",
 			},
 			Improvements: []string{"Improve clarity"},
 		},

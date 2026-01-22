@@ -34,7 +34,7 @@ func AnalyzeAnswer(session *Session, q Question, answer string) (*AnalysisRespon
 	if va.apiKey == "" {
 		return nil, fmt.Errorf("API key not set for analyzer")
 	}
-	return va.AnalyzeAnswerWithSession(session, q.Text, answer)
+	return va.AnalyzeAnswerWithSession(session, q.Category, q.Text, answer)
 }
 
 // CallLLM is kept for backward compatibility but now uses the new analyzer
@@ -69,7 +69,34 @@ func convertAnalysisToEval(analysis *AnalysisResponse, q Question) *EvalResult {
 		totalScore = analysis.Scores.TotalScore
 	}
 
-	percentage := int(ScoreToPercentage(totalScore)) // 0–100
+	// Count relevant criteria
+	criteriaCount := 0
+	if analysis.Scores.MigrationIntent != nil {
+		criteriaCount++
+	}
+	if analysis.Scores.FinancialUnderstanding != nil {
+		criteriaCount++
+	}
+	if analysis.Scores.AcademicCredibility != nil {
+		criteriaCount++
+	}
+	if analysis.Scores.SpecificityResearch != nil {
+		criteriaCount++
+	}
+	if analysis.Scores.Consistency != nil {
+		criteriaCount++
+	}
+	if analysis.Scores.CommunicationQuality != nil {
+		criteriaCount++
+	}
+	if analysis.Scores.RedFlags != nil {
+		criteriaCount++
+	}
+	if criteriaCount == 0 {
+		criteriaCount = 1 // Avoid division by zero
+	}
+
+	percentage := int(ScoreToPercentage(totalScore, criteriaCount)) // 0–100
 
 	// Map overall percentage (0–100) to quality (0–10)
 	quality := percentage / 10
@@ -78,14 +105,21 @@ func convertAnalysisToEval(analysis *AnalysisResponse, q Question) *EvalResult {
 	}
 
 	// Map criteria scores (1–5) to 0–10 scale using simple *2 scaling
-	clarity := analysis.Scores.AnswerLength * 2
-	if clarity > 10 {
-		clarity = 10
+	// Use communication_quality as a proxy for clarity
+	clarity := 0
+	if analysis.Scores.CommunicationQuality != nil {
+		clarity = *analysis.Scores.CommunicationQuality * 2
+		if clarity > 10 {
+			clarity = 10
+		}
 	}
-	// Use goal_understanding as a proxy for confidence
-	confidence := analysis.Scores.GoalUnderstanding * 2
-	if confidence > 10 {
-		confidence = 10
+	// Use specificity_research as a proxy for confidence
+	confidence := 0
+	if analysis.Scores.SpecificityResearch != nil {
+		confidence = *analysis.Scores.SpecificityResearch * 2
+		if confidence > 10 {
+			confidence = 10
+		}
 	}
 
 	// Map overall percentage score to intent risk (inverse: higher score = lower risk)
@@ -100,7 +134,7 @@ func convertAnalysisToEval(analysis *AnalysisResponse, q Question) *EvalResult {
 	suggestedFollowup := ""
 	if needsFollowup {
 		// Use feedback text to guess the main followup area
-		feedbackText := analysis.Feedback.Overall + " " + analysis.Feedback.ByCriterion.GoalUnderstanding
+		feedbackText := analysis.Feedback.Overall + " " + analysis.Feedback.ByCriterion.SpecificityResearch
 		if contains(feedbackText, "purpose", "study", "why", "goal") {
 			suggestedFollowup = "clarify_purpose"
 		} else if contains(feedbackText, "university", "school", "college", "program") {

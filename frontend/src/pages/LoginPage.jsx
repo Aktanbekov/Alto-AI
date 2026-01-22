@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { login } from "../api";
 
 // Minimal inline SVG icons
@@ -41,27 +41,39 @@ const GoogleIcon = (props) => (
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
     const API_BASE = import.meta?.env?.VITE_API_BASE || (import.meta.env.PROD ? "" : "http://localhost:8080");
 
     const onSubmit = async (e) => {
         e.preventDefault();
+        setError("");
         setLoading(true);
         try {
             await login(email, password);
-            navigate("/");
+            // Redirect to intended destination or default to /choose-level
+            const redirect = searchParams.get("redirect") || "/choose-level";
+            navigate(redirect);
         } catch (err) {
-            alert(err.message || "Login failed");
+            const errorMessage = err.message || "Login failed";
+            setError(errorMessage);
+            // If email not verified, suggest going to signup to verify
+            if (errorMessage.toLowerCase().includes("email not verified") || errorMessage.toLowerCase().includes("verification")) {
+                setError(errorMessage + " You can verify your email on the signup page.");
+            }
         } finally {
             setLoading(false);
         }
     };
 
     const googleLogin = () => {
-        window.location.href = `${API_BASE}/auth/google`;
+        // Pass redirect parameter to Google OAuth
+        const redirect = searchParams.get("redirect") || "/choose-level";
+        window.location.href = `${API_BASE}/auth/google?redirect=${encodeURIComponent(redirect)}`;
     };
 
     return (
@@ -123,6 +135,12 @@ export default function LoginPage() {
                                 </button>
                             </div>
                         </label>
+
+                        {error && (
+                            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                                {error}
+                            </div>
+                        )}
 
                         {/* Log in button */}
                         <button
