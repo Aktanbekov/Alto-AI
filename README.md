@@ -376,7 +376,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **Your Name** - *Initial work*
+- **Aktai Aktanbekov** - *Initial work*
 
 ## 🙏 Acknowledgments
 
@@ -387,7 +387,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@altoai.com or open an issue in this repository.
+For support, email aktaiaktan@gmail.com or open an issue in this repository.
 
 ---
 
