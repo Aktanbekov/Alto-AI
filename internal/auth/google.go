@@ -69,23 +69,21 @@ type MyClaims struct {
 func HandleGoogleLogin(c *gin.Context) {
 	conf := googleConf()
 	if conf.ClientID == "" {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "missing GOOGLE_CLIENT_ID"})
+		redirectToFrontendWithError(c, "Google sign-in is not configured (missing GOOGLE_CLIENT_ID). Check server .env.")
 		return
 	}
-	// Get redirect parameter from query string
 	redirect := c.Query("redirect")
 	if redirect == "" {
-		redirect = "/choose-level" // Default redirect
+		redirect = "/choose-level"
 	}
-	// Store redirect in a cookie so we can use it in the callback
 	cookieDomain := os.Getenv("COOKIE_DOMAIN")
 	if cookieDomain == "" {
-		cookieDomain = "" // Empty means same origin
+		cookieDomain = ""
 	}
 	isSecure := os.Getenv("GIN_MODE") == "release"
-	c.SetCookie("oauth_redirect", redirect, 300, "/", cookieDomain, isSecure, false) // 5 minutes expiry, not HttpOnly so frontend can read if needed
-	url := conf.AuthCodeURL("state-123", oauth2.AccessTypeOffline)
-	c.Redirect(http.StatusFound, url)
+	c.SetCookie("oauth_redirect", redirect, 300, "/", cookieDomain, isSecure, false)
+	authURL := conf.AuthCodeURL("state-123", oauth2.AccessTypeOffline)
+	c.Redirect(http.StatusFound, authURL)
 }
 
 // GET /auth/google/callback?code=...
@@ -94,32 +92,31 @@ func HandleGoogleCallback(c *gin.Context) {
 
 	code := c.Query("code")
 	if code == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "missing code"})
+		redirectToFrontendWithError(c, "Google sign-in was cancelled or no code was returned.")
 		return
 	}
 
 	tok, err := conf.Exchange(c, code)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token exchange failed"})
+		redirectToFrontendWithError(c, "Token exchange failed. Try again or use email login.")
 		return
 	}
 
 	resp, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + tok.AccessToken)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "failed to fetch userinfo"})
+		redirectToFrontendWithError(c, "Could not fetch your Google profile. Try again.")
 		return
 	}
 	defer resp.Body.Close()
 
 	var gu googleUser
 	if err := json.NewDecoder(resp.Body).Decode(&gu); err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to decode user info"})
+		redirectToFrontendWithError(c, "Invalid response from Google. Try again.")
 		return
 	}
 
-	// Use shared user repository to create/update user
 	if sharedUserRepo == nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "database not initialized"})
+		redirectToFrontendWithError(c, "Server configuration error. Please try again later.")
 		return
 	}
 
@@ -140,7 +137,7 @@ func HandleGoogleCallback(c *gin.Context) {
 			Password: "", // OAuth users don't have passwords
 		})
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+			redirectToFrontendWithError(c, "Could not create your account. Try again or use email sign up.")
 			return
 		}
 		// Mark email as verified for OAuth users (Google already verified the email)
@@ -170,17 +167,15 @@ func HandleGoogleCallback(c *gin.Context) {
 		}
 	}
 
-	// Get the user (either existing or newly created)
 	finalUser, err := sharedUserRepo.GetByEmail(gu.Email)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		redirectToFrontendWithError(c, "Could not load your account. Try again.")
 		return
 	}
 
-	// Generate access and refresh tokens
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "JWT_SECRET not set"})
+		redirectToFrontendWithError(c, "Server configuration error. Please try again later.")
 		return
 	}
 
@@ -285,7 +280,25 @@ func HandleGoogleCallback(c *gin.Context) {
 	c.SetCookie("refresh_token", refreshToken, 30*24*60*60, "/", cookieDomain, isSecure, true)
 
 	// Redirect to frontend with access token and redirect in query parameters
-	// Frontend will extract it and store in memory, then redirect to the intended destination
 	redirectURL := frontendURL + "/?access_token=" + url.QueryEscape(accessToken) + "&redirect=" + url.QueryEscape(redirectPath)
 	c.Redirect(http.StatusFound, redirectURL)
+}
+
+// getFrontendURL returns the frontend base URL for redirects.
+func getFrontendURL() string {
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if os.Getenv("GIN_MODE") == "release" {
+		if frontendURL == "" || frontendURL == "http://localhost:5173" || frontendURL == "http://localhost:3000" {
+			frontendURL = "http://localhost:8080"
+		}
+	} else if frontendURL == "" {
+		frontendURL = "http://localhost:5173"
+	}
+	return frontendURL
+}
+
+// redirectToFrontendWithError sends the user to the frontend login page with an error query param.
+func redirectToFrontendWithError(c *gin.Context, errMsg string) {
+	u := getFrontendURL() + "/login?error=" + url.QueryEscape(errMsg)
+	c.Redirect(http.StatusFound, u)
 }

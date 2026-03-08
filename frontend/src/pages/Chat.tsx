@@ -827,20 +827,11 @@ export default function Chat() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 text-gray-600 hover:text-indigo-600 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Toggle sidebar"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <button
               onClick={() => navigate("/")}
               className="flex items-center gap-2 sm:gap-3 cursor-pointer bg-transparent border-none outline-none p-0"
             >
-              <span className="text-2xl sm:text-3xl">🤖</span>
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
+              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 AI Interviewer
               </span>
             </button>
@@ -986,17 +977,17 @@ export default function Chat() {
                 >
                   <div
                     className={`max-w-[85%] sm:max-w-[80%] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-md transition-all hover:shadow-lg ${message.sender === "ai"
-                      ? "bg-white text-gray-800 border-2 border-indigo-100"
+                      ? "bg-white text-gray-900 border-2 border-indigo-100"
                       : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
                       }`}
                   >
                     {message.sender === "ai" && (
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
                         <span className="text-lg sm:text-xl">🤖</span>
-                        <span className="text-xs font-semibold text-indigo-600">AI Interviewer</span>
+                        <span className="text-sm font-semibold text-indigo-600">AI Interviewer</span>
                       </div>
                     )}
-                    <p className="text-xs sm:text-sm leading-relaxed break-words">
+                    <p className="text-sm sm:text-base leading-relaxed break-words">
                       {message.sender === "ai" ? (
                         <TypewriterText text={message.text} messageId={message.id} />
                       ) : (
@@ -1010,7 +1001,7 @@ export default function Chat() {
               {/* Final per-answer analysis cards */}
               {finished && answerAnalyses.length > 0 && (
                 <div className="mt-4 space-y-3">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-700 flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
                     <span>📊 Interview Results ({answerAnalyses.filter(a => a.analysis).length} of {selectedLevel === "easy" ? 4 : selectedLevel === "medium" ? 7 : 12} answers analyzed)</span>
                   </h3>
                   {answerAnalyses
@@ -1020,7 +1011,7 @@ export default function Chat() {
                         key={`${index}-${item.questionId || item.question}-${item.answer}`}
                         className="space-y-2"
                       >
-                        <div className="text-xs sm:text-sm text-gray-600">
+                        <div className="text-xs sm:text-sm text-gray-800">
                           <div className="font-semibold">
                             Question {index + 1}:
                           </div>
@@ -1088,7 +1079,7 @@ export default function Chat() {
                   <span className="sm:hidden">➤</span>
                 </button>
               </form>
-              <div className="hidden sm:flex items-center gap-4 mt-2 sm:mt-3 text-xs text-gray-400">
+              <div className="hidden sm:flex items-center gap-4 mt-2 sm:mt-3 text-xs text-gray-500">
                 <span>💡 Press Enter to send</span>
                 <span>•</span>
                 <span>Shift + Enter for new line</span>

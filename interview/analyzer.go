@@ -365,19 +365,19 @@ func (va *VisaAnalyzer) callGPTAPI(sessionMessages []GPTMessage, category, quest
 
 	content := gptResp.Choices[0].Message.Content
 	content = strings.TrimSpace(content)
-	
+
 	// Remove markdown code fences
 	content = strings.TrimPrefix(content, "```json")
 	content = strings.TrimPrefix(content, "```")
 	content = strings.TrimSuffix(content, "```")
 	content = strings.TrimSpace(content)
-	
+
 	// Extract JSON object more robustly - find first { and matching closing }
 	jsonStart := strings.Index(content, "{")
 	if jsonStart == -1 {
 		return nil, fmt.Errorf("no JSON object found in response")
 	}
-	
+
 	// Find the matching closing brace
 	braceCount := 0
 	jsonEnd := -1
@@ -392,11 +392,11 @@ func (va *VisaAnalyzer) callGPTAPI(sessionMessages []GPTMessage, category, quest
 			}
 		}
 	}
-	
+
 	if jsonEnd == -1 {
 		return nil, fmt.Errorf("unmatched braces in JSON response")
 	}
-	
+
 	// Extract just the JSON object
 	jsonContent := content[jsonStart:jsonEnd]
 
@@ -577,14 +577,14 @@ func ScoreToPercentage(score int, criteriaCount int) float64 {
 	}
 	maxScore := criteriaCount * 5
 	minScore := criteriaCount * 1
-	
+
 	if score < minScore {
 		score = minScore
 	}
 	if score > maxScore {
 		score = maxScore
 	}
-	
+
 	// Formula: ((score - minScore) / (maxScore - minScore)) * 100
 	scoreRange := maxScore - minScore
 	if scoreRange == 0 {

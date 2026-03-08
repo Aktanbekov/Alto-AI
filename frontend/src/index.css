@@ -18,6 +18,14 @@
   animation: bounce 2s infinite;
 }
 
+@keyframes bounceLow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-bounce-low {
+  animation: bounceLow 2s ease-in-out infinite;
+}
+
 * {
   scroll-behavior: smooth;
 }
@@ -65,7 +73,7 @@
 .fade-in-on-scroll {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  transition: opacity 0.28s ease-out, transform 0.28s ease-out;
 }
 
 .fade-in-on-scroll.visible {

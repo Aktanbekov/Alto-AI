@@ -41,31 +41,24 @@ func New() (*gin.Engine, error) {
 	r.StaticFile("/vite.svg", "./frontend/dist/vite.svg")
 	r.StaticFile("/logo.svg", "./frontend/dist/logo.svg")
 	r.StaticFile("/logo.png", "./frontend/dist/logo.png")
+
+	// AUTH - Google (must be registered before NoRoute so /auth/google is never caught by SPA fallback)
+	r.GET("/auth/google", auth.HandleGoogleLogin)
+	r.GET("/auth/google/callback", auth.HandleGoogleCallback)
 	
 	// Serve index.html for all non-API routes (React Router)
 	r.NoRoute(func(c *gin.Context) {
-		// Don't serve index.html for API routes
 		path := c.Request.URL.Path
 		if len(path) >= 4 && path[:4] == "/api" {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
-		// Don't serve index.html for auth/google routes (they're handled separately)
-		if len(path) >= 5 && path[:5] == "/auth" {
-			c.JSON(404, gin.H{"error": "Not found"})
-			return
-		}
-		// Don't serve index.html for .well-known paths (used by Let's Encrypt, etc.)
 		if len(path) >= 11 && path[:11] == "/.well-known" {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
 		c.File("./frontend/dist/index.html")
 	})
-
-	// AUTH - Google
-	r.GET("/auth/google", auth.HandleGoogleLogin)
-	r.GET("/auth/google/callback", auth.HandleGoogleCallback)
 	
 	// User info endpoint (requires auth)
 	r.GET("/me", middleware.JWTAuth(), func(c *gin.Context) {

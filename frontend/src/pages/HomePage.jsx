@@ -10,7 +10,6 @@ export default function HomePage() {
   const observerRef = useRef(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Handle Google OAuth callback - extract access_token from query parameter
   useEffect(() => {
@@ -115,11 +114,10 @@ export default function HomePage() {
             </span>
           </button>
 
-          {/* Desktop Navigation */}
+          {/* Desktop: nav links + profile/sign in */}
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
             <a href="#features" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">Features</a>
             <a href="#how-it-works" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">How It Works</a>
-            {/* <a href="#pricing" className="text-gray-600 hover:text-indigo-600 font-medium transition-colors py-2 min-h-[44px] flex items-center">Pricing</a> */}
             {!loading && (
               user ? (
                 <ProfileDropdown user={user} onLogout={handleLogout} />
@@ -134,80 +132,38 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-600 hover:text-indigo-600 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+          {/* Mobile: same as chat - profile picture (dropdown) or sign-in avatar */}
+          <div className="flex md:hidden items-center gap-2">
+            {!loading && (
+              user ? (
+                <ProfileDropdown user={user} onLogout={handleLogout} />
+              ) : (
+                <button
+                  onClick={() => navigate("/login")}
+                  className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white min-w-[44px] min-h-[44px] hover:opacity-90 transition-opacity"
+                  aria-label="Sign in"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </button>
+              )
             )}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
-            <div className="px-4 py-4 space-y-3">
-              <a
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-3 text-gray-600 hover:text-indigo-600 font-medium transition-colors min-h-[44px] flex items-center"
-              >
-                Features
-              </a>
-              <a
-                href="#how-it-works"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-3 text-gray-600 hover:text-indigo-600 font-medium transition-colors min-h-[44px] flex items-center"
-              >
-                How It Works
-              </a>
-              {/* <a
-                href="#pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-3 text-gray-600 hover:text-indigo-600 font-medium transition-colors min-h-[44px] flex items-center"
-              >
-                Pricing
-              </a> */}
-              {!loading && (
-                user ? (
-                  <div className="pt-2 border-t border-gray-200">
-                    <div className="flex justify-end">
-                      <ProfileDropdown user={user} onLogout={handleLogout} />
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      navigate("/login");
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all text-sm font-medium min-h-[44px]"
-                  >
-                    Sign In
-                  </button>
-                )
-              )}
-            </div>
           </div>
-        )}
+        </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section - on mobile: robot emoji above headline only; on desktop: text left, full card right */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
           <div className="flex-1 w-full lg:min-w-[300px] animate-fade-in-up text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-4 sm:mb-6">
               <span>✨</span>
               <span>Powered by Advanced AI</span>
+            </div>
+            {/* Robot between badge and headline - phone only (bigger, subtle jump) */}
+            <div className="flex justify-center mb-4 sm:mb-6 md:hidden">
+              <span className="text-8xl sm:text-9xl animate-bounce-low inline-block" role="img" aria-label="AI Robot">🤖</span>
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
               Practice Interviews with Your
@@ -227,24 +183,11 @@ export default function HomePage() {
                 Watch Demo
               </button>
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8 text-xs sm:text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
-                <span>Free</span>
-              </div>
-              {/* <div className="flex items-center gap-2">
-                <span className="text-green-500">✓</span>
-                <span>Cancel anytime</span>
-              </div> */}
-            </div>
           </div>
           <div className="flex-1 w-full lg:min-w-[300px] relative animate-fade-in-scale" style={{ animationDelay: "0.2s" }}>
             <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 text-center">
-              <div className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 sm:mb-6 animate-bounce">🤖</div>
+              {/* Robot in card - tablet and desktop only (phone shows robot between badge and headline) */}
+              <div className="hidden md:block text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-4 sm:mb-6 animate-bounce">🤖</div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Meet Your AI Interviewer</h3>
               <p className="text-sm sm:text-base text-gray-500">Ready to help you succeed!</p>
               <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">

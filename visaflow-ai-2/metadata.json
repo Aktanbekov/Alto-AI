@@ -1,0 +1,8 @@
+{
+  "name": "VisaFlow AI",
+  "description": "A high-performance Visa Interview Simulator helping students secure their future with proven AI systems.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

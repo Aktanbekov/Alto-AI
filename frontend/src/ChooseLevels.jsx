@@ -7,7 +7,6 @@ const LevelSelection = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         // Check if user is logged in
@@ -84,7 +83,7 @@ const LevelSelection = () => {
                         </span>
                     </button>
 
-                    {/* Desktop Navigation */}
+                    {/* Desktop: profile dropdown or Sign In */}
                     <div className="hidden md:flex items-center gap-6 lg:gap-8">
                         {!loading && (
                             user ? (
@@ -100,45 +99,25 @@ const LevelSelection = () => {
                         )}
                     </div>
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden p-2 text-gray-600 hover:text-indigo-600 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                        aria-label="Toggle menu"
-                    >
-                        {mobileMenuOpen ? (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        ) : (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
+                    {/* Mobile: same as main page and chat - profile picture (dropdown) or sign-in avatar */}
+                    <div className="flex md:hidden items-center gap-2">
+                        {!loading && (
+                            user ? (
+                                <ProfileDropdown user={user} onLogout={handleLogout} />
+                            ) : (
+                                <button
+                                    onClick={() => navigate("/login")}
+                                    className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white min-w-[44px] min-h-[44px] hover:opacity-90 transition-opacity"
+                                    aria-label="Sign in"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </button>
+                            )
                         )}
-                    </button>
-                </div>
-
-                {/* Mobile Menu */}
-                {mobileMenuOpen && (
-                    <div className="md:hidden border-t bg-white">
-                        <div className="px-4 py-4 space-y-3">
-                            {!loading && (
-                                user ? (
-                                    <div className="px-4">
-                                        <ProfileDropdown user={user} onLogout={handleLogout} />
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => navigate("/login")}
-                                        className="w-full px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all text-sm"
-                                    >
-                                        Sign In
-                                    </button>
-                                )
-                            )}
-                        </div>
                     </div>
-                )}
+                </div>
             </nav>
 
             {/* Page Title Section */}

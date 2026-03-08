@@ -1,0 +1,402 @@
+{
+    "f1_extended": [
+      {
+        "id": "purpose_us",
+        "q": "Why do you want to study in the United States?",
+        "cat": "Intent",
+        "keys": ["academic goals", "program fit", "career plan"],
+        "flags": ["immigrate", "stay permanently"]
+      },
+      {
+        "id": "purpose_not_home",
+        "q": "Why not study in your home country or other countries, like Canada or the UK or Europe?",
+        "cat": "Intent",
+        "keys": ["comparative reasons", "program quality", "long-term plan"],
+        "flags": ["no clear reason", "only because US"]
+      },
+      {
+        "id": "purpose_university_name",
+        "q": "Which university will you be attending in the US?",
+        "cat": "Academic Preparation",
+        "keys": ["university name", "program name", "degree level"],
+        "flags": ["unsure", "inconsistent details"]
+      },
+      {
+        "id": "history_us_travel",
+        "q": "Have you been to the United States before?",
+        "cat": "Background & Travel",
+        "keys": ["travel history", "visa history", "compliance"],
+        "flags": ["overstay", "inconsistent travel story"]
+      },
+  
+      {
+        "id": "acad_prev_school",
+        "q": "What is the name of your previous college or school, and what degree did you earn?",
+        "cat": "Academic Preparation",
+        "keys": ["school", "degree", "major"],
+        "flags": ["cannot explain background", "inconsistent timeline"]
+      },
+      {
+        "id": "acad_gpa",
+        "q": "What was your academic GPA or percentage in your last program of study?",
+        "cat": "Academic Preparation",
+        "keys": ["GPA", "academic performance", "transcript readiness"],
+        "flags": ["doesnt know GPA", "avoids numbers"]
+      },
+      {
+        "id": "acad_tests",
+        "q": "What are your test scores (e.g., GRE, GMAT, TOEFL, IELTS)?",
+        "cat": "Academic Preparation",
+        "keys": ["test scores", "requirements", "preparedness"],
+        "flags": ["no scores when required", "fake/unclear scores"]
+      },
+      {
+        "id": "acad_english",
+        "q": "How good is your English (language proficiency)?",
+        "cat": "Communication",
+        "keys": ["fluency", "study readiness", "confidence"],
+        "flags": ["cannot communicate", "contradicts test scores"]
+      },
+      {
+        "id": "acad_continue_study",
+        "q": "Why are you planning to continue your education (instead of working)?",
+        "cat": "Intent",
+        "keys": ["career progression", "skills gap", "degree necessity"],
+        "flags": ["no purpose", "using study to enter US"]
+      },
+      {
+        "id": "work_current_job",
+        "q": "Are you employed, and what is your job there?",
+        "cat": "Background & Employment",
+        "keys": ["employment status", "role", "ties back home"],
+        "flags": ["fake job", "inconsistent employment"]
+      },
+      {
+        "id": "acad_grad_reason",
+        "q": "Why do you want to pursue a graduate degree (Master’s or Ph.D.) at this time?",
+        "cat": "Academic Preparation",
+        "keys": ["research/advanced goals", "timing", "career alignment"],
+        "flags": ["vague reason", "only for visa"]
+      },
+      {
+        "id": "acad_major_field",
+        "q": "What will be your major or field of study in the US?",
+        "cat": "Academic Preparation",
+        "keys": ["major", "program track", "goal alignment"],
+        "flags": ["unsure", "changes story"]
+      },
+      {
+        "id": "acad_adaptation",
+        "q": "How will you manage the cultural and educational differences in the U.S.?",
+        "cat": "Communication",
+        "keys": ["adaptation plan", "study habits", "support systems"],
+        "flags": ["no plan", "unrealistic confidence"]
+      },
+      {
+        "id": "acad_relation_past",
+        "q": "How will this study program relate to your past work or studies?",
+        "cat": "Academic Preparation",
+        "keys": ["continuity", "relevant experience", "logical next step"],
+        "flags": ["no connection", "random switch"]
+      },
+      {
+        "id": "acad_choose_major",
+        "q": "Why did you choose this specific course or major?",
+        "cat": "Academic Preparation",
+        "keys": ["motivation", "evidence of interest", "career outcomes"],
+        "flags": ["generic answer", "only money"]
+      },
+      {
+        "id": "acad_us_system_knowledge",
+        "q": "What do you know about the U.S. education system or universities?",
+        "cat": "Academic Preparation",
+        "keys": ["program structure", "credits", "academic expectations"],
+        "flags": ["knows nothing", "obviously unresearched"]
+      },
+  
+      {
+        "id": "uni_why_this_university",
+        "q": "Why did you choose this university for your studies?",
+        "cat": "Academic Preparation",
+        "keys": ["program fit", "faculty/labs", "unique features"],
+        "flags": ["random", "only because accepted"]
+      },
+      {
+        "id": "uni_app_count",
+        "q": "How many universities did you apply to?",
+        "cat": "Academic Preparation",
+        "keys": ["application strategy", "planning", "alternatives"],
+        "flags": ["only one school", "no backup plan"]
+      },
+      {
+        "id": "uni_acceptances",
+        "q": "Which universities accepted your application?",
+        "cat": "Academic Preparation",
+        "keys": ["acceptance list", "consistency", "decision rationale"],
+        "flags": ["inconsistent list", "dodges question"]
+      },
+      {
+        "id": "uni_rejections",
+        "q": "Which universities rejected you?",
+        "cat": "Academic Preparation",
+        "keys": ["transparency", "consistency", "realistic profile"],
+        "flags": ["claims none but unrealistic", "contradicting records"]
+      },
+      {
+        "id": "uni_location",
+        "q": "Where is your university located in the US?",
+        "cat": "Academic Preparation",
+        "keys": ["city", "state", "campus awareness"],
+        "flags": ["doesnt know location", "confuses schools"]
+      },
+      {
+        "id": "uni_contacts",
+        "q": "Do you know any professors or current students at this university?",
+        "cat": "Academic Preparation",
+        "keys": ["networking", "research contact", "program familiarity"],
+        "flags": ["suspicious relationship", "implies hidden help"]
+      },
+      {
+        "id": "uni_why_not_others",
+        "q": "This program is offered at other universities too — why not attend one of those?",
+        "cat": "Academic Preparation",
+        "keys": ["differentiators", "fit reasons", "resources"],
+        "flags": ["no differentiation", "only prestige"]
+      },
+      {
+        "id": "uni_housing",
+        "q": "Where will you be living in the US (on-campus or off-campus)?",
+        "cat": "Logistics",
+        "keys": ["housing plan", "location", "budget realism"],
+        "flags": ["no plan", "unrealistic costs"]
+      },
+  
+      {
+        "id": "fin_plan",
+        "q": "How do you plan to finance your education and living expenses in the US?",
+        "cat": "Financial Capability",
+        "keys": ["sponsor", "savings", "proof of funds"],
+        "flags": ["work in US", "will find money"]
+      },
+      {
+        "id": "fin_salary",
+        "q": "What is your current salary?",
+        "cat": "Financial Capability",
+        "keys": ["income", "sponsor capacity", "consistency with documents"],
+        "flags": ["refuses to say", "numbers dont match statements"]
+      },
+      {
+        "id": "fin_cost_per_year",
+        "q": "How much does your school program cost per year?",
+        "cat": "Financial Capability",
+        "keys": ["tuition", "fees", "estimated living costs"],
+        "flags": ["doesnt know cost", "underestimates heavily"]
+      },
+      {
+        "id": "fin_meet_expenses",
+        "q": "How will you meet these expenses?",
+        "cat": "Financial Capability",
+        "keys": ["funding sources", "budget plan", "reliability"],
+        "flags": ["depends on illegal work", "vague funding"]
+      },
+      {
+        "id": "fin_scholarship",
+        "q": "Are you receiving any scholarship from the university, and if so, how much?",
+        "cat": "Financial Capability",
+        "keys": ["scholarship amount", "award letter", "net cost"],
+        "flags": ["claims scholarship without proof", "confuses numbers"]
+      },
+      {
+        "id": "fin_loan_plan",
+        "q": "Are you going to take an education loan for your studies?",
+        "cat": "Financial Capability",
+        "keys": ["loan plan", "lender", "terms awareness"],
+        "flags": ["no plan", "unreliable sponsor only"]
+      },
+      {
+        "id": "fin_loan_approved",
+        "q": "Has your education loan been approved?",
+        "cat": "Financial Capability",
+        "keys": ["approval status", "documentation", "timeline"],
+        "flags": ["not approved but depends on it", "fake approval"]
+      },
+      {
+        "id": "fin_bank_statements",
+        "q": "Do you have bank statements to show your available funds?",
+        "cat": "Financial Capability",
+        "keys": ["bank statements", "liquidity", "documentation"],
+        "flags": ["no proof", "suspicious documents"]
+      },
+      {
+        "id": "fin_multi_year",
+        "q": "If your program lasts multiple years, how will you fund the entire duration of your studies?",
+        "cat": "Financial Capability",
+        "keys": ["multi-year plan", "renewable funding", "sponsor stability"],
+        "flags": ["only first year covered", "hopes to earn in US"]
+      },
+      {
+        "id": "fin_backup_sponsor",
+        "q": "How will you cover any remaining costs if your sponsor cannot cover everything?",
+        "cat": "Financial Capability",
+        "keys": ["backup funding", "contingency plan", "risk management"],
+        "flags": ["no backup", "plans to work off-campus"]
+      },
+      {
+        "id": "fin_work_while_study",
+        "q": "Do you plan to work while studying in the US (e.g., on-campus job)?",
+        "cat": "Financial Capability",
+        "keys": ["on-campus work rules", "priority on study", "financial independence"],
+        "flags": ["off-campus work plan", "depends on working to survive"]
+      },
+  
+      {
+        "id": "post_plans_general",
+        "q": "What are your plans after graduation?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["return home", "career plan", "timeline"],
+        "flags": ["stay in US", "immigrate"]
+      },
+      {
+        "id": "post_job_in_mind",
+        "q": "Do you have a job or career in mind after you graduate?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["target role", "industry", "home-country plan"],
+        "flags": ["no plan", "only US job talk"]
+      },
+      {
+        "id": "post_goals_back_home",
+        "q": "What are your career goals back home after completing your studies?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["home-country goals", "market relevance", "employer/industry"],
+        "flags": ["weak ties", "no home plan"]
+      },
+      {
+        "id": "post_stay_work_us",
+        "q": "Do you plan to stay in the US and work after graduation?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["legal awareness", "long-term plan", "return intention"],
+        "flags": ["wants to stay permanently", "immigration-focused answer"]
+      },
+      {
+        "id": "post_return_employer",
+        "q": "Will you continue to work for your current employer after you graduate?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["employer tie", "written plan", "career continuity"],
+        "flags": ["no employer tie", "inconsistent employment story"]
+      },
+      {
+        "id": "post_phd_future",
+        "q": "Do you plan to pursue further studies, like a Ph.D., after completing this program?",
+        "cat": "Academic Preparation",
+        "keys": ["academic roadmap", "research interest", "timing"],
+        "flags": ["says yes with no plan", "uses as stalling tactic"]
+      },
+      {
+        "id": "post_if_return_no_us_job",
+        "q": "If you don’t find a job in the US after graduation and have to return home, what will you do?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["return plan", "career steps", "realistic alternatives"],
+        "flags": ["no return plan", "desperate to stay"]
+      },
+      {
+        "id": "post_degree_value",
+        "q": "How will this degree contribute to your career growth or future opportunities?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["skills gained", "home-country impact", "career leverage"],
+        "flags": ["generic", "only US-focused benefits"]
+      },
+  
+      {
+        "id": "imm_siblings_us",
+        "q": "Are any of your siblings living in the United States? Is so what do they do there?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["family in US", "relationship", "compliance awareness"],
+        "flags": ["strong pull factor", "inconsistent family info"]
+      },
+      {
+        "id": "imm_return_intent",
+        "q": "Do you intend to return to your home country after completing your studies?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["clear yes", "timeline", "reasons to return"],
+        "flags": ["uncertain", "says maybe"]
+      },
+      {
+        "id": "imm_proof_return",
+        "q": "How can you prove that you will return home after finishing your studies?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["ties", "career commitments", "family/property"],
+        "flags": ["no evidence", "weak ties"]
+      },
+      {
+        "id": "imm_permanent_immigration",
+        "q": "Do you plan to immigrate to the United States permanently, or will you return home?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["return home", "temporary study intent", "career plan"],
+        "flags": ["immigrate", "green card talk"]
+      },
+      {
+        "id": "imm_length_stay",
+        "q": "How long do you plan to stay in the United States?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["program duration", "temporary stay", "return timeline"],
+        "flags": ["open-ended", "as long as possible"]
+      },
+      {
+        "id": "imm_friends_us",
+        "q": "Do you have any friends in the United States?",
+        "cat": "Background & Contacts",
+        "keys": ["contacts", "purpose of contact", "transparency"],
+        "flags": ["romantic/immigration tie", "inconsistent story"]
+      },
+      {
+        "id": "imm_work_after_grad",
+        "q": "Do you plan to work in the U.S. after graduation?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["legal awareness", "return plan", "career path"],
+        "flags": ["stay permanently", "only US job talk"]
+      },
+      {
+        "id": "imm_plans_repeat",
+        "q": "What are your plans after graduation?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["return home", "career plan", "timeline"],
+        "flags": ["stay in US", "immigrate"]
+      },
+      {
+        "id": "imm_if_no_us_job",
+        "q": "If you don’t find a job in the US after graduation, what will you do?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["return plan", "career alternatives", "home-country ties"],
+        "flags": ["no plan", "desperate to stay"]
+      },
+      {
+        "id": "imm_help_home_career",
+        "q": "How will this degree help your career back home?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["home-country relevance", "industry needs", "specific outcomes"],
+        "flags": ["no connection", "only US-focused answer"]
+      },
+      {
+        "id": "imm_internship_us",
+        "q": "Do you want to get a intership in the US after graduation?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["legal awareness", "short-term training", "return plan"],
+        "flags": ["uses as path to stay", "no return timeline"]
+      },
+      {
+        "id": "imm_return_breaks",
+        "q": "Will you return to your home country during school breaks or vacations?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["family ties", "return behavior", "feasible plan"],
+        "flags": ["never return", "avoids answering"]
+      },
+      {
+        "id": "imm_why_grant_visa",
+        "q": "Why should the consulate grant you an F-1 student visa?",
+        "cat": "Non-immigrant Intent",
+        "keys": ["credible plan", "strong ties", "financial readiness"],
+        "flags": ["asks for sympathy", "immigration intent signals"]
+      }
+    ]
+  }
+  

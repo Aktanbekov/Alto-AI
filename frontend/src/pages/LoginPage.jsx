@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { login } from "../api";
 
@@ -46,8 +46,14 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [redirectingToGoogle, setRedirectingToGoogle] = useState(false);
+    const [error, setError] = useState(searchParams.get("error") || "");
     const API_BASE = import.meta?.env?.VITE_API_BASE || (import.meta.env.PROD ? "" : "http://localhost:8080");
+
+    useEffect(() => {
+        const err = searchParams.get("error");
+        if (err) setError(decodeURIComponent(err));
+    }, [searchParams]);
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -71,9 +77,11 @@ export default function LoginPage() {
     };
 
     const googleLogin = () => {
-        // Pass redirect parameter to Google OAuth
         const redirect = searchParams.get("redirect") || "/choose-level";
-        window.location.href = `${API_BASE}/auth/google?redirect=${encodeURIComponent(redirect)}`;
+        const authUrl = `${API_BASE ? API_BASE.replace(/\/$/, "") : ""}/auth/google?redirect=${encodeURIComponent(redirect)}`;
+        setRedirectingToGoogle(true);
+        setError("");
+        window.location.href = authUrl;
     };
 
     return (
@@ -163,14 +171,35 @@ export default function LoginPage() {
                         </div>
 
                         {/* Google login */}
-                        <button
-                            type="button"
-                            onClick={googleLogin}
-                            className="w-full border border-gray-300 rounded-xl py-3 sm:py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition flex items-center justify-center gap-2 text-gray-700 min-h-[44px]"
-                        >
-                            <GoogleIcon className="w-4 h-4" />
-                            <span>Log in with Google</span>
-                        </button>
+                        <div className="space-y-2">
+                            <button
+                                type="button"
+                                onClick={googleLogin}
+                                disabled={redirectingToGoogle}
+                                className="w-full border border-gray-300 rounded-xl py-3 sm:py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition flex items-center justify-center gap-2 text-gray-700 min-h-[44px] disabled:opacity-70"
+                            >
+                                {redirectingToGoogle ? (
+                                    <span className="animate-pulse">Redirecting to Google…</span>
+                                ) : (
+                                    <>
+                                        <GoogleIcon className="w-4 h-4" />
+                                        <span>Log in with Google</span>
+                                    </>
+                                )}
+                            </button>
+                            {redirectingToGoogle && (
+                                <p className="text-xs text-gray-500 text-center">
+                                    If you are not redirected,{" "}
+                                    <a
+                                        href={`${API_BASE ? API_BASE.replace(/\/$/, "") : ""}/auth/google?redirect=${encodeURIComponent(searchParams.get("redirect") || "/choose-level")}`}
+                                        className="text-indigo-600 hover:underline"
+                                    >
+                                        click here to sign in with Google
+                                    </a>
+                                    . Ensure the backend is running on port 8080.
+                                </p>
+                            )}
+                        </div>
                     </form>
                 </div>
 
