@@ -37,11 +37,14 @@ type ChatResponse struct {
 	Finished        bool                        `json:"finished"`                   // Whether interview is complete
 	Scores          *interview.Scores           `json:"scores,omitempty"`           // Current risk scores
 	IsNewSession    bool                        `json:"is_new_session,omitempty"`   // Whether this is a new session
-	Analysis        *interview.AnalysisResponse `json:"analysis,omitempty"`         // Detailed analysis of the answer
+	Analysis        *interview.AnalysisResponse `json:"analysis,omitempty"`         // V1: Detailed analysis of the answer
 	Grade           string                      `json:"grade,omitempty"`            // Letter grade (A-F) for the answer
 	Suggestions     []string                    `json:"suggestions,omitempty"`      // Improvement suggestions
 	ImprovedVersion string                      `json:"improved_version,omitempty"` // Suggested improved answer
-	AllAnalyses     []AnswerAnalysis            `json:"all_analyses,omitempty"`     // All answers with analyses (when finished)
+	AllAnalyses     []AnswerAnalysis            `json:"all_analyses,omitempty"`     // V1: All answers with analyses (when finished)
+	// V2 fields
+	LightweightAnalysis *interview.LightweightAnalysis `json:"lightweight_analysis,omitempty"` // V2: per-answer lightweight feedback
+	SessionEvaluation   *interview.SessionEvaluation   `json:"session_evaluation,omitempty"`   // V2: full post-session evaluation
 }
 
 type AnswerAnalysis struct {
@@ -222,30 +225,45 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 	answer := interview.Answer{
 		QuestionID:   currentQ.ID,
 		QuestionText: currentQ.Text,
+		Category:     currentQ.Category,
 		Text:         lastUserMessage,
 		CreatedAt:    time.Now(),
 	}
 
-	// Call new analyzer for detailed feedback with session context
-	analysis, err := interview.AnalyzeAnswer(session, *currentQ, lastUserMessage)
-	if err != nil {
-		// Log error for debugging
-		log.Printf("Error analyzing answer: %v", err)
-		// Continue without analysis (graceful degradation)
-		analysis = nil
-	} else if analysis != nil {
-		log.Printf("Analysis successful: Classification=%s, TotalScore=%d",
-			analysis.Classification, analysis.Scores.TotalScore)
-	}
+	useV2 := interview.IsAnalysisV2Enabled()
 
-	// Attach analysis to answer
-	if analysis != nil {
-		answer.Analysis = analysis
-		// Also create EvalResult for backward compatibility with scoring system
-		eval := interview.ConvertAnalysisToEval(analysis, *currentQ)
-		answer.Eval = eval
-		// Update scores using the converted eval
-		interview.ApplyEval(session, eval)
+	var analysis *interview.AnalysisResponse
+	var lightweight *interview.LightweightAnalysis
+
+	if useV2 {
+		// V2: Lightweight per-answer analysis (prefilter + 2 criteria only)
+		lw, err := interview.AnalyzeAnswerLightweight(session, *currentQ, lastUserMessage)
+		if err != nil {
+			log.Printf("V2 lightweight analysis error: %v", err)
+		} else {
+			lightweight = lw
+			answer.Lightweight = lw
+			log.Printf("V2 lightweight: comm=%d, red_flags=%d, feedback=%s",
+				lw.CommunicationQuality, lw.RedFlags, lw.QuickFeedback)
+		}
+	} else {
+		// V1: Full per-answer analysis (all 7 criteria per call)
+		var err error
+		analysis, err = interview.AnalyzeAnswer(session, *currentQ, lastUserMessage)
+		if err != nil {
+			log.Printf("Error analyzing answer: %v", err)
+			analysis = nil
+		} else if analysis != nil {
+			log.Printf("Analysis successful: Classification=%s, TotalScore=%d",
+				analysis.Classification, analysis.Scores.TotalScore)
+		}
+
+		if analysis != nil {
+			answer.Analysis = analysis
+			eval := interview.ConvertAnalysisToEval(analysis, *currentQ)
+			answer.Eval = eval
+			interview.ApplyEval(session, eval)
+		}
 	}
 
 	session.Answers = append(session.Answers, answer)
@@ -256,10 +274,36 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		// All questions answered
 		session.Status = interview.SessionStatusFinished
 
-		// Add delay to ensure analysis is fully processed before returning results
-		time.Sleep(1 * time.Second)
+		if useV2 {
+			// V2: Run deep batch evaluation + consistency check
+			log.Printf("V2: Starting deep batch evaluation for session %s (%d answers)", session.ID, len(session.Answers))
+			sessionEval, err := interview.EvaluateSessionDeep(session)
+			if err != nil {
+				log.Printf("V2 deep evaluation error: %v", err)
+			} else {
+				session.SessionEval = sessionEval
+				log.Printf("V2 deep eval complete: grade=%s, verdict=%s, score=%d",
+					sessionEval.OverallGrade, sessionEval.Verdict, sessionEval.OverallScore)
+			}
 
-		// Generate session summary before completing
+			interview.SaveSession(session)
+
+			completionMsg := buildCompletionMessageV2(session)
+			resp := ChatResponse{
+				Content:             completionMsg,
+				SessionID:           session.ID,
+				QuestionID:          currentQ.ID,
+				Finished:            true,
+				Scores:              &session.Scores,
+				LightweightAnalysis: lightweight,
+				SessionEvaluation:   session.SessionEval,
+			}
+			response.OK(c, resp)
+			return
+		}
+
+		// V1 path
+		time.Sleep(1 * time.Second)
 		summary, err := interview.GenerateSessionSummary(session)
 		if err == nil && summary != nil {
 			session.Summary = summary
@@ -267,7 +311,6 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 
 		interview.SaveSession(session)
 
-		// Build all analyses array from session answers
 		allAnalyses := make([]AnswerAnalysis, 0, len(session.Answers))
 		for _, ans := range session.Answers {
 			if ans.Analysis != nil {
@@ -284,12 +327,12 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		response.OK(c, ChatResponse{
 			Content:     completionMsg,
 			SessionID:   session.ID,
-			QuestionID:  currentQ.ID, // Include question ID for the last answered question
+			QuestionID:  currentQ.ID,
 			Finished:    true,
 			Scores:      &session.Scores,
 			Analysis:    analysis,
 			Grade:       getGradeFromAnalysis(analysis),
-			AllAnalyses: allAnalyses, // Include all analyses when finished
+			AllAnalyses: allAnalyses,
 		})
 		return
 	}
@@ -299,17 +342,28 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 	session.CurrentQuestion = nextQ.ID
 	interview.SaveSession(session)
 
-	response.OK(c, ChatResponse{
-		Content:         nextQ.Text,
-		SessionID:       session.ID,
-		QuestionID:      nextQ.ID,
-		Finished:        false,
-		Scores:          &session.Scores,
-		Analysis:        analysis,
-		Grade:           getGradeFromAnalysis(analysis),
-		Suggestions:     getSuggestionsFromAnalysis(analysis),
-		ImprovedVersion: getImprovedVersionFromAnalysis(analysis),
-	})
+	if useV2 {
+		response.OK(c, ChatResponse{
+			Content:             nextQ.Text,
+			SessionID:           session.ID,
+			QuestionID:          nextQ.ID,
+			Finished:            false,
+			Scores:              &session.Scores,
+			LightweightAnalysis: lightweight,
+		})
+	} else {
+		response.OK(c, ChatResponse{
+			Content:         nextQ.Text,
+			SessionID:       session.ID,
+			QuestionID:      nextQ.ID,
+			Finished:        false,
+			Scores:          &session.Scores,
+			Analysis:        analysis,
+			Grade:           getGradeFromAnalysis(analysis),
+			Suggestions:     getSuggestionsFromAnalysis(analysis),
+			ImprovedVersion: getImprovedVersionFromAnalysis(analysis),
+		})
+	}
 }
 
 // buildCompletionMessage creates a completion message based on session summary or scores
@@ -343,6 +397,17 @@ func buildCompletionMessage(session *interview.Session) string {
 		"Your overall assessment is: " + assessment + ". " +
 		"Keep practicing to improve your answers and confidence. " +
 		"Good luck with your visa interview!"
+}
+
+func buildCompletionMessageV2(session *interview.Session) string {
+	if session.SessionEval != nil {
+		eval := session.SessionEval
+		return fmt.Sprintf("Thank you for completing the interview practice session! "+
+			"Your overall grade is: %s (%s, Score: %d/100). "+
+			"%s Good luck with your visa interview!",
+			eval.OverallGrade, eval.Verdict, eval.OverallScore, eval.Recommendation)
+	}
+	return buildCompletionMessage(session)
 }
 
 // Helper functions to extract data from analysis

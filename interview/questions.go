@@ -9,8 +9,14 @@ import (
 	"time"
 )
 
+// QuestionDef is the on-disk representation of a question in questions.json.
+type QuestionDef struct {
+	Text string `json:"text"`
+	Type string `json:"type"` // "factual_yesno", "factual_short", "elaboration"
+}
+
 // QuestionsByCategory stores questions organized by category
-var QuestionsByCategory map[string][]string
+var QuestionsByCategory map[string][]QuestionDef
 
 // InitQuestions tries to load questions from the questions.json file
 // It tries multiple possible paths to find the file
@@ -83,12 +89,12 @@ func LoadQuestions(path string) error {
 		return fmt.Errorf("read questions file: %w", err)
 	}
 
-	var categories map[string][]string
+	var categories map[string][]QuestionDef
 	if err := json.Unmarshal(data, &categories); err != nil {
 		return fmt.Errorf("unmarshal questions: %w", err)
 	}
 
-	QuestionsByCategory = make(map[string][]string)
+	QuestionsByCategory = make(map[string][]QuestionDef)
 	for category, questions := range categories {
 		QuestionsByCategory[category] = questions
 	}
@@ -124,11 +130,9 @@ func SelectQuestionsForSession(level string) []Question {
 				continue
 			}
 
-			// Select one random question from this category
-			available := make([]string, len(questions))
+			available := make([]QuestionDef, len(questions))
 			copy(available, questions)
 			
-			// Shuffle and take 1 question
 			rand.Shuffle(len(available), func(i, j int) {
 				available[i], available[j] = available[j], available[i]
 			})
@@ -137,7 +141,8 @@ func SelectQuestionsForSession(level string) []Question {
 			selectedQuestions = append(selectedQuestions, Question{
 				ID:       questionID,
 				Category: category,
-				Text:     available[0],
+				Text:     available[0].Text,
+				Type:     available[0].Type,
 			})
 		}
 
@@ -155,51 +160,46 @@ func SelectQuestionsForSession(level string) []Question {
 			"Immigration Intent",
 		}
 
-		selectedTexts := make(map[string]bool) // Track selected questions to avoid duplicates
+		selectedTexts := make(map[string]bool)
 
-		// First, select 1 question from each category
 		for _, category := range allCategories {
 			questions, ok := QuestionsByCategory[category]
 			if !ok || len(questions) == 0 {
 				continue
 			}
 
-			// Select one random question from this category
-			available := make([]string, len(questions))
+			available := make([]QuestionDef, len(questions))
 			copy(available, questions)
 			
-			// Shuffle and take 1 question
 			rand.Shuffle(len(available), func(i, j int) {
 				available[i], available[j] = available[j], available[i]
 			})
 
-			selectedText := available[0]
-			selectedTexts[selectedText] = true
+			selected := available[0]
+			selectedTexts[selected.Text] = true
 
 			questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(category))
 			selectedQuestions = append(selectedQuestions, Question{
 				ID:       questionID,
 				Category: category,
-				Text:     selectedText,
+				Text:     selected.Text,
+				Type:     selected.Type,
 			})
 		}
 
 		// Add 1 extra question from a random category (avoid duplicates)
 		if len(allCategories) > 0 {
-			// Pick a random category
 			randomCategory := allCategories[rand.Intn(len(allCategories))]
 			questions, ok := QuestionsByCategory[randomCategory]
 			
 			if ok && len(questions) > 0 {
-				// Filter out already selected questions
-				available := make([]string, 0)
+				var available []QuestionDef
 				for _, q := range questions {
-					if !selectedTexts[q] {
+					if !selectedTexts[q.Text] {
 						available = append(available, q)
 					}
 				}
 
-				// If there are available questions, select one
 				if len(available) > 0 {
 					rand.Shuffle(len(available), func(i, j int) {
 						available[i], available[j] = available[j], available[i]
@@ -209,7 +209,8 @@ func SelectQuestionsForSession(level string) []Question {
 					selectedQuestions = append(selectedQuestions, Question{
 						ID:       questionID,
 						Category: randomCategory,
-						Text:     available[0],
+						Text:     available[0].Text,
+						Type:     available[0].Type,
 					})
 				}
 			}
@@ -229,7 +230,7 @@ func SelectQuestionsForSession(level string) []Question {
 			"Immigration Intent",
 		}
 
-		selectedTexts := make(map[string]bool) // Track selected questions to avoid duplicates
+		selectedTexts := make(map[string]bool)
 
 		for _, category := range allCategories {
 			questions, ok := QuestionsByCategory[category]
@@ -237,39 +238,36 @@ func SelectQuestionsForSession(level string) []Question {
 				continue
 			}
 
-			// Filter out already selected questions from this category
-			available := make([]string, 0)
+			var available []QuestionDef
 			for _, q := range questions {
-				if !selectedTexts[q] {
+				if !selectedTexts[q.Text] {
 					available = append(available, q)
 				}
 			}
 
-			// If we don't have enough questions, use what we have
 			if len(available) == 0 {
 				continue
 			}
 
-			// Shuffle available questions
 			rand.Shuffle(len(available), func(i, j int) {
 				available[i], available[j] = available[j], available[i]
 			})
 
-			// Select up to 2 questions from this category
 			count := 2
 			if len(available) < count {
 				count = len(available)
 			}
 
 			for i := 0; i < count; i++ {
-				selectedText := available[i]
-				selectedTexts[selectedText] = true
+				selected := available[i]
+				selectedTexts[selected.Text] = true
 
 				questionID := fmt.Sprintf("q%d_%s", len(selectedQuestions)+1, sanitizeCategory(category))
 				selectedQuestions = append(selectedQuestions, Question{
 					ID:       questionID,
 					Category: category,
-					Text:     selectedText,
+					Text:     selected.Text,
+					Type:     selected.Type,
 				})
 			}
 		}
@@ -282,7 +280,6 @@ func SelectQuestionsForSession(level string) []Question {
 
 // sanitizeCategory converts category name to a valid ID suffix
 func sanitizeCategory(category string) string {
-	// Simple sanitization - replace spaces and special chars
 	result := ""
 	for _, char := range category {
 		if (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || (char >= '0' && char <= '9') {

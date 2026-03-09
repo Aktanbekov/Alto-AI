@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { sendChatMessage, getMe } from "../api";
 import AnswerFeedbackCard from "../components/AnswerFeedbackCard";
+import LightweightFeedback from "../components/LightweightFeedback";
+import ConsistencyWarning from "../components/ConsistencyWarning";
 import ProfileDropdown from "../components/ProfileDropdown";
 import OverallGrade from "../OverallGrade";
 import CollegeMajorForm from "../components/CollegeMajorForm";
@@ -84,6 +86,61 @@ interface AnswerAnalysis {
   analysis?: ChatAnalysis;
 }
 
+// V2 types
+interface PrefilterFlag {
+  code: string;
+  severity: string;
+  message: string;
+}
+
+interface PrefilterResult {
+  flags: PrefilterFlag[];
+  needs_ai: boolean;
+  auto_comm_score?: number;
+  auto_red_flag_score?: number;
+}
+
+interface LightweightAnalysis {
+  communication_quality: number;
+  red_flags: number;
+  quick_feedback: string;
+  prefilter?: PrefilterResult;
+}
+
+interface DeepAnswerAnalysis {
+  question_id: string;
+  question_text: string;
+  category: string;
+  answer_text: string;
+  scores: AnalysisScores;
+  classification: string;
+  feedback: StructuredFeedback;
+}
+
+interface Contradiction {
+  answer_index_a: number;
+  answer_index_b: number;
+  description: string;
+  severity: string;
+}
+
+interface ConsistencyReport {
+  contradictions: Contradiction[];
+  overall_score: number;
+  summary: string;
+}
+
+interface SessionEvaluation {
+  answers: DeepAnswerAnalysis[];
+  consistency?: ConsistencyReport;
+  overall_score: number;
+  overall_grade: string;
+  verdict: string;
+  recommendation: string;
+  strong_areas: string[];
+  weak_areas: string[];
+}
+
 interface ChatResponse {
   content: string;
   session_id?: string;
@@ -91,11 +148,15 @@ interface ChatResponse {
   finished: boolean;
   scores?: InterviewScores;
   is_new_session?: boolean;
+  // V1 fields
   analysis?: ChatAnalysis;
   grade?: string;
   suggestions?: string[];
   improved_version?: string;
-  all_analyses?: AnswerAnalysis[]; // All answers with analyses (when finished)
+  all_analyses?: AnswerAnalysis[];
+  // V2 fields
+  lightweight_analysis?: LightweightAnalysis;
+  session_evaluation?: SessionEvaluation;
 }
 
 // Typewriter component for AI messages
@@ -140,6 +201,8 @@ export default function Chat() {
   const [scores, setScores] = useState<InterviewScores | null>(null);
   const [finished, setFinished] = useState(false);
   const [answerAnalyses, setAnswerAnalyses] = useState<Array<{ question: string, answer: string, questionId?: string, analysis: ChatResponse['analysis'] }>>([]);
+  const [sessionEvaluation, setSessionEvaluation] = useState<SessionEvaluation | null>(null);
+  const [lightweightFeedbacks, setLightweightFeedbacks] = useState<Array<{ question: string, answer: string, lightweight: LightweightAnalysis }>>([]);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [collegeMajorComplete, setCollegeMajorComplete] = useState(false);
   const [checkingCollegeMajor, setCheckingCollegeMajor] = useState(true);
@@ -182,17 +245,13 @@ export default function Chat() {
     };
   }, []);
 
-  // Get level from URL parameter
+  // Get level from URL parameter (keep it in URL so refresh preserves difficulty)
   useEffect(() => {
     const level = searchParams.get("level");
     if (level) {
       setSelectedLevel(level);
-      // Remove level from URL after reading it
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete("level");
-      setSearchParams(newSearchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   // Check authentication and college/major info on mount
   useEffect(() => {
@@ -316,11 +375,28 @@ export default function Chat() {
   const messageCount = messages.length;
   const timeElapsed = "12m"; // You can calculate this based on start time
 
-  // Calculate overall grade data from answer analyses
+  // Calculate overall grade data from V2 session evaluation or V1 answer analyses
   const overallGradeData = useMemo(() => {
-    if (!finished || answerAnalyses.length === 0) return null;
+    if (!finished) return null;
 
-    // Calculate average scores from all analyses
+    // V2: Use session evaluation directly
+    if (sessionEvaluation) {
+      return {
+        score: sessionEvaluation.overall_score,
+        grade: sessionEvaluation.overall_grade,
+        verdict: sessionEvaluation.verdict,
+        categoryScores: [
+          ...(sessionEvaluation.strong_areas || []).map(area => ({ name: area, score: 85, emoji: '✅' })),
+          ...(sessionEvaluation.weak_areas || []).map(area => ({ name: area, score: 35, emoji: '⚠️' })),
+        ],
+        feedback: sessionEvaluation.recommendation,
+        consistency: sessionEvaluation.consistency,
+      };
+    }
+
+    // V1 fallback
+    if (answerAnalyses.length === 0) return null;
+
     let totalScoreSum = 0;
     let migrationIntentSum = 0;
     let migrationIntentCount = 0;
@@ -332,7 +408,6 @@ export default function Chat() {
         const scores = item.analysis.scores;
         totalScoreSum += scores.total_score || 0;
         
-        // Count criteria for this answer to calculate dynamic percentage
         let criteriaCount = 0;
         if (scores.migration_intent !== null && scores.migration_intent !== undefined) criteriaCount++;
         if (scores.financial_understanding !== null && scores.financial_understanding !== undefined) criteriaCount++;
@@ -343,7 +418,6 @@ export default function Chat() {
         if (scores.red_flags !== null && scores.red_flags !== undefined) criteriaCount++;
         totalCriteriaCount += criteriaCount || 1;
         
-        // Only count migration_intent if it's not null
         if (scores.migration_intent !== null && scores.migration_intent !== undefined) {
           migrationIntentSum += scores.migration_intent;
           migrationIntentCount++;
@@ -354,8 +428,6 @@ export default function Chat() {
 
     if (count === 0) return null;
 
-    // Convert scores to percentages using dynamic criteria count
-    // Average criteria count per answer
     const avgCriteriaCount = totalCriteriaCount / count;
     const maxScore = avgCriteriaCount * 5;
     const minScore = avgCriteriaCount * 1;
@@ -364,12 +436,10 @@ export default function Chat() {
       ? Math.max(0, Math.min(100, ((totalScoreSum / count - minScore) / scoreRange) * 100))
       : 0;
     
-    // Migration intent percentage (only if we have values)
     const avgMigrationIntent = migrationIntentCount > 0 
       ? Math.max(0, Math.min(100, ((migrationIntentSum / migrationIntentCount - 1) / 4) * 100))
       : 0;
 
-    // Get overall feedback from the last AI message if it contains overall feedback
     const lastAiMessage = [...messages].reverse().find(m => m.sender === "ai");
     const overallFeedback = lastAiMessage?.text?.includes("Thank you for completing")
       ? lastAiMessage.text
@@ -383,7 +453,7 @@ export default function Chat() {
       ],
       feedback: overallFeedback
     };
-  }, [finished, answerAnalyses, messages]);
+  }, [finished, answerAnalyses, messages, sessionEvaluation]);
 
   // Filter out the overall feedback message (the last AI message when finished)
   const displayMessages = useMemo(() => {
@@ -523,17 +593,19 @@ export default function Chat() {
         setSessionId(response.session_id);
       }
 
-      // Store analysis for later display (only show at end)
-      // IMPORTANT: Store analysis BEFORE adding completion message to messages array
-      // This ensures we can correctly identify the question text
+      // V2: Store lightweight analysis for real-time feedback
+      if (response.lightweight_analysis && messageText) {
+        const questionText = lastQuestionText || `Question ${lightweightFeedbacks.length + 1}`;
+        setLightweightFeedbacks(prev => [
+          ...prev,
+          { question: questionText, answer: messageText, lightweight: response.lightweight_analysis! },
+        ]);
+      }
+
+      // V1: Store full analysis for later display (only show at end)
       if (response.analysis && messageText) {
-        // Use lastQuestionText captured before API call (most reliable)
         let questionText = lastQuestionText;
-        
-        // Only fallback if lastQuestionText is empty
         if (!questionText || questionText.trim() === "") {
-          // Fallback: get the last AI message that's not a completion message
-          // Use current messages state (before completion message is added)
           const aiMessages = messages.filter(m => 
             m.sender === "ai" && 
             !m.text.includes("Thank you") && 
@@ -542,131 +614,92 @@ export default function Chat() {
             !m.text.includes("Good luck")
           );
           questionText = aiMessages[aiMessages.length - 1]?.text || `Question ${answerAnalyses.length + 1}`;
-          console.log(`[DEBUG] Using fallback question text: ${questionText.substring(0, 50)}...`);
         }
         
         const answerText = messageText;
-        const questionId = response.question_id; // Use question_id for more reliable duplicate detection
+        const questionId = response.question_id;
 
         setAnswerAnalyses(prev => {
-          // Avoid duplicates - check by question_id if available, otherwise by question and answer text
           const exists = questionId
             ? prev.some(a => a.questionId === questionId)
             : prev.some(a => a.answer === answerText && a.question === questionText);
-
-          if (exists) {
-            console.log(`[DEBUG] Analysis already exists for question_id: ${questionId}, question: ${questionText.substring(0, 30)}...`);
-            return prev;
-          }
-
-          console.log(`[DEBUG] Storing analysis #${prev.length + 1} for question_id: ${questionId || 'none'}, question: "${questionText.substring(0, 50)}..."`);
+          if (exists) return prev;
           return [
             ...prev,
-            {
-              question: questionText,
-              answer: answerText,
-              questionId: questionId,
-              analysis: response.analysis,
-            },
+            { question: questionText, answer: answerText, questionId, analysis: response.analysis },
           ];
         });
-      } else if (response.analysis && !messageText) {
-        console.warn("[DEBUG] Analysis received but no messageText available");
-      } else if (!response.analysis && messageText && !response.finished) {
-        // Don't warn on finished responses without analysis - it might be a completion-only response
-        console.warn(`[DEBUG] No analysis in response for answer: ${messageText.substring(0, 50)}...`);
       }
 
-      // Update scores if provided (but don't display during interview)
       if (response.scores) {
         setScores(response.scores);
       }
 
-      // Check if interview is finished
       if (response.finished) {
         setFinished(true);
-        // Use the best emoji when the interview is fully finished
         changeEmoji("perfect");
 
-        // If backend provides all_analyses, use that instead (most reliable)
-        if (response.all_analyses && response.all_analyses.length > 0) {
-          console.log(`[DEBUG] Received all_analyses from backend: ${response.all_analyses.length} analyses`);
-          try {
-            setAnswerAnalyses(
-              response.all_analyses.map(item => ({
-                question: item.question_text || '',
-                answer: item.answer_text || '',
-                questionId: item.question_id || undefined,
-                analysis: item.analysis || undefined,
-              }))
-            );
-          } catch (error) {
-            console.error('[DEBUG] Error processing all_analyses:', error);
-            // Fall through to fallback logic
-          }
-        } else {
-          // Fallback: Final check: Ensure the last answer's analysis is stored when interview finishes
-          // The analysis should already be stored above, but we verify here as a safety net
-          if (response.analysis && messageText) {
-            setAnswerAnalyses(prev => {
-              // Check if this analysis is already stored
-              const questionId = response.question_id;
-              const exists = questionId
-                ? prev.some(a => a.questionId === questionId)
-                : prev.some(a => a.answer === messageText);
-
-              if (exists) {
-                console.log(`[DEBUG] Final check: Analysis already stored for question_id: ${questionId || 'none'}`);
-                return prev;
-              }
-
-              // If not stored, store it now with the question text we captured before API call
-              let questionText = lastQuestionText;
-              if (!questionText || questionText.trim() === "") {
-                // Last resort: try to get from messages before completion message
-                const aiMessages = messages.filter(m => 
-                  m.sender === "ai" && 
-                  !m.text.includes("Thank you") && 
-                  !m.text.includes("completing") &&
-                  !m.text.includes("overall grade") &&
-                  !m.text.includes("Good luck")
-                );
-                questionText = aiMessages[aiMessages.length - 1]?.text || `Question ${prev.length + 1}`;
-              }
-
-              console.log(`[DEBUG] Final check: Storing missing analysis #${prev.length + 1} for question_id: ${questionId || 'none'}`);
-              return [
-                ...prev,
-                {
-                  question: questionText,
-                  answer: messageText,
-                  questionId: questionId,
-                  analysis: response.analysis,
-                },
-              ];
-            });
-          } else if (!response.analysis && messageText) {
-            console.error(`[DEBUG] CRITICAL: Interview finished but no analysis for last answer! Answer: ${messageText.substring(0, 50)}...`);
-          }
+        // V2: Use session_evaluation if available
+        if (response.session_evaluation) {
+          setSessionEvaluation(response.session_evaluation);
+          // Convert deep answers to answerAnalyses format for backward-compatible display
+          setAnswerAnalyses(
+            response.session_evaluation.answers.map(a => ({
+              question: a.question_text || '',
+              answer: a.answer_text || '',
+              questionId: a.question_id || undefined,
+              analysis: {
+                scores: a.scores,
+                classification: a.classification,
+                feedback: a.feedback,
+              },
+            }))
+          );
+        } else if (response.all_analyses && response.all_analyses.length > 0) {
+          // V1 fallback
+          setAnswerAnalyses(
+            response.all_analyses.map(item => ({
+              question: item.question_text || '',
+              answer: item.answer_text || '',
+              questionId: item.question_id || undefined,
+              analysis: item.analysis || undefined,
+            }))
+          );
+        } else if (response.analysis && messageText) {
+          // V1 final safety net
+          setAnswerAnalyses(prev => {
+            const questionId = response.question_id;
+            const exists = questionId
+              ? prev.some(a => a.questionId === questionId)
+              : prev.some(a => a.answer === messageText);
+            if (exists) return prev;
+            let questionText = lastQuestionText;
+            if (!questionText || questionText.trim() === "") {
+              const aiMessages = messages.filter(m => 
+                m.sender === "ai" && 
+                !m.text.includes("Thank you") && !m.text.includes("completing") &&
+                !m.text.includes("overall grade") && !m.text.includes("Good luck")
+              );
+              questionText = aiMessages[aiMessages.length - 1]?.text || `Question ${prev.length + 1}`;
+            }
+            return [...prev, { question: questionText, answer: messageText, questionId, analysis: response.analysis }];
+          });
         }
       } else {
-        // Change emoji based on answer quality – only once per answer, using new 5–25 grading system
-        if (response.analysis && response.analysis.scores) {
+        // During interview: set emoji based on lightweight or V1 analysis
+        if (response.lightweight_analysis) {
+          const lw = response.lightweight_analysis;
+          const avg = (lw.communication_quality + lw.red_flags) / 2;
+          if (avg >= 4.5) changeEmoji("perfect");
+          else if (avg >= 3.5) changeEmoji("good");
+          else if (avg >= 2.5) changeEmoji("bad");
+          else changeEmoji("worst");
+        } else if (response.analysis?.scores) {
           const totalScore = response.analysis.scores.total_score || 0;
-          // New grading system mapping:
-          // 15: Excellent     -> 😇 (perfect)
-          // 13–14: Good       -> ☺️ (good)
-          // 11–12: Average    -> 😕 (bad)
-          //  3–10: Weak       -> 😟 (worst)
-          if (totalScore === 15) {
-            changeEmoji("perfect");
-          } else if (totalScore >= 13) {
-            changeEmoji("good");
-          } else if (totalScore >= 11) {
-            changeEmoji("bad");
-          } else {
-            changeEmoji("worst");
-          }
+          if (totalScore >= 15) changeEmoji("perfect");
+          else if (totalScore >= 13) changeEmoji("good");
+          else if (totalScore >= 11) changeEmoji("bad");
+          else changeEmoji("worst");
         } else {
           changeEmoji("default");
         }
@@ -969,34 +1002,48 @@ export default function Chat() {
                 </div>
               )}
 
-              {displayMessages.map((message, index) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in-up`}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div
-                    className={`max-w-[85%] sm:max-w-[80%] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-md transition-all hover:shadow-lg ${message.sender === "ai"
-                      ? "bg-white text-gray-900 border-2 border-indigo-100"
-                      : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
-                      }`}
-                  >
-                    {message.sender === "ai" && (
-                      <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <span className="text-lg sm:text-xl">🤖</span>
-                        <span className="text-sm font-semibold text-indigo-600">AI Interviewer</span>
+              {displayMessages.map((message, index) => {
+                const lwFeedback = message.sender === "user" && !finished
+                  ? lightweightFeedbacks.find(lf => lf.answer === message.text)
+                  : null;
+
+                return (
+                  <div key={message.id}>
+                    <div
+                      className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in-up`}
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div
+                        className={`max-w-[85%] sm:max-w-[80%] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-md transition-all hover:shadow-lg ${message.sender === "ai"
+                          ? "bg-white text-gray-900 border-2 border-indigo-100"
+                          : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
+                          }`}
+                      >
+                        {message.sender === "ai" && (
+                          <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                            <span className="text-lg sm:text-xl">🤖</span>
+                            <span className="text-sm font-semibold text-indigo-600">AI Interviewer</span>
+                          </div>
+                        )}
+                        <p className="text-sm sm:text-base leading-relaxed break-words">
+                          {message.sender === "ai" ? (
+                            <TypewriterText text={message.text} messageId={message.id} />
+                          ) : (
+                            message.text
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    {lwFeedback && (
+                      <div className="flex justify-end mt-1">
+                        <div className="max-w-[85%] sm:max-w-[80%]">
+                          <LightweightFeedback analysis={lwFeedback.lightweight} />
+                        </div>
                       </div>
                     )}
-                    <p className="text-sm sm:text-base leading-relaxed break-words">
-                      {message.sender === "ai" ? (
-                        <TypewriterText text={message.text} messageId={message.id} />
-                      ) : (
-                        message.text
-                      )}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Final per-answer analysis cards */}
               {finished && answerAnalyses.length > 0 && (
@@ -1004,8 +1051,23 @@ export default function Chat() {
                   <h3 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
                     <span>📊 Interview Results ({answerAnalyses.filter(a => a.analysis).length} of {selectedLevel === "easy" ? 4 : selectedLevel === "medium" ? 7 : 12} answers analyzed)</span>
                   </h3>
+
+                  {/* V2: Verdict banner */}
+                  {sessionEvaluation && (
+                    <div className={`rounded-xl p-4 text-center font-semibold text-sm sm:text-base ${
+                      sessionEvaluation.verdict === "Likely Approved"
+                        ? "bg-green-100 text-green-800 border border-green-300"
+                        : sessionEvaluation.verdict === "Needs Work"
+                          ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
+                          : "bg-red-100 text-red-800 border border-red-300"
+                    }`}>
+                      {sessionEvaluation.verdict === "Likely Approved" ? "✅" : sessionEvaluation.verdict === "Needs Work" ? "⚠️" : "🚩"}{" "}
+                      Verdict: {sessionEvaluation.verdict} — Score: {sessionEvaluation.overall_score}/100
+                    </div>
+                  )}
+
                   {answerAnalyses
-                    .filter(item => item.analysis) // Only show items with analysis
+                    .filter(item => item.analysis)
                     .map((item, index) => (
                       <div
                         key={`${index}-${item.questionId || item.question}-${item.answer}`}
@@ -1027,6 +1089,11 @@ export default function Chat() {
                         />
                       </div>
                     ))}
+
+                  {/* V2: Consistency Report */}
+                  {sessionEvaluation?.consistency && (
+                    <ConsistencyWarning report={sessionEvaluation.consistency} />
+                  )}
                 </div>
               )}
 

@@ -7,6 +7,7 @@ type Question struct {
 	ID                 string   `json:"id"`                  // e.g. "q1_purpose"
 	Category           string   `json:"category"`            // e.g. "Purpose of Study"
 	Text               string   `json:"text"`                // full question text
+	Type               string   `json:"type,omitempty"`      // "factual_yesno", "factual_short", or "elaboration"
 	NextID             string   `json:"next_id"`             // linear next question in normal flow
 	FollowupCandidates []string `json:"followup_candidates"` // allowed followups from this node
 	Tags               []string `json:"tags"`                // semantic tags: ["purpose", "intent", "risk"]
@@ -16,12 +17,15 @@ type Question struct {
 type Answer struct {
 	QuestionID   string    `json:"question_id"`
 	QuestionText string    `json:"question_text"`
+	Category     string    `json:"category,omitempty"`
 	Text         string    `json:"text"`
 	CreatedAt    time.Time `json:"created_at"`
 	// Optional: store AI eval snapshot per answer for analytics
 	Eval *EvalResult `json:"eval,omitempty"`
-	// New grading system analysis
+	// V1 grading system analysis (deprecated, used when ANALYSIS_V2 is off)
 	Analysis *AnalysisResponse `json:"analysis,omitempty"`
+	// V2: lightweight per-answer analysis (during interview)
+	Lightweight *LightweightAnalysis `json:"lightweight,omitempty"`
 }
 
 // Scores are cumulative across the entire session.
@@ -53,8 +57,10 @@ type Session struct {
 	Status            SessionStatus `json:"status"`
 	CreatedAt         time.Time     `json:"created_at"`
 	UpdatedAt         time.Time     `json:"updated_at"`
-	// Session summary for completed interviews
+	// Session summary for completed interviews (V1)
 	Summary *SessionSummary `json:"summary,omitempty"`
+	// V2: full post-session evaluation
+	SessionEval *SessionEvaluation `json:"session_eval,omitempty"`
 }
 
 // AnalysisScores represents the dynamic grading system for a single answer
@@ -116,4 +122,70 @@ type SessionSummary struct {
 	CommonRedFlags []string  `json:"commonRedFlags"`
 	Recommendation string    `json:"recommendation"`
 	CompletedAt    time.Time `json:"completedAt"`
+}
+
+// --- V2 Analysis Types (Hybrid 3-Layer System) ---
+
+// PrefilterFlag represents a single deterministic check result
+type PrefilterFlag struct {
+	Code     string `json:"code"`     // e.g. "too_short", "hedging_language"
+	Severity string `json:"severity"` // "warning" or "critical"
+	Message  string `json:"message"`  // Human-readable explanation
+}
+
+// PrefilterResult contains all rule-based pre-filter results for a single answer
+type PrefilterResult struct {
+	Flags            []PrefilterFlag `json:"flags"`
+	NeedsAI          bool            `json:"needs_ai"`
+	AutoCommScore    *int            `json:"auto_comm_score,omitempty"`
+	AutoRedFlagScore *int            `json:"auto_red_flag_score,omitempty"`
+}
+
+// LightweightAnalysis is returned per-answer during the interview.
+// Only scores communication_quality and red_flags (the 2 universally relevant criteria).
+type LightweightAnalysis struct {
+	CommunicationQuality int             `json:"communication_quality"` // 1-5
+	RedFlags             int             `json:"red_flags"`             // 1-5 (inverted: 5 = no flags)
+	QuickFeedback        string          `json:"quick_feedback"`        // One-sentence assessment
+	Prefilter            *PrefilterResult `json:"prefilter,omitempty"`
+}
+
+// DeepAnswerAnalysis is the full 7-criteria evaluation for a single Q&A,
+// produced as part of a batch post-session evaluation.
+type DeepAnswerAnalysis struct {
+	QuestionID     string           `json:"question_id"`
+	QuestionText   string           `json:"question_text"`
+	Category       string           `json:"category"`
+	AnswerText     string           `json:"answer_text"`
+	Scores         AnalysisScores   `json:"scores"`
+	Classification string           `json:"classification"`
+	Feedback       StructuredFeedback `json:"feedback"`
+}
+
+// Contradiction represents a specific inconsistency found between two answers
+type Contradiction struct {
+	AnswerIndexA int    `json:"answer_index_a"` // 0-based index into session answers
+	AnswerIndexB int    `json:"answer_index_b"`
+	Description  string `json:"description"`
+	Severity     string `json:"severity"` // "minor" or "major"
+}
+
+// ConsistencyReport contains the results of cross-answer consistency checking
+type ConsistencyReport struct {
+	Contradictions []Contradiction `json:"contradictions"`
+	OverallScore   int             `json:"overall_score"` // 1-5 (5 = perfectly consistent)
+	Summary        string          `json:"summary"`
+}
+
+// SessionEvaluation is the final combined result returned when the interview finishes.
+// It replaces the old per-answer AnalysisResponse approach.
+type SessionEvaluation struct {
+	Answers        []DeepAnswerAnalysis `json:"answers"`
+	Consistency    *ConsistencyReport   `json:"consistency,omitempty"`
+	OverallScore   int                  `json:"overall_score"`   // Weighted composite 0-100
+	OverallGrade   string               `json:"overall_grade"`   // A, B, C, D
+	Verdict        string               `json:"verdict"`         // "Likely Approved", "Needs Work", "High Risk"
+	Recommendation string               `json:"recommendation"`
+	StrongAreas    []string             `json:"strong_areas"`
+	WeakAreas      []string             `json:"weak_areas"`
 }

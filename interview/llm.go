@@ -203,6 +203,216 @@ func contains(s string, substrings ...string) bool {
 	return false
 }
 
+// --- V2 Entry Points ---
+
+// AnalyzeAnswerLightweight runs prefilter + lightweight AI (2 criteria only).
+// Used per-answer during the interview for real-time feedback.
+func AnalyzeAnswerLightweight(session *Session, q Question, answer string) (*LightweightAnalysis, error) {
+	prefilter := RunPrefilter(q.Category, q.Type, q.Text, answer)
+
+	if !prefilter.NeedsAI {
+		comm := 1
+		rf := 3
+		if prefilter.AutoCommScore != nil {
+			comm = *prefilter.AutoCommScore
+		}
+		if prefilter.AutoRedFlagScore != nil {
+			rf = *prefilter.AutoRedFlagScore
+		}
+		return &LightweightAnalysis{
+			CommunicationQuality: comm,
+			RedFlags:             rf,
+			QuickFeedback:        summarizePrefilterFlags(prefilter),
+			Prefilter:            prefilter,
+		}, nil
+	}
+
+	va := GetAnalyzer()
+	if va == nil {
+		return &LightweightAnalysis{
+			CommunicationQuality: 3,
+			RedFlags:             3,
+			QuickFeedback:        summarizePrefilterFlags(prefilter),
+			Prefilter:            prefilter,
+		}, nil
+	}
+	if va.apiKey == "" {
+		return &LightweightAnalysis{
+			CommunicationQuality: 3,
+			RedFlags:             3,
+			QuickFeedback:        "AI analysis unavailable. " + summarizePrefilterFlags(prefilter),
+			Prefilter:            prefilter,
+		}, nil
+	}
+
+	result, err := va.AnalyzeLightweight(q.Text, answer, q.Type)
+	if err != nil {
+		return &LightweightAnalysis{
+			CommunicationQuality: 3,
+			RedFlags:             3,
+			QuickFeedback:        "AI analysis failed. " + summarizePrefilterFlags(prefilter),
+			Prefilter:            prefilter,
+		}, nil
+	}
+
+	result.Prefilter = prefilter
+
+	if prefilter.AutoRedFlagScore != nil && *prefilter.AutoRedFlagScore < result.RedFlags {
+		result.RedFlags = *prefilter.AutoRedFlagScore
+	}
+
+	if result.QuickFeedback == "" {
+		result.QuickFeedback = summarizePrefilterFlags(prefilter)
+	}
+
+	return result, nil
+}
+
+// EvaluateSessionDeep runs the full batch evaluation + consistency check after the interview.
+// Returns a SessionEvaluation combining deep per-answer scores, consistency, and overall verdict.
+func EvaluateSessionDeep(session *Session) (*SessionEvaluation, error) {
+	va := GetAnalyzer()
+	if va == nil {
+		return nil, ErrAnalyzerNotInitialized
+	}
+	if va.apiKey == "" {
+		return nil, fmt.Errorf("API key not set for analyzer")
+	}
+
+	deepAnswers, err := va.EvaluateSessionBatch(session)
+	if err != nil {
+		return nil, fmt.Errorf("deep batch evaluation failed: %w", err)
+	}
+
+	consistency, err := va.CheckSessionConsistency(session)
+	if err != nil {
+		// Non-fatal: continue without consistency
+		consistency = nil
+	}
+
+	return buildSessionEvaluation(deepAnswers, consistency), nil
+}
+
+// CheckConsistency runs only the consistency check (can be called independently).
+func CheckConsistency(session *Session) (*ConsistencyReport, error) {
+	va := GetAnalyzer()
+	if va == nil {
+		return nil, ErrAnalyzerNotInitialized
+	}
+	return va.CheckSessionConsistency(session)
+}
+
+func summarizePrefilterFlags(pf *PrefilterResult) string {
+	if pf == nil || len(pf.Flags) == 0 {
+		return ""
+	}
+	messages := make([]string, 0, len(pf.Flags))
+	for _, f := range pf.Flags {
+		messages = append(messages, f.Message)
+	}
+	return strings.Join(messages, " ")
+}
+
+func buildSessionEvaluation(answers []DeepAnswerAnalysis, consistency *ConsistencyReport) *SessionEvaluation {
+	eval := &SessionEvaluation{
+		Answers:     answers,
+		Consistency: consistency,
+	}
+
+	if len(answers) == 0 {
+		eval.OverallGrade = "D"
+		eval.Verdict = "High Risk"
+		eval.Recommendation = "No answers were evaluated."
+		return eval
+	}
+
+	totalScore := 0
+	totalCriteria := 0
+	strengthMap := make(map[string]int)
+	weakMap := make(map[string]int)
+
+	for _, a := range answers {
+		totalScore += a.Scores.TotalScore
+		totalCriteria += countRelevantCriteria(a.Scores)
+		trackStrengthsAndWeaknesses(a.Scores, strengthMap, weakMap)
+	}
+
+	if totalCriteria == 0 {
+		totalCriteria = 1
+	}
+	percentage := ScoreToPercentage(totalScore, totalCriteria)
+
+	if consistency != nil && consistency.OverallScore <= 2 {
+		penalty := float64(15)
+		if consistency.OverallScore == 1 {
+			penalty = 25
+		}
+		percentage = percentage - penalty
+		if percentage < 0 {
+			percentage = 0
+		}
+	}
+
+	eval.OverallScore = int(percentage)
+
+	switch {
+	case percentage >= 80:
+		eval.OverallGrade = "A"
+		eval.Verdict = "Likely Approved"
+		eval.Recommendation = "Strong performance. Focus on maintaining confidence and natural delivery during the actual interview."
+	case percentage >= 65:
+		eval.OverallGrade = "B"
+		eval.Verdict = "Likely Approved"
+		eval.Recommendation = "Good foundation. Review the feedback for each answer and practice the specific improvements suggested."
+	case percentage >= 45:
+		eval.OverallGrade = "C"
+		eval.Verdict = "Needs Work"
+		eval.Recommendation = "You need more practice. Focus on providing specific examples, showing strong ties to your home country, and demonstrating clear post-graduation plans."
+	default:
+		eval.OverallGrade = "D"
+		eval.Verdict = "High Risk"
+		eval.Recommendation = "Significant improvement needed. Consider working with an advisor. Focus on clarity, specificity, and addressing visa officer concerns about immigrant intent."
+	}
+
+	for k, count := range strengthMap {
+		if count >= len(answers)/2 {
+			eval.StrongAreas = append(eval.StrongAreas, formatCriterionName(k))
+		}
+	}
+	for k, count := range weakMap {
+		if count >= len(answers)/2 {
+			eval.WeakAreas = append(eval.WeakAreas, formatCriterionName(k))
+		}
+	}
+
+	return eval
+}
+
+func trackStrengthsAndWeaknesses(scores AnalysisScores, strengths, weaknesses map[string]int) {
+	check := func(name string, val *int) {
+		if val == nil {
+			return
+		}
+		if *val >= 4 {
+			strengths[name]++
+		} else if *val <= 2 {
+			weaknesses[name]++
+		}
+	}
+	check("migration_intent", scores.MigrationIntent)
+	check("financial_understanding", scores.FinancialUnderstanding)
+	check("academic_credibility", scores.AcademicCredibility)
+	check("specificity_research", scores.SpecificityResearch)
+	check("consistency", scores.Consistency)
+	check("communication_quality", scores.CommunicationQuality)
+	check("red_flags", scores.RedFlags)
+}
+
+// IsAnalysisV2Enabled checks if the V2 analysis system is active
+func IsAnalysisV2Enabled() bool {
+	return os.Getenv("ANALYSIS_V2") == "true"
+}
+
 // ErrAnalyzerNotInitialized is returned when the analyzer is not properly initialized
 var ErrAnalyzerNotInitialized = &AnalyzerError{Message: "analyzer not initialized"}
 
