@@ -86,56 +86,56 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
     const lowerClass = classification?.toLowerCase() || "";
     if (lowerClass.includes("excellent")) {
       return {
-        gradient: "from-green-500 to-emerald-600",
-        bg: "bg-green-50",
-        border: "border-green-200",
+        header: "bg-emerald-600",
+        bg: "bg-emerald-50",
+        border: "border-emerald-200",
         emoji: "😇",
-        badgeBg: "bg-green-100",
-        badgeText: "text-green-800",
-        progressBar: "bg-green-500",
+        badgeBg: "bg-emerald-100",
+        badgeText: "text-emerald-800",
+        progressBar: "bg-emerald-600",
       };
     }
     if (lowerClass.includes("good")) {
       return {
-        gradient: "from-blue-500 to-indigo-600",
-        bg: "bg-blue-50",
-        border: "border-blue-200",
+        header: "bg-lime-600",
+        bg: "bg-lime-50",
+        border: "border-lime-200",
         emoji: "☺️",
-        badgeBg: "bg-blue-100",
-        badgeText: "text-blue-800",
-        progressBar: "bg-blue-500",
+        badgeBg: "bg-lime-100",
+        badgeText: "text-lime-800",
+        progressBar: "bg-lime-600",
       };
     }
     if (lowerClass.includes("average")) {
       return {
-        gradient: "from-yellow-500 to-orange-500",
-        bg: "bg-yellow-50",
-        border: "border-yellow-200",
+        header: "bg-amber-600",
+        bg: "bg-amber-50",
+        border: "border-amber-200",
         emoji: "😕",
-        badgeBg: "bg-yellow-100",
-        badgeText: "text-yellow-800",
-        progressBar: "bg-yellow-500",
+        badgeBg: "bg-amber-100",
+        badgeText: "text-amber-800",
+        progressBar: "bg-amber-600",
       };
     }
     if (lowerClass.includes("weak")) {
       return {
-        gradient: "from-orange-500 to-red-500",
+        header: "bg-orange-600",
         bg: "bg-orange-50",
         border: "border-orange-200",
         emoji: "😟",
         badgeBg: "bg-orange-100",
         badgeText: "text-orange-800",
-        progressBar: "bg-orange-500",
+        progressBar: "bg-orange-600",
       };
     }
     return {
-      gradient: "from-red-500 to-red-700",
-      bg: "bg-red-50",
-      border: "border-red-200",
+      header: "bg-rose-600",
+      bg: "bg-rose-50",
+      border: "border-rose-200",
       emoji: "❌",
-      badgeBg: "bg-red-100",
-      badgeText: "text-red-800",
-      progressBar: "bg-red-500",
+      badgeBg: "bg-rose-100",
+      badgeText: "text-rose-800",
+      progressBar: "bg-rose-600",
     };
   };
 
@@ -143,11 +143,11 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
 
   const getScoreColor = (score: number | null) => {
     if (score === null || score === undefined) {
-      return "text-gray-500 bg-gray-100 border-gray-300"; // Gray for N/A
+      return "text-stone-600 bg-stone-100 border-stone-300"; // Gray for N/A
     }
-    if (score >= 4) return "text-green-600 bg-green-50 border-green-300";
-    if (score === 3) return "text-yellow-600 bg-yellow-50 border-yellow-300";
-    return "text-red-600 bg-red-50 border-red-300";
+    if (score >= 4) return "text-emerald-700 bg-emerald-50 border-emerald-300";
+    if (score === 3) return "text-amber-700 bg-amber-50 border-amber-300";
+    return "text-rose-700 bg-rose-50 border-rose-300";
   };
 
   const criteriaLabels: Record<
@@ -170,7 +170,7 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
         className={`${style.bg} ${style.border} border-2 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow`}
       >
         {/* Header */}
-        <div className={`bg-gradient-to-r ${style.gradient} p-4 text-white`}>
+        <div className={`${style.header} p-4 text-white`}>
           <div className="flex items-center gap-3">
             <span className="text-3xl">{style.emoji}</span>
             <div>
@@ -192,7 +192,7 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
         </div>
 
         {/* Progress Bar */}
-        <div className="bg-gray-200 h-2">
+        <div className="bg-stone-200 h-2">
           <div
             className={`${style.progressBar} h-full transition-all duration-1000`}
             style={{ width: `${percentage}%` }}
@@ -226,7 +226,7 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
                   <div className="text-xl mb-1">{meta.icon}</div>
                   <div className="text-xs font-medium">{meta.label}</div>
                   {score === null && (
-                    <div className="text-[10px] text-gray-400 mt-0.5">N/A</div>
+                    <div className="text-[10px] text-stone-400 mt-0.5">N/A</div>
                   )}
                 </div>
               );
@@ -244,11 +244,11 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
                 feedback.by_criterion?.consistency ||
                 feedback.by_criterion?.communication_quality ||
                 feedback.by_criterion?.red_flags) && (
-                <div className="bg-white border-l-4 border-blue-500 p-3 rounded-lg shadow-sm">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">
+                <div className="bg-white border-l-4 border-indigo-600 p-3 rounded-lg shadow-sm">
+                  <p className="text-xs font-semibold text-stone-600 mb-2">
                     DETAILED FEEDBACK
                   </p>
-                  <div className="space-y-2 text-sm text-gray-700">
+                  <div className="space-y-2 text-sm text-stone-700">
                     {feedback.by_criterion.migration_intent && (
                       <div>
                         <span className="font-medium">Return Intent: </span>
@@ -297,11 +297,11 @@ const AnswerFeedbackCard: React.FC<AnswerFeedbackCardProps> = ({
 
               {/* Improvements */}
               {feedback.improvements && feedback.improvements.length > 0 && (
-                <div className="bg-white border-l-4 border-green-500 p-3 rounded-lg shadow-sm">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">
+                <div className="bg-white border-l-4 border-emerald-500 p-3 rounded-lg shadow-sm">
+                  <p className="text-xs font-semibold text-stone-600 mb-2">
                     SUGGESTIONS FOR IMPROVEMENT
                   </p>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+                  <ul className="list-disc list-inside space-y-1 text-sm text-stone-700">
                     {feedback.improvements.map((improvement, idx) => (
                       <li key={idx}>{improvement}</li>
                     ))}

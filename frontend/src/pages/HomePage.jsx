@@ -195,9 +195,9 @@ export default function HomePage() {
                   <div className="text-2xl sm:text-3xl mb-1 sm:mb-2 text-white font-bold">10k+</div>
                   <div className="text-indigo-50">Interviews Conducted</div>
                 </div>
-                <div className="bg-teal-700 rounded-xl p-3 sm:p-4">
+                <div className="bg-stone-800 rounded-xl p-3 sm:p-4">
                   <div className="text-2xl sm:text-3xl mb-1 sm:mb-2 text-white font-bold">95%</div>
-                  <div className="text-teal-50">Success Rate</div>
+                  <div className="text-stone-300">Success Rate</div>
                 </div>
               </div>
             </div>
@@ -215,9 +215,9 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <div
               ref={addToRefs}
-              className="fade-in-on-scroll bg-amber-50 border border-amber-200 rounded-2xl p-6 sm:p-8 hover:border-amber-300 hover:shadow-md transition-all"
+              className="fade-in-on-scroll bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 hover:border-stone-300 hover:shadow-md transition-all"
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
                 ⚡
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">Instant Feedback</h3>
@@ -225,10 +225,10 @@ export default function HomePage() {
             </div>
             <div
               ref={addToRefs}
-              className="fade-in-on-scroll bg-teal-50 border border-teal-200 rounded-2xl p-6 sm:p-8 hover:border-teal-300 hover:shadow-md transition-all"
+              className="fade-in-on-scroll bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 hover:border-stone-300 hover:shadow-md transition-all"
               style={{ transitionDelay: "0.1s" }}
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-teal-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
                 💬
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">Natural Conversation</h3>
@@ -236,7 +236,7 @@ export default function HomePage() {
             </div>
             <div
               ref={addToRefs}
-              className="fade-in-on-scroll bg-indigo-50 border border-indigo-200 rounded-2xl p-6 sm:p-8 hover:border-indigo-300 hover:shadow-md transition-all"
+              className="fade-in-on-scroll bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 hover:border-stone-300 hover:shadow-md transition-all"
               style={{ transitionDelay: "0.2s" }}
             >
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
@@ -247,10 +247,10 @@ export default function HomePage() {
             </div>
             <div
               ref={addToRefs}
-              className="fade-in-on-scroll bg-slate-100 border border-slate-300 rounded-2xl p-6 sm:p-8 hover:border-slate-400 hover:shadow-md transition-all"
+              className="fade-in-on-scroll bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 hover:border-stone-300 hover:shadow-md transition-all"
               style={{ transitionDelay: "0.3s" }}
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
                 ⏰
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">24/7 Availability</h3>
@@ -258,10 +258,10 @@ export default function HomePage() {
             </div>
             <div
               ref={addToRefs}
-              className="fade-in-on-scroll bg-emerald-50 border border-emerald-200 rounded-2xl p-6 sm:p-8 hover:border-emerald-300 hover:shadow-md transition-all"
+              className="fade-in-on-scroll bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 hover:border-stone-300 hover:shadow-md transition-all"
               style={{ transitionDelay: "0.4s" }}
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-emerald-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
                 🛡️
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">Private &amp; Secure</h3>
@@ -269,10 +269,10 @@ export default function HomePage() {
             </div>
             <div
               ref={addToRefs}
-              className="fade-in-on-scroll bg-rose-50 border border-rose-200 rounded-2xl p-6 sm:p-8 hover:border-rose-300 hover:shadow-md transition-all"
+              className="fade-in-on-scroll bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 hover:border-stone-300 hover:shadow-md transition-all"
               style={{ transitionDelay: "0.5s" }}
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-rose-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-700 rounded-2xl flex items-center justify-center mb-4 sm:mb-6 text-white text-2xl sm:text-3xl">
                 ✨
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">Personalized</h3>
@@ -305,7 +305,7 @@ export default function HomePage() {
               className="fade-in-on-scroll text-center"
               style={{ transitionDelay: "0.2s" }}
             >
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-teal-700 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold mx-auto mb-4 sm:mb-6">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-indigo-700 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold mx-auto mb-4 sm:mb-6">
                 2
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">Start Practicing</h3>
@@ -316,7 +316,7 @@ export default function HomePage() {
               className="fade-in-on-scroll text-center"
               style={{ transitionDelay: "0.4s" }}
             >
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-700 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold mx-auto mb-4 sm:mb-6">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-indigo-700 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl font-bold mx-auto mb-4 sm:mb-6">
                 3
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3 sm:mb-4">Get Better</h3>
@@ -342,44 +342,22 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-stone-900 text-stone-300 py-8 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 w-auto" />
-                <span className="text-xl font-bold text-white">AI Interviewer</span>
-              </div>
-              <p className="text-sm">Empowering candidates with AI-powered interview practice.</p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Features</a></li>
-                {/* <li><a href="#pricing" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Pricing</a></li> */}
-                <li><Link to="/faq" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">FAQ</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/about" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">About Us</Link></li>
-                {/* <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Blog</a></li> */}
-                {/* <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Careers</a></li> */}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/privacy" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Terms of Service</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors block py-2 min-h-[44px] flex items-center">Contact</a></li>
-              </ul>
-            </div>
+      <footer className="bg-stone-900 text-stone-400 py-8 sm:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-4 text-center">
+          <div className="flex items-center gap-2">
+            <img src="/logo.svg" alt="Alto Visas Logo" className="h-7 w-auto" />
+            <span className="text-lg font-bold text-white">AI Interviewer</span>
           </div>
-          <div className="border-t border-stone-800 pt-8 text-center text-sm">
-            <p>© 2025 AI Interviewer. All rights reserved.</p>
-          </div>
+          <p className="text-sm">Empowering candidates with AI-powered interview practice.</p>
+          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm" aria-label="Footer">
+            <a href="#features" className="text-stone-400 hover:text-white transition-colors py-1">Features</a>
+            <Link to="/faq" className="text-stone-400 hover:text-white transition-colors py-1">FAQ</Link>
+            <Link to="/about" className="text-stone-400 hover:text-white transition-colors py-1">About Us</Link>
+            <Link to="/privacy" className="text-stone-400 hover:text-white transition-colors py-1">Privacy Policy</Link>
+            <Link to="/terms" className="text-stone-400 hover:text-white transition-colors py-1">Terms of Service</Link>
+            <a href="#" className="text-stone-400 hover:text-white transition-colors py-1">Contact</a>
+          </nav>
+          <p className="text-xs text-stone-500 border-t border-stone-800 pt-4 w-full">© 2025 AI Interviewer. All rights reserved.</p>
         </div>
       </footer>
     </div>

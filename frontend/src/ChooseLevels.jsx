@@ -32,10 +32,10 @@ const LevelSelection = () => {
             id: 'easy',
             name: 'Easy',
             questions: 4,
-            color: 'from-green-400 to-green-500',
-            bgColor: 'bg-green-50',
-            borderColor: 'border-green-200',
-            textColor: 'text-green-700',
+            color: 'bg-emerald-600',
+            bgColor: 'bg-emerald-50',
+            borderColor: 'border-emerald-200',
+            textColor: 'text-emerald-700',
             description: 'Perfect for first-time practice',
             icon: '🌱'
         },
@@ -43,10 +43,10 @@ const LevelSelection = () => {
             id: 'medium',
             name: 'Medium',
             questions: 7,
-            color: 'from-blue-400 to-blue-500',
-            bgColor: 'bg-blue-50',
-            borderColor: 'border-blue-200',
-            textColor: 'text-blue-700',
+            color: 'bg-amber-600',
+            bgColor: 'bg-amber-50',
+            borderColor: 'border-amber-200',
+            textColor: 'text-amber-700',
             description: 'Build your confidence',
             icon: '🎯'
         },
@@ -54,10 +54,10 @@ const LevelSelection = () => {
             id: 'hard',
             name: 'Hard',
             questions: 12,
-            color: 'from-purple-400 to-purple-500',
-            bgColor: 'bg-purple-50',
-            borderColor: 'border-purple-200',
-            textColor: 'text-purple-700',
+            color: 'bg-rose-600',
+            bgColor: 'bg-rose-50',
+            borderColor: 'border-rose-200',
+            textColor: 'text-rose-700',
             description: 'Master the interview',
             icon: '🏆'
         }
@@ -69,7 +69,7 @@ const LevelSelection = () => {
     };
 
     return (
-        <div className="w-full h-screen flex flex-col bg-gradient-to-b from-green-50 to-blue-50">
+        <div className="w-full h-screen flex flex-col bg-stone-50">
             {/* Navigation */}
             <nav className="bg-white shadow-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
@@ -78,7 +78,7 @@ const LevelSelection = () => {
                         className="flex items-center gap-2 sm:gap-3 cursor-pointer bg-transparent border-none outline-none p-0"
                     >
                         <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
-                        <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="text-xl sm:text-2xl font-bold text-indigo-700">
                             AI Interviewer
                         </span>
                     </button>
@@ -91,7 +91,7 @@ const LevelSelection = () => {
                             ) : (
                                 <button
                                     onClick={() => navigate("/login")}
-                                    className="px-4 lg:px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all text-sm lg:text-base min-h-[44px]"
+                                    className="px-4 lg:px-6 py-2 bg-indigo-700 text-white rounded-full hover:shadow-lg transition-all text-sm lg:text-base min-h-[44px]"
                                 >
                                     Sign In
                                 </button>
@@ -107,7 +107,7 @@ const LevelSelection = () => {
                             ) : (
                                 <button
                                     onClick={() => navigate("/login")}
-                                    className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center text-white min-w-[44px] min-h-[44px] hover:opacity-90 transition-opacity"
+                                    className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white min-w-[44px] min-h-[44px] hover:opacity-90 transition-opacity"
                                     aria-label="Sign in"
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,11 +121,11 @@ const LevelSelection = () => {
             </nav>
 
             {/* Page Title Section */}
-            <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white p-6 shadow-lg">
+            <div className="bg-indigo-700 text-white p-6">
                 <div className="max-w-4xl mx-auto text-center">
                     <div className="text-5xl mb-3">🎓</div>
                     <h1 className="text-3xl font-bold mb-2">F1 Visa Interview Practice</h1>
-                    <p className="text-green-100">Choose your difficulty level to begin</p>
+                    <p className="text-indigo-100">Choose your difficulty level to begin</p>
                 </div>
             </div>
 
@@ -140,17 +140,17 @@ const LevelSelection = () => {
                         >
                             <div className="text-center">
                                 <div className="text-6xl mb-4">{level.icon}</div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">{level.name}</h2>
+                                <h2 className="text-2xl font-bold text-stone-800 mb-2">{level.name}</h2>
                                 <div className={`inline-block px-4 py-2 rounded-full bg-white ${level.textColor} font-semibold mb-4`}>
                                     {level.questions} Questions
                                 </div>
-                                <p className="text-gray-600 mb-6">{level.description}</p>
+                                <p className="text-stone-700 mb-6">{level.description}</p>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleLevelSelect(level);
                                     }}
-                                    className={`w-full bg-gradient-to-r ${level.color} text-white py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all`}
+                                    className={`w-full ${level.color} text-white py-3 rounded-full font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity`}
                                 >
                                     Start Practice
                                     <span className="text-lg">→</span>
@@ -162,7 +162,7 @@ const LevelSelection = () => {
             </div>
 
             {/* Footer Tip */}
-            <div className="bg-white border-t p-4 text-center text-gray-500 text-sm">
+            <div className="bg-white border-t p-4 text-center text-stone-600 text-sm">
                 💡 Start with Easy if this is your first time practicing
             </div>
         </div>

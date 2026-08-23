@@ -26,10 +26,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     if (ok === null) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+            <div className="min-h-screen bg-stone-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="text-6xl mb-4 animate-bounce">🤖</div>
-                    <div className="text-gray-600">Loading...</div>
+                    <div className="text-stone-700">Loading...</div>
                 </div>
             </div>
         );

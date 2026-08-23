@@ -49,10 +49,10 @@ const CollegeMajorForm = ({ onComplete }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <div className="flex items-center justify-center min-h-screen bg-stone-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-stone-700">Loading...</p>
         </div>
       </div>
     );
@@ -62,14 +62,14 @@ const CollegeMajorForm = ({ onComplete }) => {
   const hasExistingData = college && major && college.trim() !== '' && major.trim() !== '';
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-stone-50 p-4">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
         <div className="text-center mb-6">
           <div className="text-5xl mb-4">🎓</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-bold text-stone-800 mb-2">
             {hasExistingData ? 'Your Information' : 'Tell Us About Yourself'}
           </h2>
-          <p className="text-gray-600 text-sm">
+          <p className="text-stone-700 text-sm">
             {hasExistingData 
               ? 'Review and update your information before starting the interview'
               : 'We need this information to personalize your interview experience'}
@@ -78,7 +78,7 @@ const CollegeMajorForm = ({ onComplete }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="college" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="college" className="block text-sm font-medium text-stone-700 mb-2">
               Which college/university will you attend? *
             </label>
             <input
@@ -87,13 +87,13 @@ const CollegeMajorForm = ({ onComplete }) => {
               value={college}
               onChange={(e) => setCollege(e.target.value)}
               placeholder="e.g., Stanford University"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-3 border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-stone-900"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="major" className="block text-sm font-medium text-stone-700 mb-2">
               What is your major? *
             </label>
             <input
@@ -102,14 +102,14 @@ const CollegeMajorForm = ({ onComplete }) => {
               value={major}
               onChange={(e) => setMajor(e.target.value)}
               placeholder="e.g., Computer Science"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900"
+              className="w-full px-4 py-3 border-2 border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-stone-900"
               required
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="bg-rose-50 border-l-4 border-rose-500 p-3 rounded">
+              <p className="text-sm text-rose-700">{error}</p>
             </div>
           )}
 
@@ -117,7 +117,7 @@ const CollegeMajorForm = ({ onComplete }) => {
             <button
               type="submit"
               disabled={saving || !college.trim() || !major.trim()}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Save & Continue'}
             </button>

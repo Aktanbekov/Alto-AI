@@ -109,29 +109,29 @@ export default function SignupPage() {
 
     if (step === "verify") {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 grid place-items-center px-4 py-8 sm:py-12">
+            <div className="min-h-screen bg-stone-50 grid place-items-center px-4 py-8 sm:py-12">
                 <div className="w-full max-w-md animate-fade-in-up">
-                    <div className="rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 p-6 sm:p-8">
+                    <div className="rounded-2xl bg-white shadow-2xl ring-1 ring-stone-200 p-6 sm:p-8">
                         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                             <span className="text-3xl sm:text-4xl">🤖</span>
-                            <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            <span className="text-xl sm:text-2xl font-bold text-indigo-700">
                                 AI Interviewer
                             </span>
                         </div>
 
-                        <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 text-center">
+                        <p className="text-xs sm:text-sm text-stone-700 mb-4 sm:mb-6 text-center">
                             We've sent a verification code to <strong>{email}</strong>
                         </p>
 
                         {success && (
-                            <div className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                            <div className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
                                 {success}
                             </div>
                         )}
 
                         <form onSubmit={handleVerify} className="space-y-4">
                             <label className="block">
-                                <span className="text-sm text-gray-700 font-medium">Verification Code</span>
+                                <span className="text-sm text-stone-700 font-medium">Verification Code</span>
                                 <div className="mt-1.5 relative">
                                     <input
                                         type="text"
@@ -139,13 +139,13 @@ export default function SignupPage() {
                                         onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                                         placeholder="000000"
                                         maxLength={6}
-                                        className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 px-3 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 text-center text-xl sm:text-2xl tracking-widest min-h-[44px]"
+                                        className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 px-3 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 text-center text-xl sm:text-2xl tracking-widest min-h-[44px]"
                                     />
                                 </div>
                             </label>
 
                             {error && (
-                                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                                <div className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">
                                     {error}
                                 </div>
                             )}
@@ -153,12 +153,12 @@ export default function SignupPage() {
                             <button
                                 type="submit"
                                 disabled={loading || code.length !== 6}
-                                className="w-full rounded-xl py-3 sm:py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg disabled:opacity-60 transition-all min-h-[44px]"
+                                className="w-full rounded-xl py-3 sm:py-2.5 text-sm font-semibold bg-indigo-700 text-white hover:shadow-lg disabled:opacity-60 transition-all min-h-[44px]"
                             >
                                 {loading ? "Verifying…" : "Verify Email"}
                             </button>
 
-                            <div className="flex justify-between items-center text-xs text-gray-500">
+                            <div className="flex justify-between items-center text-xs text-stone-600">
                                 <button
                                     type="button"
                                     onClick={() => setStep("signup")}
@@ -183,25 +183,25 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 grid place-items-center px-4 py-8 sm:py-12">
+        <div className="min-h-screen bg-stone-50 grid place-items-center px-4 py-8 sm:py-12">
             <div className="w-full max-w-md animate-fade-in-up">
-                <div className="rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 p-6 sm:p-8">
+                <div className="rounded-2xl bg-white shadow-2xl ring-1 ring-stone-200 p-6 sm:p-8">
                     <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                         <span className="text-3xl sm:text-4xl">🤖</span>
-                        <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="text-xl sm:text-2xl font-bold text-indigo-700">
                             AI Interviewer
                         </span>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 text-center">
+                    <p className="text-xs sm:text-sm text-stone-700 mb-4 sm:mb-6 text-center">
                         Create an account to start practicing interviews
                     </p>
 
                     <form onSubmit={handleSignup} noValidate className="space-y-4">
                         <label className="block">
-                            <span className="text-sm text-gray-700 font-medium">Name</span>
+                            <span className="text-sm text-stone-700 font-medium">Name</span>
                             <div className="mt-1.5 relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400">
                                     <UserIcon className="w-4 h-4" />
                                 </span>
                                 <input
@@ -209,15 +209,15 @@ export default function SignupPage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="John Doe"
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-3 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 min-h-[44px]"
+                                    className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-3 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 min-h-[44px]"
                                 />
                             </div>
                         </label>
 
                         <label className="block">
-                            <span className="text-sm text-gray-700 font-medium">Email address</span>
+                            <span className="text-sm text-stone-700 font-medium">Email address</span>
                             <div className="mt-1.5 relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400">
                                     <MailIcon className="w-4 h-4" />
                                 </span>
                                 <input
@@ -225,15 +225,15 @@ export default function SignupPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="name@example.com"
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-3 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 min-h-[44px]"
+                                    className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-3 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 min-h-[44px]"
                                 />
                             </div>
                         </label>
 
                         <label className="block">
-                            <span className="text-sm text-gray-700 font-medium">Password</span>
+                            <span className="text-sm text-stone-700 font-medium">Password</span>
                             <div className="mt-1.5 relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400">
                                     <LockIcon className="w-4 h-4" />
                                 </span>
                                 <input
@@ -241,12 +241,12 @@ export default function SignupPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-10 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 min-h-[44px]"
+                                    className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-10 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 min-h-[44px]"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShow(s => !s)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700"
                                     aria-label={show ? "Hide password" : "Show password"}
                                 >
                                     {show ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
@@ -255,9 +255,9 @@ export default function SignupPage() {
                         </label>
 
                         <label className="block">
-                            <span className="text-sm text-gray-700 font-medium">Confirm Password</span>
+                            <span className="text-sm text-stone-700 font-medium">Confirm Password</span>
                             <div className="mt-1.5 relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400">
                                     <LockIcon className="w-4 h-4" />
                                 </span>
                                 <input
@@ -265,12 +265,12 @@ export default function SignupPage() {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-10 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 min-h-[44px]"
+                                    className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-10 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 min-h-[44px]"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirm(s => !s)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700"
                                     aria-label={showConfirm ? "Hide password" : "Show password"}
                                 >
                                     {showConfirm ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
@@ -279,7 +279,7 @@ export default function SignupPage() {
                         </label>
 
                         {error && (
-                            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">
                                 {error}
                             </div>
                         )}
@@ -287,12 +287,12 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full rounded-xl py-3 sm:py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg disabled:opacity-60 transition-all min-h-[44px]"
+                            className="w-full rounded-xl py-3 sm:py-2.5 text-sm font-semibold bg-indigo-700 text-white hover:shadow-lg disabled:opacity-60 transition-all min-h-[44px]"
                         >
                             {loading ? "Creating account…" : "Sign up"}
                         </button>
 
-                        <div className="text-center text-xs text-gray-500">
+                        <div className="text-center text-xs text-stone-600">
                             Already have an account?{" "}
                             <Link to="/login" className="hover:text-indigo-600 transition-colors font-medium">
                                 Log in

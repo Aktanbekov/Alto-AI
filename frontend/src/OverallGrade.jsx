@@ -16,9 +16,9 @@ const OverallGrade = ({ scoreData }) => {
     const data = scoreData || defaultScoreData;
 
     const getReadiness = (score) => {
-        if (score >= 85) return { text: 'Overall Grade Ready!', color: 'text-green-600', bgColor: 'bg-green-50' };
-        if (score >= 70) return { text: 'Almost There!', color: 'text-blue-600', bgColor: 'bg-blue-50' };
-        return { text: 'Keep Practicing', color: 'text-yellow-600', bgColor: 'bg-yellow-50' };
+        if (score >= 85) return { text: 'Overall Grade Ready!', color: 'text-emerald-600', bgColor: 'bg-emerald-50' };
+        if (score >= 70) return { text: 'Almost There!', color: 'text-lime-700', bgColor: 'bg-lime-50' };
+        return { text: 'Keep Practicing', color: 'text-amber-600', bgColor: 'bg-amber-50' };
     };
 
     const readiness = getReadiness(data.score);
@@ -36,34 +36,34 @@ const OverallGrade = ({ scoreData }) => {
 
             {/* Performance Cards */}
             <div className="p-8">
-                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <h3 className="text-xl font-bold text-stone-800 mb-6 flex items-center gap-2">
                     <span className="text-2xl">⭐</span>
                     Your Performance
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4 mb-8">
                     {data.categoryScores.map((category, idx) => (
-                        <div key={idx} className="bg-gray-50 rounded-2xl p-5 border-2 border-gray-100 hover:border-blue-300 transition-all">
+                        <div key={idx} className="bg-stone-50 rounded-2xl p-5 border-2 border-stone-100 hover:border-lime-300 transition-all">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-3xl">{category.emoji}</span>
-                                <span className={`text-2xl font-bold ${category.score >= 80 ? 'text-green-600' :
-                                    category.score >= 60 ? 'text-blue-600' : 'text-yellow-600'
+                                <span className={`text-2xl font-bold ${category.score >= 80 ? 'text-emerald-600' :
+                                    category.score >= 60 ? 'text-lime-700' : 'text-amber-600'
                                     }`}>
                                     {category.score}%
                                 </span>
                             </div>
-                            <div className="text-sm font-medium text-gray-700">{category.name}</div>
+                            <div className="text-sm font-medium text-stone-700">{category.name}</div>
                         </div>
                     ))}
                 </div>
 
                 {/* Feedback */}
-                <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6">
-                    <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                <div className="bg-lime-50 border-l-4 border-lime-600 rounded-lg p-6">
+                    <h4 className="font-bold text-lime-900 mb-2 flex items-center gap-2">
                         <span className="text-xl">📈</span>
                         Personalized Feedback
                     </h4>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{data.feedback}</p>
+                    <p className="text-stone-700 leading-relaxed whitespace-pre-line">{data.feedback}</p>
                 </div>
             </div>
         </div>

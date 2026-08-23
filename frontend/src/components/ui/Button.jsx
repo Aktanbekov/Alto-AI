@@ -8,7 +8,7 @@ export function Button({
   const baseStyles =
     "relative inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group";
   const variants = {
-    primary: "bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white hover:brightness-110 shadow-lg hover:shadow-xl shadow-purple-200/50",
+    primary: "bg-indigo-700 text-white hover:brightness-110 shadow-lg hover:shadow-xl",
     secondary:
       "bg-white text-black border border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 shadow-sm",
     outline: "bg-transparent text-black border border-neutral-200 hover:bg-black/5",
