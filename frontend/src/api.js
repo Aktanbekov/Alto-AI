@@ -221,6 +221,70 @@ export async function register(email, name, password) {
   }
 }
 
+// ---------- Admin panel ----------
+
+// The admin API returns 404 rather than 403 to non-admins, so callers should
+// treat a failure here as "not an admin" rather than surfacing an error.
+async function adminRequest(path, options = {}) {
+  const res = await fetchWithAuth(`${API}/api/v1/admin${path}`, options);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Request failed (${res.status})`);
+  }
+  const data = await res.json();
+  return data.data ?? data;
+}
+
+export async function getAdminMe() {
+  try {
+    return await adminRequest("/me");
+  } catch {
+    return { is_admin: false };
+  }
+}
+
+export function getAdminStats() {
+  return adminRequest("/stats");
+}
+
+export function listAdminUsers({ search = "", limit = 25, offset = 0 } = {}) {
+  const q = new URLSearchParams({ search, limit, offset });
+  return adminRequest(`/users?${q}`);
+}
+
+export function getAdminUser(id) {
+  return adminRequest(`/users/${encodeURIComponent(id)}`);
+}
+
+export function deleteAdminUser(id) {
+  return adminRequest(`/users/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export function verifyAdminUser(id) {
+  return adminRequest(`/users/${encodeURIComponent(id)}/verify`, { method: "POST" });
+}
+
+export function listAdminInterviews({ search = "", limit = 25, offset = 0 } = {}) {
+  const q = new URLSearchParams({ search, limit, offset });
+  return adminRequest(`/interviews?${q}`);
+}
+
+export function getAdminInterview(id) {
+  return adminRequest(`/interviews/${encodeURIComponent(id)}`);
+}
+
+export function getAdminQuestions() {
+  return adminRequest("/questions");
+}
+
+export function saveAdminQuestions(categories) {
+  return adminRequest("/questions", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ categories }),
+  });
+}
+
 function getValidationMessage(tag) {
   const messages = {
     required: "is required",

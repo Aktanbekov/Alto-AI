@@ -13,6 +13,7 @@ const FAQPage = lazy(() => import("./pages/FAQPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -49,6 +50,16 @@ export default function App() {
         element={
           <ProtectedRoute>
               <Chat />
+          </ProtectedRoute>
+        }
+      />
+      {/* AdminPage checks admin status itself and redirects non-admins home;
+          ProtectedRoute only guarantees the user is logged in. */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
           </ProtectedRoute>
         }
       />

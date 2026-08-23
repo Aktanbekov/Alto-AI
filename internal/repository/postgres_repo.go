@@ -17,6 +17,14 @@ type postgresRepo struct {
 	db *sql.DB
 }
 
+// DBProvider is implemented by repositories backed by a SQL database, so
+// callers can share the same connection pool (see NewInterviewRepo).
+type DBProvider interface {
+	DB() *sql.DB
+}
+
+func (r *postgresRepo) DB() *sql.DB { return r.db }
+
 func NewPostgresRepo() (UserRepo, error) {
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",

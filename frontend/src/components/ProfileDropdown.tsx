@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMe, logout } from "../api";
+import { getMe, logout, getAdminMe } from "../api";
 
 interface User {
   id: string;
@@ -18,7 +18,18 @@ export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(user || null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // The admin link only renders for allowlisted accounts; the backend gates the
+  // API regardless, so this is presentation only.
+  useEffect(() => {
+    let cancelled = false;
+    getAdminMe()
+      .then((res) => !cancelled && setIsAdmin(Boolean(res?.is_admin)))
+      .catch(() => !cancelled && setIsAdmin(false));
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     // Fetch user if not provided
@@ -127,6 +138,21 @@ export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps
 
           {/* Menu Items */}
           <div className="py-2">
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate("/admin");
+                }}
+                className="w-full px-4 py-3 text-left text-sm text-indigo-700 font-medium hover:bg-indigo-50 transition-colors flex items-center gap-3 min-h-[44px]"
+              >
+                <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Admin panel
+              </button>
+            )}
+
             <button
               onClick={() => {
                 setIsOpen(false);

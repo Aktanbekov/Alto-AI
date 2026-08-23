@@ -23,11 +23,22 @@ func New() (*gin.Engine, error) {
 		return nil, fmt.Errorf("failed to initialize PostgreSQL: %v", err)
 	}
 
+	// Interview results share the user repository's connection pool.
+	dbProvider, ok := userRepo.(repository.DBProvider)
+	if !ok {
+		return nil, fmt.Errorf("user repository does not expose a database handle")
+	}
+	interviewRepo, err := repository.NewInterviewRepo(dbProvider.DB())
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize interview storage: %v", err)
+	}
+
 	userSvc := services.NewUserService(userRepo)
 	authSvc := services.NewAuthService(userRepo)
 	userH := handlers.NewUserHandler(userSvc)
 	authH := handlers.NewAuthHandler(authSvc)
-	chatH := handlers.NewChatHandler(userSvc)
+	chatH := handlers.NewChatHandler(userSvc, interviewRepo)
+	adminH := handlers.NewAdminHandler(userRepo, interviewRepo)
 
 	// Initialize Google auth with the user repository
 	auth.SetUserRepo(userRepo)
@@ -98,16 +109,36 @@ func New() (*gin.Engine, error) {
 		v1.POST("/auth/reset-password", authH.ResetPassword)
 		v1.POST("/auth/resend-verification", authH.ResendVerificationCode)
 		
-		// User routes
-		v1.GET("/users", userH.List)
-		v1.POST("/users", userH.Create)
-		v1.GET("/users/:id", userH.Get)
+		// User routes.
+		// These expose and mutate every account, so they are admin-only.
+		// Public signup goes through /auth/register, not POST /users.
+		v1.GET("/users", middleware.JWTAuth(), middleware.AdminOnly(), userH.List)
+		v1.POST("/users", middleware.JWTAuth(), middleware.AdminOnly(), userH.Create)
+		v1.GET("/users/:id", middleware.JWTAuth(), middleware.AdminOnly(), userH.Get)
+		v1.DELETE("/users/:id", middleware.JWTAuth(), middleware.AdminOnly(), userH.Delete)
 		v1.PUT("/users/:id", middleware.JWTAuth(), userH.Update)
-		v1.DELETE("/users/:id", userH.Delete)
 		v1.PUT("/users/me/profile", middleware.JWTAuth(), userH.UpdateProfile)
-		
+
 		// Chat route (requires auth)
 		v1.POST("/chat", middleware.JWTAuth(), chatH.Chat)
+
+		// Any authenticated user may ask whether they are an admin; the
+		// frontend uses this to decide whether to show the panel.
+		v1.GET("/admin/me", middleware.JWTAuth(), adminH.Me)
+
+		// Admin panel API
+		admin := v1.Group("/admin", middleware.JWTAuth(), middleware.AdminOnly())
+		{
+			admin.GET("/stats", adminH.Stats)
+			admin.GET("/users", adminH.ListUsers)
+			admin.GET("/users/:id", adminH.GetUser)
+			admin.DELETE("/users/:id", adminH.DeleteUser)
+			admin.POST("/users/:id/verify", adminH.VerifyUser)
+			admin.GET("/interviews", adminH.ListSessions)
+			admin.GET("/interviews/:id", adminH.GetSession)
+			admin.GET("/questions", adminH.ListQuestions)
+			admin.PUT("/questions", adminH.UpdateQuestions)
+		}
 	}
 
 	return r, nil
