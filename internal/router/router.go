@@ -7,6 +7,7 @@ import (
 	"altoai_mvp/internal/middleware"
 	"altoai_mvp/internal/repository"
 	"altoai_mvp/internal/services"
+	"altoai_mvp/internal/visallm"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,7 @@ func New() (*gin.Engine, error) {
 	authH := handlers.NewAuthHandler(authSvc)
 	chatH := handlers.NewChatHandler(userSvc, interviewRepo)
 	adminH := handlers.NewAdminHandler(userRepo, interviewRepo)
+	evaluateH := handlers.NewEvaluateHandler(visallm.New(), userSvc)
 
 	// Initialize Google auth with the user repository
 	auth.SetUserRepo(userRepo)
@@ -121,6 +123,10 @@ func New() (*gin.Engine, error) {
 
 		// Chat route (requires auth)
 		v1.POST("/chat", middleware.JWTAuth(), chatH.Chat)
+
+		// Grounded evaluation, backed by the visa-llm sidecar
+		v1.GET("/evaluate/status", middleware.JWTAuth(), evaluateH.Status)
+		v1.POST("/evaluate", middleware.JWTAuth(), evaluateH.Evaluate)
 
 		// Any authenticated user may ask whether they are an admin; the
 		// frontend uses this to decide whether to show the panel.

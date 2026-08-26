@@ -1,0 +1,7 @@
+# Large corpus artifacts for the visa-llm service are stored in Git LFS.
+# Without LFS installed, these files clone as small pointer text files.
+visa-llm/raw_data/**/*.json      filter=lfs diff=lfs merge=lfs -text
+visa-llm/data/**/*.jsonl         filter=lfs diff=lfs merge=lfs -text
+visa-llm/data/**/*.parquet       filter=lfs diff=lfs merge=lfs -text
+visa-llm/data/**/*.npy           filter=lfs diff=lfs merge=lfs -text
+visa-llm/web/data/**/*.json      filter=lfs diff=lfs merge=lfs -text

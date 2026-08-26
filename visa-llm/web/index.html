@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F-1 Interview Data</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">F-1 Interview Data <span>· 16,204 real interviews</span></div>
+    <nav>
+      <a href="#/dashboard" data-view="dashboard">Dashboard</a>
+      <a href="#/explorer" data-view="explorer">Explorer</a>
+      <a href="#/questions" data-view="questions">Questions</a>
+      <a href="#/evaluate" data-view="evaluate">Evaluate</a>
+    </nav>
+    <button class="theme-btn" id="theme-toggle" title="Toggle theme">◐</button>
+  </div>
+</header>
+
+<main>
+  <!-- ------------------------------------------------------- dashboard -- -->
+  <section class="view" id="view-dashboard">
+    <h1>What 16,204 visa interviews show</h1>
+    <div class="caveat">
+      <strong>Read this first.</strong> These are self-selected, self-reported reviews
+      posted to Telegram. Approval shares describe <em>who chooses to post</em> — not the
+      true consular approval rate. Nothing here predicts an individual outcome.
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card" style="margin-top:20px">
+      <h2>Outcome mix</h2>
+      <div class="sub">Every record in the corpus, including those with no stated decision.</div>
+      <div class="chart" id="c-outcomes"></div>
+    </div>
+
+    <div class="grid two">
+      <div class="card">
+        <h2>Approval share by consulate</h2>
+        <div class="sub">Dashed line marks the corpus-wide share. <span class="small-n">* small sample</span></div>
+        <div class="chart" id="c-city"></div>
+      </div>
+      <div class="card">
+        <h2>By degree level</h2>
+        <div class="sub">Bachelors applicants fare markedly worse than Masters.</div>
+        <div class="chart" id="c-degree"></div>
+      </div>
+      <div class="card">
+        <h2>By visa attempt</h2>
+        <div class="sub">A second attempt posts a much lower approval share.</div>
+        <div class="chart" id="c-attempt"></div>
+      </div>
+      <div class="card">
+        <h2>Approval share by year</h2>
+        <div class="sub">Hollow points and a dashed line mark years with too few records to read as a trend.</div>
+        <div class="chart" id="c-year"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Which questions track with which outcomes</h2>
+      <div class="sub">Percentage-point difference from the corpus-wide approval share
+        when a question type appears in an interview.</div>
+      <div class="caveat">
+        <strong>The causation runs backwards.</strong> A question does not cause a refusal.
+        Officers probe prior refusals <em>because</em> a case already looks doubtful, and reach
+        loan paperwork <em>because</em> the interview is going well. You cannot control what you
+        are asked — so treat this as a map of where officers dig, not a list of topics to dodge.
+      </div>
+      <div class="chart" id="c-delta"></div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------- explorer -- -->
+  <section class="view" id="view-explorer">
+    <h1>Interview explorer</h1>
+    <p class="sub" style="color:var(--ink-2)">Search every interview in the corpus. Click any
+      result to read the full officer/applicant transcript.</p>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search university, course, or city…" autocomplete="off">
+      <select id="f-outcome"><option value="">Any outcome</option></select>
+      <select id="f-city"><option value="">Any consulate</option></select>
+      <select id="f-degree"><option value="">Any degree</option></select>
+      <select id="f-year"><option value="">Any year</option></select>
+      <label style="font-size:.85rem;color:var(--ink-2)">
+        <input type="checkbox" id="f-transcript" checked> has transcript
+      </label>
+      <button class="ghost" id="f-reset">Reset</button>
+    </div>
+    <div class="result-count" id="count"></div>
+    <div class="rows" id="rows"></div>
+    <div style="margin-top:16px;text-align:center">
+      <button class="ghost hidden" id="more">Show more</button>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------- questions -- -->
+  <section class="view" id="view-questions">
+    <h1>Question bank</h1>
+    <p class="sub" style="color:var(--ink-2)">Every question type the officers actually asked,
+      with real phrasings from the corpus. Ordered by how often they come up.</p>
+    <div class="filters">
+      <select id="q-city"><option value="">All consulates</option></select>
+      <select id="q-sort">
+        <option value="freq">Sort by frequency</option>
+        <option value="delta">Sort by approval delta</option>
+      </select>
+    </div>
+    <div id="qlist"></div>
+  </section>
+
+  <!-- -------------------------------------------------------- evaluate -- -->
+  <section class="view" id="view-evaluate">
+    <h1>Evaluate your answers</h1>
+    <div id="ev-status"></div>
+    <div id="ev-fit"></div>
+    <form id="ev-form">
+      <div class="card">
+        <h2>Your profile</h2>
+        <div class="sub">Use your real details — the tool is built to help you say true things clearly.</div>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr))">
+          <div><label class="fl" for="p-city">Consulate city</label><input type="text" id="p-city" value="Chennai"></div>
+          <div><label class="fl" for="p-country">Country</label><input type="text" id="p-country" value="India"></div>
+          <div><label class="fl" for="p-uni">University</label><input type="text" id="p-uni" placeholder="e.g. Stanford University"></div>
+          <div><label class="fl" for="p-degree">Applying for</label>
+            <!-- Values match the corpus's canonical degree labels so the
+                 retrieval filter matches; changing them silently breaks it. -->
+            <select id="p-degree" style="width:100%">
+              <option value="">Select…</option>
+              <option value="Bachelors">Bachelor's degree</option>
+              <option value="Masters" selected>Master's degree</option>
+              <option value="MBA">MBA</option>
+              <option value="PhD">PhD / Doctorate</option>
+              <option value="Other">Other</option>
+            </select></div>
+          <div><label class="fl" for="p-course">Field you will study</label>
+            <input type="text" id="p-course" placeholder="e.g. Computer Science"></div>
+          <div id="prev-field-wrap"><label class="fl" for="p-major">Field you already studied</label>
+            <input type="text" id="p-major" placeholder="e.g. Mechanical Engineering"></div>
+          <div><label class="fl" for="p-gpa">GPA</label><input type="text" id="p-gpa" placeholder="e.g. 3.5"></div>
+          <div><label class="fl" for="p-gpa-scale">Grading scale</label>
+            <select id="p-gpa-scale" style="width:100%">
+              <option value="">Select your scale…</option>
+              <option value="4">Out of 4.0 (US and similar)</option>
+              <option value="4.3">Out of 4.3</option>
+              <option value="5">Out of 5.0</option>
+              <option value="10">Out of 10 (India CGPA)</option>
+              <option value="100">Percentage (out of 100)</option>
+            </select></div>
+          <div><label class="fl" for="p-work">Work experience</label><input type="text" id="p-work"></div>
+          <div><label class="fl" for="p-funding">Funding</label><input type="text" id="p-funding"></div>
+          <div><label class="fl" for="p-attempt">Attempt number</label><input type="text" id="p-attempt" value="1"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Planned answers</h2>
+        <div class="sub">Add the questions you expect and what you plan to say.</div>
+        <div id="qa-list"></div>
+        <button type="button" class="ghost" id="add-qa">+ Add another answer</button>
+      </div>
+      <button class="primary" type="submit" id="ev-submit">Evaluate</button>
+    </form>
+    <div id="ev-result" style="margin-top:22px"></div>
+  </section>
+</main>
+
+<dialog id="detail">
+  <div class="dlg-head">
+    <strong id="d-title">Interview</strong>
+    <span id="d-pill"></span>
+    <button class="ghost" style="margin-left:auto" onclick="document.getElementById('detail').close()">Close</button>
+  </div>
+  <div class="dlg-body" id="d-body"></div>
+</dialog>
+
+<footer>
+  Built from public Telegram interview reviews. Educational use only — not legal or
+  immigration advice, and not affiliated with any government.
+</footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,766 @@
+{
+  "meta": {
+    "n_records": 16204,
+    "n_decided": 15154,
+    "outcome_counts": {
+      "approved": 13212,
+      "rejected": 1942,
+      "unknown": 943,
+      "administrative_processing_221g": 107
+    },
+    "year_range": [
+      2020,
+      2026
+    ],
+    "caveat": "Self-selected, self-reported Telegram reviews. Approval shares describe who chooses to post, not the true consular base rate. Associations are correlational, not causal.",
+    "min_cell_size": 25
+  },
+  "overall": {
+    "n_decided": 15154,
+    "approved": 13212,
+    "rejected": 1942,
+    "approval_rate": 0.872
+  },
+  "by_city": {
+    "New Delhi": {
+      "n_decided": 2437,
+      "approved": 2244,
+      "rejected": 193,
+      "approval_rate": 0.921
+    },
+    "Mumbai": {
+      "n_decided": 2005,
+      "approved": 1743,
+      "rejected": 262,
+      "approval_rate": 0.869
+    },
+    "Hyderabad": {
+      "n_decided": 1770,
+      "approved": 1655,
+      "rejected": 115,
+      "approval_rate": 0.935
+    },
+    "Chennai": {
+      "n_decided": 1648,
+      "approved": 1344,
+      "rejected": 304,
+      "approval_rate": 0.816
+    },
+    "Kolkata": {
+      "n_decided": 439,
+      "approved": 400,
+      "rejected": 39,
+      "approval_rate": 0.911
+    },
+    "Tashkent": {
+      "n_decided": 187,
+      "approved": 90,
+      "rejected": 97,
+      "approval_rate": 0.481
+    },
+    "Abu Dhabi": {
+      "n_decided": 32,
+      "approved": 19,
+      "rejected": 13,
+      "approval_rate": 0.594
+    }
+  },
+  "by_country": {
+    "India": {
+      "n_decided": 7499,
+      "approved": 6673,
+      "rejected": 826,
+      "approval_rate": 0.89
+    },
+    "Uzbekistan": {
+      "n_decided": 165,
+      "approved": 78,
+      "rejected": 87,
+      "approval_rate": 0.473
+    },
+    "UAE": {
+      "n_decided": 31,
+      "approved": 13,
+      "rejected": 18,
+      "approval_rate": 0.419
+    }
+  },
+  "by_degree": {
+    "Masters": {
+      "n_decided": 4252,
+      "approved": 3947,
+      "rejected": 305,
+      "approval_rate": 0.928
+    },
+    "Bachelors": {
+      "n_decided": 528,
+      "approved": 345,
+      "rejected": 183,
+      "approval_rate": 0.653
+    },
+    "MBA": {
+      "n_decided": 166,
+      "approved": 125,
+      "rejected": 41,
+      "approval_rate": 0.753
+    },
+    "PhD": {
+      "n_decided": 151,
+      "approved": 145,
+      "rejected": 6,
+      "approval_rate": 0.96
+    }
+  },
+  "by_attempt": {
+    "1.0": {
+      "n_decided": 3272,
+      "approved": 2768,
+      "rejected": 504,
+      "approval_rate": 0.846
+    },
+    "2.0": {
+      "n_decided": 285,
+      "approved": 187,
+      "rejected": 98,
+      "approval_rate": 0.656
+    },
+    "3.0": {
+      "n_decided": 80,
+      "approved": 58,
+      "rejected": 22,
+      "approval_rate": 0.725
+    },
+    "4.0": {
+      "n_decided": 37,
+      "approved": 28,
+      "rejected": 9,
+      "approval_rate": 0.757
+    }
+  },
+  "by_year": {
+    "2022": {
+      "n_decided": 5678,
+      "approved": 4908,
+      "rejected": 770,
+      "approval_rate": 0.864
+    },
+    "2021": {
+      "n_decided": 4613,
+      "approved": 4224,
+      "rejected": 389,
+      "approval_rate": 0.916
+    },
+    "2023": {
+      "n_decided": 3023,
+      "approved": 2557,
+      "rejected": 466,
+      "approval_rate": 0.846
+    },
+    "2024": {
+      "n_decided": 913,
+      "approved": 785,
+      "rejected": 128,
+      "approval_rate": 0.86
+    },
+    "2020": {
+      "n_decided": 711,
+      "approved": 592,
+      "rejected": 119,
+      "approval_rate": 0.833
+    },
+    "2025": {
+      "n_decided": 192,
+      "approved": 137,
+      "rejected": 55,
+      "approval_rate": 0.714
+    }
+  },
+  "question_types": [
+    {
+      "question_type": "sponsor_occupation",
+      "asked_in": 4499,
+      "share_of_interviews": 0.297,
+      "approval_rate_when_asked": 0.9,
+      "delta_vs_base": 0.028
+    },
+    {
+      "question_type": "funding_sponsor",
+      "asked_in": 4474,
+      "share_of_interviews": 0.295,
+      "approval_rate_when_asked": 0.874,
+      "delta_vs_base": 0.002
+    },
+    {
+      "question_type": "funding_general",
+      "asked_in": 4360,
+      "share_of_interviews": 0.288,
+      "approval_rate_when_asked": 0.926,
+      "delta_vs_base": 0.054
+    },
+    {
+      "question_type": "universities_applied",
+      "asked_in": 2975,
+      "share_of_interviews": 0.196,
+      "approval_rate_when_asked": 0.807,
+      "delta_vs_base": -0.065
+    },
+    {
+      "question_type": "undergrad_background",
+      "asked_in": 2896,
+      "share_of_interviews": 0.191,
+      "approval_rate_when_asked": 0.889,
+      "delta_vs_base": 0.017
+    },
+    {
+      "question_type": "which_course",
+      "asked_in": 2670,
+      "share_of_interviews": 0.176,
+      "approval_rate_when_asked": 0.875,
+      "delta_vs_base": 0.003
+    },
+    {
+      "question_type": "graduation_year",
+      "asked_in": 2653,
+      "share_of_interviews": 0.175,
+      "approval_rate_when_asked": 0.85,
+      "delta_vs_base": -0.022
+    },
+    {
+      "question_type": "which_university",
+      "asked_in": 2474,
+      "share_of_interviews": 0.163,
+      "approval_rate_when_asked": 0.842,
+      "delta_vs_base": -0.03
+    },
+    {
+      "question_type": "sponsor_income",
+      "asked_in": 2469,
+      "share_of_interviews": 0.163,
+      "approval_rate_when_asked": 0.896,
+      "delta_vs_base": 0.024
+    },
+    {
+      "question_type": "academics_scores",
+      "asked_in": 2343,
+      "share_of_interviews": 0.155,
+      "approval_rate_when_asked": 0.822,
+      "delta_vs_base": -0.05
+    },
+    {
+      "question_type": "why_university",
+      "asked_in": 2339,
+      "share_of_interviews": 0.154,
+      "approval_rate_when_asked": 0.797,
+      "delta_vs_base": -0.075
+    },
+    {
+      "question_type": "funding_loan",
+      "asked_in": 2306,
+      "share_of_interviews": 0.152,
+      "approval_rate_when_asked": 0.943,
+      "delta_vs_base": 0.071
+    },
+    {
+      "question_type": "why_course",
+      "asked_in": 1979,
+      "share_of_interviews": 0.131,
+      "approval_rate_when_asked": 0.856,
+      "delta_vs_base": -0.016
+    },
+    {
+      "question_type": "work_experience",
+      "asked_in": 1974,
+      "share_of_interviews": 0.13,
+      "approval_rate_when_asked": 0.883,
+      "delta_vs_base": 0.011
+    },
+    {
+      "question_type": "family_details",
+      "asked_in": 1946,
+      "share_of_interviews": 0.128,
+      "approval_rate_when_asked": 0.875,
+      "delta_vs_base": 0.003
+    },
+    {
+      "question_type": "gap_year",
+      "asked_in": 1304,
+      "share_of_interviews": 0.086,
+      "approval_rate_when_asked": 0.851,
+      "delta_vs_base": -0.021
+    },
+    {
+      "question_type": "post_grad_plans",
+      "asked_in": 1144,
+      "share_of_interviews": 0.075,
+      "approval_rate_when_asked": 0.899,
+      "delta_vs_base": 0.027
+    },
+    {
+      "question_type": "program_details",
+      "asked_in": 759,
+      "share_of_interviews": 0.05,
+      "approval_rate_when_asked": 0.895,
+      "delta_vs_base": 0.023
+    },
+    {
+      "question_type": "why_usa",
+      "asked_in": 758,
+      "share_of_interviews": 0.05,
+      "approval_rate_when_asked": 0.786,
+      "delta_vs_base": -0.086
+    },
+    {
+      "question_type": "prior_visa_history",
+      "asked_in": 606,
+      "share_of_interviews": 0.04,
+      "approval_rate_when_asked": 0.728,
+      "delta_vs_base": -0.144
+    },
+    {
+      "question_type": "scholarship",
+      "asked_in": 534,
+      "share_of_interviews": 0.035,
+      "approval_rate_when_asked": 0.815,
+      "delta_vs_base": -0.057
+    },
+    {
+      "question_type": "confirm_plan",
+      "asked_in": 471,
+      "share_of_interviews": 0.031,
+      "approval_rate_when_asked": 0.887,
+      "delta_vs_base": 0.015
+    },
+    {
+      "question_type": "relatives_in_us",
+      "asked_in": 419,
+      "share_of_interviews": 0.028,
+      "approval_rate_when_asked": 0.788,
+      "delta_vs_base": -0.084
+    },
+    {
+      "question_type": "university_knowledge",
+      "asked_in": 336,
+      "share_of_interviews": 0.022,
+      "approval_rate_when_asked": 0.824,
+      "delta_vs_base": -0.048
+    },
+    {
+      "question_type": "course_value",
+      "asked_in": 329,
+      "share_of_interviews": 0.022,
+      "approval_rate_when_asked": 0.912,
+      "delta_vs_base": 0.04
+    },
+    {
+      "question_type": "professors_research",
+      "asked_in": 252,
+      "share_of_interviews": 0.017,
+      "approval_rate_when_asked": 0.901,
+      "delta_vs_base": 0.029
+    },
+    {
+      "question_type": "ties_to_home",
+      "asked_in": 251,
+      "share_of_interviews": 0.017,
+      "approval_rate_when_asked": 0.92,
+      "delta_vs_base": 0.048
+    },
+    {
+      "question_type": "business_details",
+      "asked_in": 250,
+      "share_of_interviews": 0.016,
+      "approval_rate_when_asked": 0.868,
+      "delta_vs_base": -0.004
+    },
+    {
+      "question_type": "return_intent",
+      "asked_in": 206,
+      "share_of_interviews": 0.014,
+      "approval_rate_when_asked": 0.825,
+      "delta_vs_base": -0.047
+    },
+    {
+      "question_type": "why_choice_other",
+      "asked_in": 186,
+      "share_of_interviews": 0.012,
+      "approval_rate_when_asked": 0.903,
+      "delta_vs_base": 0.031
+    },
+    {
+      "question_type": "purpose_of_travel",
+      "asked_in": 183,
+      "share_of_interviews": 0.012,
+      "approval_rate_when_asked": 0.913,
+      "delta_vs_base": 0.041
+    },
+    {
+      "question_type": "intake_travel",
+      "asked_in": 107,
+      "share_of_interviews": 0.007,
+      "approval_rate_when_asked": 0.85,
+      "delta_vs_base": -0.022
+    },
+    {
+      "question_type": "open_ended",
+      "asked_in": 101,
+      "share_of_interviews": 0.007,
+      "approval_rate_when_asked": 0.891,
+      "delta_vs_base": 0.019
+    },
+    {
+      "question_type": "tuition_cost",
+      "asked_in": 73,
+      "share_of_interviews": 0.005,
+      "approval_rate_when_asked": 0.781,
+      "delta_vs_base": -0.091
+    },
+    {
+      "question_type": "job_relevance",
+      "asked_in": 52,
+      "share_of_interviews": 0.003,
+      "approval_rate_when_asked": 0.923,
+      "delta_vs_base": 0.051
+    },
+    {
+      "question_type": "accommodation",
+      "asked_in": 49,
+      "share_of_interviews": 0.003,
+      "approval_rate_when_asked": 0.898,
+      "delta_vs_base": 0.026
+    },
+    {
+      "question_type": "job_prospects_home",
+      "asked_in": 42,
+      "share_of_interviews": 0.003,
+      "approval_rate_when_asked": 0.881,
+      "delta_vs_base": 0.009
+    }
+  ],
+  "question_mix_by_city": {
+    "New Delhi": {
+      "n": 2437,
+      "top_question_types": [
+        {
+          "question_type": "funding_general",
+          "share": 0.346
+        },
+        {
+          "question_type": "funding_sponsor",
+          "share": 0.291
+        },
+        {
+          "question_type": "sponsor_occupation",
+          "share": 0.246
+        },
+        {
+          "question_type": "undergrad_background",
+          "share": 0.173
+        },
+        {
+          "question_type": "why_university",
+          "share": 0.172
+        },
+        {
+          "question_type": "graduation_year",
+          "share": 0.172
+        },
+        {
+          "question_type": "which_course",
+          "share": 0.159
+        },
+        {
+          "question_type": "universities_applied",
+          "share": 0.146
+        },
+        {
+          "question_type": "why_course",
+          "share": 0.14
+        },
+        {
+          "question_type": "work_experience",
+          "share": 0.138
+        },
+        {
+          "question_type": "which_university",
+          "share": 0.133
+        },
+        {
+          "question_type": "family_details",
+          "share": 0.13
+        }
+      ]
+    },
+    "Mumbai": {
+      "n": 2005,
+      "top_question_types": [
+        {
+          "question_type": "funding_sponsor",
+          "share": 0.283
+        },
+        {
+          "question_type": "funding_general",
+          "share": 0.283
+        },
+        {
+          "question_type": "universities_applied",
+          "share": 0.277
+        },
+        {
+          "question_type": "academics_scores",
+          "share": 0.264
+        },
+        {
+          "question_type": "sponsor_occupation",
+          "share": 0.261
+        },
+        {
+          "question_type": "sponsor_income",
+          "share": 0.213
+        },
+        {
+          "question_type": "funding_loan",
+          "share": 0.213
+        },
+        {
+          "question_type": "undergrad_background",
+          "share": 0.209
+        },
+        {
+          "question_type": "graduation_year",
+          "share": 0.186
+        },
+        {
+          "question_type": "why_university",
+          "share": 0.177
+        },
+        {
+          "question_type": "which_university",
+          "share": 0.131
+        },
+        {
+          "question_type": "which_course",
+          "share": 0.128
+        }
+      ]
+    },
+    "Hyderabad": {
+      "n": 1770,
+      "top_question_types": [
+        {
+          "question_type": "sponsor_occupation",
+          "share": 0.388
+        },
+        {
+          "question_type": "funding_sponsor",
+          "share": 0.344
+        },
+        {
+          "question_type": "funding_general",
+          "share": 0.298
+        },
+        {
+          "question_type": "sponsor_income",
+          "share": 0.233
+        },
+        {
+          "question_type": "undergrad_background",
+          "share": 0.213
+        },
+        {
+          "question_type": "universities_applied",
+          "share": 0.207
+        },
+        {
+          "question_type": "which_university",
+          "share": 0.206
+        },
+        {
+          "question_type": "which_course",
+          "share": 0.201
+        },
+        {
+          "question_type": "funding_loan",
+          "share": 0.197
+        },
+        {
+          "question_type": "graduation_year",
+          "share": 0.191
+        },
+        {
+          "question_type": "why_course",
+          "share": 0.186
+        },
+        {
+          "question_type": "why_university",
+          "share": 0.162
+        }
+      ]
+    },
+    "Chennai": {
+      "n": 1648,
+      "top_question_types": [
+        {
+          "question_type": "sponsor_occupation",
+          "share": 0.311
+        },
+        {
+          "question_type": "academics_scores",
+          "share": 0.307
+        },
+        {
+          "question_type": "funding_general",
+          "share": 0.294
+        },
+        {
+          "question_type": "graduation_year",
+          "share": 0.269
+        },
+        {
+          "question_type": "universities_applied",
+          "share": 0.245
+        },
+        {
+          "question_type": "which_university",
+          "share": 0.238
+        },
+        {
+          "question_type": "which_course",
+          "share": 0.226
+        },
+        {
+          "question_type": "work_experience",
+          "share": 0.21
+        },
+        {
+          "question_type": "funding_sponsor",
+          "share": 0.198
+        },
+        {
+          "question_type": "undergrad_background",
+          "share": 0.197
+        },
+        {
+          "question_type": "family_details",
+          "share": 0.158
+        },
+        {
+          "question_type": "why_university",
+          "share": 0.145
+        }
+      ]
+    },
+    "Kolkata": {
+      "n": 439,
+      "top_question_types": [
+        {
+          "question_type": "which_course",
+          "share": 0.333
+        },
+        {
+          "question_type": "funding_general",
+          "share": 0.271
+        },
+        {
+          "question_type": "why_course",
+          "share": 0.257
+        },
+        {
+          "question_type": "funding_sponsor",
+          "share": 0.244
+        },
+        {
+          "question_type": "program_details",
+          "share": 0.169
+        },
+        {
+          "question_type": "sponsor_occupation",
+          "share": 0.162
+        },
+        {
+          "question_type": "which_university",
+          "share": 0.148
+        },
+        {
+          "question_type": "graduation_year",
+          "share": 0.146
+        },
+        {
+          "question_type": "universities_applied",
+          "share": 0.144
+        },
+        {
+          "question_type": "family_details",
+          "share": 0.134
+        },
+        {
+          "question_type": "why_university",
+          "share": 0.118
+        },
+        {
+          "question_type": "why_usa",
+          "share": 0.112
+        }
+      ]
+    },
+    "Tashkent": {
+      "n": 187,
+      "top_question_types": [
+        {
+          "question_type": "funding_sponsor",
+          "share": 0.524
+        },
+        {
+          "question_type": "scholarship",
+          "share": 0.503
+        },
+        {
+          "question_type": "sponsor_occupation",
+          "share": 0.353
+        },
+        {
+          "question_type": "family_details",
+          "share": 0.251
+        },
+        {
+          "question_type": "prior_visa_history",
+          "share": 0.241
+        },
+        {
+          "question_type": "relatives_in_us",
+          "share": 0.235
+        },
+        {
+          "question_type": "which_university",
+          "share": 0.219
+        },
+        {
+          "question_type": "why_university",
+          "share": 0.203
+        },
+        {
+          "question_type": "why_usa",
+          "share": 0.198
+        },
+        {
+          "question_type": "which_course",
+          "share": 0.134
+        },
+        {
+          "question_type": "university_knowledge",
+          "share": 0.123
+        },
+        {
+          "question_type": "funding_general",
+          "share": 0.096
+        }
+      ]
+    }
+  },
+  "answer_length": {
+    "median_total_answer_chars_approved": 423,
+    "median_total_answer_chars_rejected": 476,
+    "median_turns_approved": 8.0,
+    "median_turns_rejected": 8.0,
+    "note": "Transcript length reflects how much the poster wrote down, not only how much they said at the window. Treat as weak signal."
+  }
+}
