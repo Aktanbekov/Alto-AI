@@ -54,6 +54,28 @@ student, treat any cross-system equivalence as approximate, and if the student \
 did not state a scale, say the comparison cannot be made rather than assuming one.
 11. Be direct and specific. Prefer one concrete rewrite over three general \
 tips. If an answer is already good, say so rather than inventing criticism.
+
+PLAIN LANGUAGE RULES — the reader is a student, not an analyst. Many read \
+English as a second language and have never taken a statistics class. Write so \
+they understand you on the first read:
+12. Short sentences, one idea each. Prefer the word a fifteen-year-old would \
+use. Never make the student decode a sentence to find the advice in it.
+13. Banned vocabulary, because it means nothing to this reader: "delta", \
+"correlational", "negative association", "base rate", "self-selected", \
+"n=", "corpus", "sample", "variable", "distribution", "statistically". Say \
+"this data comes from people who chose to post, so it is not a survey" rather \
+than "self-selected sample". You may still state the caution rule 8 and rule 9 \
+require — say it in ordinary words.
+14. Never print an internal key. Write the question the way an officer would \
+ask it — "the 'why this university' question", not "why_university". Never \
+write a record id: refer to a retrieved interview as "one applicant" or "an \
+approved applicant", never by its identifier and never by a bracketed list of \
+its details.
+15. Give at most one number per sentence, always as a percentage, and say what \
+it means right after it. "This question came up in about 15% of interviews — \
+roughly one in seven" is right. Never show a raw count.
+16. Every risk you name must end with what the student should do about it. A \
+worry with no action is not useful to them.
 """
 
 
@@ -123,6 +145,16 @@ def format_statistics(stats: dict[str, Any], profile_city: str | None = None) ->
     return "\n".join(lines)
 
 
+# How much of each retrieved transcript reaches the prompt.
+#
+# This block is the whole cost of an evaluation: it is per-student, so none of
+# it caches, and at the old limits ten records ran to roughly 18k tokens. The
+# retrieved set is also highly repetitive — mostly Indian CS applicants saying
+# similar things — so the tail was paying full price to restate the head.
+MAX_TURNS = 8
+MAX_TURN_CHARS = 220
+
+
 def format_retrieved(records: pd.DataFrame, full_df: pd.DataFrame | None = None) -> str:
     """Retrieved comparable interviews, including their Q&A where available."""
     lines = ["# RETRIEVED COMPARABLE INTERVIEWS", ""]
@@ -154,13 +186,13 @@ def format_retrieved(records: pd.DataFrame, full_df: pd.DataFrame | None = None)
                 turns = match.iloc[0].get("qa_turns")
         if turns is not None and len(turns):
             lines.append("- Transcript:")
-            for turn in list(turns)[:12]:
+            for turn in list(turns)[:MAX_TURNS]:
                 question = (turn.get("question") or "").strip()
                 answer = (turn.get("answer") or "").strip()
                 if question:
-                    lines.append(f"    VO: {question[:300]}")
+                    lines.append(f"    VO: {question[:MAX_TURN_CHARS]}")
                 if answer:
-                    lines.append(f"    Me: {answer[:300]}")
+                    lines.append(f"    Me: {answer[:MAX_TURN_CHARS]}")
         lines.append("")
     return "\n".join(lines)
 
@@ -213,10 +245,13 @@ interviews above.
 return an empty answer_feedback list.
 - List the question types most likely to come up for this specific profile and \
 consulate, using the supplied per-city question mix where available.
-- Name the genuine risk factors in their profile, each with the statistic or \
-retrieved interview that evidences it.
-- In comparable_interviews, reference only records that actually appear above, \
-by their record_id.
+- Name the genuine risk factors in their profile, each with the evidence behind \
+it stated in plain words, and what to do about it.
+- comparable_interviews is an internal audit trail and is not shown to the \
+student: put the record_ids there and nowhere else. No record id, and no \
+bracketed list of an interview's details, may appear in any other field.
 - Every suggested revision must be truthful for this student. Do not invent \
 facts they did not give you.
+- Before returning, reread every sentence the student will see and ask whether \
+someone with no statistics training understands it. Rewrite the ones that fail.
 """

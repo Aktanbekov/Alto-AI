@@ -49,10 +49,43 @@ class ProfileRequest(BaseModel):
         return StudentProfile(**data, planned_answers=answers)
 
 
+# Per-million-token rates, so a run reports what it actually cost instead of a
+# token count someone has to price by hand. Cache reads bill at a tenth of the
+# input rate; cache writes at 1.25x.
+PRICES = {
+    "claude-opus-5": (5.0, 25.0),
+    "claude-opus-4-8": (5.0, 25.0),
+    "claude-sonnet-5": (3.0, 15.0),
+    "claude-haiku-4-5": (1.0, 5.0),
+}
+
+
+def usage_cost(meta: dict[str, Any]) -> float:
+    """Dollar cost of one evaluation from its token counts."""
+    model = str(meta.get("model", ""))
+    rate_in, rate_out = next(
+        (v for k, v in PRICES.items() if model.startswith(k)), (5.0, 25.0)
+    )
+    fresh = meta.get("input_tokens", 0) or 0
+    cached = meta.get("cache_read_input_tokens", 0) or 0
+    written = meta.get("cache_creation_input_tokens", 0) or 0
+    out = meta.get("output_tokens", 0) or 0
+    return (
+        fresh * rate_in
+        + cached * rate_in * 0.1
+        + written * rate_in * 1.25
+        + out * rate_out
+    ) / 1_000_000
+
+
 def create_app(processed_dir: Path, web_dir: Path):
-    from fastapi import FastAPI, HTTPException
+    import logging
+
+    from fastapi import FastAPI, HTTPException, Response
     from fastapi.responses import FileResponse
     from fastapi.staticfiles import StaticFiles
+
+    log = logging.getLogger("visa_llm.evaluate")
 
     app = FastAPI(title="visa-llm", docs_url=None, redoc_url=None)
 
@@ -70,7 +103,7 @@ def create_app(processed_dir: Path, web_dir: Path):
         }
 
     @app.post("/api/evaluate", response_model=Evaluation)
-    def evaluate_endpoint(req: ProfileRequest) -> Evaluation:
+    def evaluate_endpoint(req: ProfileRequest, response: Response) -> Evaluation:
         if not req.planned_answers:
             raise HTTPException(400, "Add at least one question and answer.")
         from ..config import api_key_status
@@ -82,7 +115,7 @@ def create_app(processed_dir: Path, web_dir: Path):
         from ..evaluator.evaluate import evaluate as run
 
         try:
-            evaluation, _meta = run(
+            evaluation, meta = run(
                 req.to_profile(),
                 index_dir=processed_dir / "index",
                 stats_path=processed_dir / "stats.json",
@@ -101,6 +134,25 @@ def create_app(processed_dir: Path, web_dir: Path):
             if "authentication" in message.lower() or "api key" in message.lower():
                 raise HTTPException(401, "The API key was rejected. Check ANTHROPIC_API_KEY.") from exc
             raise HTTPException(500, message) from exc
+
+        # What the call actually cost. This used to be discarded, which left no
+        # way to tell an expensive prompt from an expensive answer.
+        cost = usage_cost(meta)
+        log.info(
+            "evaluate: %s in=%s cached=%s out=%s cost=$%.4f",
+            meta.get("model"),
+            meta.get("input_tokens"),
+            meta.get("cache_read_input_tokens"),
+            meta.get("output_tokens"),
+            cost,
+        )
+        # Headers rather than body fields: the response schema is the Evaluation
+        # itself, and the caller should not have to parse a wrapper to get this.
+        response.headers["X-Eval-Model"] = str(meta.get("model", ""))
+        response.headers["X-Eval-Input-Tokens"] = str(meta.get("input_tokens", 0))
+        response.headers["X-Eval-Cached-Tokens"] = str(meta.get("cache_read_input_tokens", 0))
+        response.headers["X-Eval-Output-Tokens"] = str(meta.get("output_tokens", 0))
+        response.headers["X-Eval-Cost-Usd"] = f"{cost:.4f}"
         return evaluation
 
     if web_dir.exists():

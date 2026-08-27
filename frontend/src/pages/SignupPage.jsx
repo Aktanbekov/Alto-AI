@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register, verifyEmail, resendVerificationCode } from "../api";
+import { track, identify } from "../analytics";
 
 // Minimal inline SVG icons
 const MailIcon = (props) => (
@@ -69,6 +70,9 @@ export default function SignupPage() {
         setLoading(true);
         try {
             await register(email, name, password);
+            // The email itself never enters the event stream — this records
+            // only that a signup happened, at this point in the funnel.
+            track("email_submit");
             setStep("verify");
         } catch (err) {
             console.error("Registration error:", err);
@@ -85,6 +89,7 @@ export default function SignupPage() {
         setLoading(true);
         try {
             await verifyEmail(email, code);
+            identify();
             navigate("/");
         } catch (err) {
             setError(err.message || "Verification failed");

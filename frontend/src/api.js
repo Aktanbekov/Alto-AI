@@ -1,3 +1,4 @@
+import { trackingHeaders } from "./analytics";
 // Use environment variable, or empty string for same-origin (production), or localhost for dev
 const API = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? "" : "http://localhost:8080");
 
@@ -221,6 +222,61 @@ export async function register(email, name, password) {
   }
 }
 
+// ---------- Corpus statistics (public) ----------
+
+// Backs the landing-page dashboard. Public on purpose: logged-out visitors
+// see the charts, so this must not go through fetchWithAuth.
+export async function getCorpusStats() {
+  const res = await fetch(`${API}/api/v1/stats`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Statistics unavailable (${res.status})`);
+  }
+  return res.json();
+}
+
+// The question bank the test draws its rounds from: every question type with
+// its real phrasings, ordered by how often officers ask it. Public, like the
+// stats above — the first round loads before anyone signs in.
+export async function getQuestionBank() {
+  const res = await fetch(`${API}/api/v1/questions`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Question bank unavailable (${res.status})`);
+  }
+  return res.json();
+}
+
+// ---------- Grounded evaluation (visa-llm sidecar) ----------
+
+export async function getEvaluateStatus() {
+  const res = await fetchWithAuth(`${API}/api/v1/evaluate/status`);
+  if (!res.ok) {
+    if (res.status === 401) return { available: false, detail: "Sign in to score your answers." };
+    throw new Error(`Evaluator unavailable (${res.status})`);
+  }
+  const data = await res.json();
+  return data.data ?? data;
+}
+
+// One evaluation costs real credits, so this is deliberately only called on
+// explicit submit — never on mount or on keystroke.
+export async function evaluateProfile(profile) {
+  const res = await fetchWithAuth(`${API}/api/v1/evaluate`, {
+    method: "POST",
+    // The visitor headers let the server attribute report_generated, which
+    // carries token counts and latency the browser cannot know.
+    headers: { "Content-Type": "application/json", ...trackingHeaders() },
+    body: JSON.stringify(profile),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Evaluation failed (${res.status})`);
+  }
+  const data = await res.json();
+  return data.data ?? data;
+}
+
 // ---------- Admin panel ----------
 
 // The admin API returns 404 rather than 403 to non-admins, so callers should
@@ -246,6 +302,31 @@ export async function getAdminMe() {
 export function getAdminStats() {
   return adminRequest("/stats");
 }
+
+// Evaluation failures students were shown a neutral message for. The real
+// cause — out of credit, rejected key — is admin-only by design.
+export function getEvaluatorHealth() {
+  return adminRequest("/evaluator-health");
+}
+
+// ---------- Product analytics (admin) ----------
+
+// Every screen takes the same filter set, so "friends vs strangers" works
+// across all of them.
+function analyticsQuery(filters = {}) {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(filters)) {
+    if (v) params.set(k, v);
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+export const getFunnel = (f) => adminRequest(`/analytics/funnel${analyticsQuery(f)}`);
+export const getReportQuality = (f) => adminRequest(`/analytics/report-quality${analyticsQuery(f)}`);
+export const getCoverageGaps = (f) => adminRequest(`/analytics/coverage${analyticsQuery(f)}`);
+export const getFeedbackInbox = (f) => adminRequest(`/analytics/feedback${analyticsQuery(f)}`);
+export const getCorpusGrowth = () => adminRequest("/analytics/corpus-growth");
 
 export function listAdminUsers({ search = "", limit = 25, offset = 0 } = {}) {
   const q = new URLSearchParams({ search, limit, offset });

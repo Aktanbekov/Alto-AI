@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -98,6 +99,29 @@ type Health struct {
 
 var ErrNotConfigured = fmt.Errorf("visa-llm is not configured (set VISA_LLM_URL)")
 
+// UpstreamError carries the sidecar's status code alongside its message. The
+// code is what separates an operator problem (402 out of credit, 401 bad key)
+// from a genuine fault, and callers need that distinction to decide what the
+// student is allowed to see.
+type UpstreamError struct {
+	StatusCode int
+	Detail     string
+}
+
+func (e *UpstreamError) Error() string { return e.Detail }
+
+// Billing reports whether the account cannot pay for the call. The sidecar maps
+// Anthropic's credit-balance failure to 402.
+func (e *UpstreamError) Billing() bool { return e.StatusCode == http.StatusPaymentRequired }
+
+// Credentials reports a rejected or missing API key.
+func (e *UpstreamError) Credentials() bool { return e.StatusCode == http.StatusUnauthorized }
+
+// Operator reports whether this is ours to fix rather than the student's. Both
+// billing and credential failures are invisible to the student and unfixable by
+// them, so both are hidden behind a neutral message.
+func (e *UpstreamError) Operator() bool { return e.Billing() || e.Credentials() }
+
 func (c *Client) Health(ctx context.Context) (Health, error) {
 	var h Health
 	if !c.Configured() {
@@ -120,7 +144,8 @@ func (c *Client) Health(ctx context.Context) (Health, error) {
 
 // Evaluate submits a profile and returns the grounded evaluation. The sidecar
 // uses specific status codes for actionable failures (402 no credit, 401 bad
-// key), so its error text is passed through rather than flattened to a 500.
+// key); those come back as *UpstreamError so the handler can tell an operator
+// problem from a genuine fault.
 func (c *Client) Evaluate(ctx context.Context, p ProfileRequest) (Evaluation, error) {
 	var out Evaluation
 	if !c.Configured() {
@@ -150,7 +175,69 @@ func (c *Client) Evaluate(ctx context.Context, p ProfileRequest) (Evaluation, er
 		if e.Detail == "" {
 			e.Detail = fmt.Sprintf("visa-llm returned %d", resp.StatusCode)
 		}
-		return out, fmt.Errorf("%s", e.Detail)
+		return out, &UpstreamError{StatusCode: resp.StatusCode, Detail: e.Detail}
 	}
-	return out, json.NewDecoder(resp.Body).Decode(&out)
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// Usage is what one evaluation cost, read from the sidecar's response headers.
+type Usage struct {
+	Model        string  `json:"model"`
+	InputTokens  int     `json:"input_tokens"`
+	CachedTokens int     `json:"cached_tokens"`
+	OutputTokens int     `json:"output_tokens"`
+	CostUSD      float64 `json:"cost_usd"`
+}
+
+func usageFromHeaders(h http.Header) Usage {
+	atoi := func(s string) int { n, _ := strconv.Atoi(s); return n }
+	cost, _ := strconv.ParseFloat(h.Get("X-Eval-Cost-Usd"), 64)
+	return Usage{
+		Model:        h.Get("X-Eval-Model"),
+		InputTokens:  atoi(h.Get("X-Eval-Input-Tokens")),
+		CachedTokens: atoi(h.Get("X-Eval-Cached-Tokens")),
+		OutputTokens: atoi(h.Get("X-Eval-Output-Tokens")),
+		CostUSD:      cost,
+	}
+}
+
+// EvaluateWithUsage is Evaluate plus what the call cost. Callers that do not
+// care about spend can keep using Evaluate.
+func (c *Client) EvaluateWithUsage(ctx context.Context, p ProfileRequest) (Evaluation, Usage, error) {
+	var out Evaluation
+	var use Usage
+	if !c.Configured() {
+		return out, use, ErrNotConfigured
+	}
+	body, err := json.Marshal(p)
+	if err != nil {
+		return out, use, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.BaseURL+"/api/evaluate", bytes.NewReader(body))
+	if err != nil {
+		return out, use, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.HTTP.Do(req)
+	if err != nil {
+		return out, use, fmt.Errorf("visa-llm unreachable: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var e struct {
+			Detail string `json:"detail"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&e)
+		if e.Detail == "" {
+			e.Detail = fmt.Sprintf("visa-llm returned %d", resp.StatusCode)
+		}
+		return out, use, &UpstreamError{StatusCode: resp.StatusCode, Detail: e.Detail}
+	}
+	use = usageFromHeaders(resp.Header)
+	return out, use, json.NewDecoder(resp.Body).Decode(&out)
 }

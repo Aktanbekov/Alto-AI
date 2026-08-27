@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AppShell from "./components/shell/AppShell";
 
 // Lazy load components for better performance
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -14,6 +15,11 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
+const TakeATestPage = lazy(() => import("./pages/TakeATestPage"));
+const VoiceInterviewPage = lazy(() => import("./pages/VoiceInterviewPage"));
+const CaseBuilderPage = lazy(() => import("./pages/CaseBuilderPage"));
+const AnswersPage = lazy(() => import("./pages/AnswersPage"));
+const CheckProfilePage = lazy(() => import("./pages/CheckProfilePage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -29,7 +35,14 @@ export default function App() {
   return (
     <Suspense fallback={<LoadingFallback />}>
     <Routes>
-        <Route path="/" element={<HomePage />} />
+        {/* Alto Visas shell: sidebar + the new design. Auth, chat and admin
+            stay outside it and keep the existing indigo/stone layout. */}
+        <Route path="/" element={<AppShell><HomePage /></AppShell>} />
+        <Route path="/take-a-test" element={<AppShell><TakeATestPage /></AppShell>} />
+        <Route path="/voice-interview" element={<AppShell><VoiceInterviewPage /></AppShell>} />
+        <Route path="/case-builder" element={<AppShell><CaseBuilderPage /></AppShell>} />
+        <Route path="/answers" element={<AppShell><AnswersPage /></AppShell>} />
+        <Route path="/check-profile" element={<AppShell><CheckProfilePage /></AppShell>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

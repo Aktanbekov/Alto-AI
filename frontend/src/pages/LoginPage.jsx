@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { login } from "../api";
+import { track, identify } from "../analytics";
 
 // Minimal inline SVG icons
 const MailIcon = (props) => (
@@ -61,6 +62,9 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await login(email, password);
+            // Links this browser's earlier anonymous events to the account, so
+            // the pre-signup half of the funnel is attributable.
+            identify();
             // Redirect to intended destination or default to /choose-level
             const redirect = searchParams.get("redirect") || "/choose-level";
             navigate(redirect);

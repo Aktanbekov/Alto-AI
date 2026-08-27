@@ -23,6 +23,12 @@ MODEL = "claude-opus-5"
 # Streaming keeps a large max_tokens from hitting the SDK's HTTP timeout.
 MAX_TOKENS = 16000
 
+# How many comparable interviews to retrieve. The set is repetitive enough that
+# the last few rarely add an argument the first few did not already make, and
+# every one of them is uncached input on every call. See MAX_TURNS in prompts.py
+# for the other half of this budget.
+DEFAULT_K = 6
+
 
 def build_messages(
     profile: StudentProfile,
@@ -59,7 +65,7 @@ def evaluate(
     index_dir: Path,
     stats_path: Path,
     parquet_path: Path | None = None,
-    k: int = 10,
+    k: int = DEFAULT_K,
     model: str = MODEL,
 ) -> tuple[Evaluation, dict[str, Any]]:
     """Retrieve comparables, call Claude, and validate the structured result."""
@@ -85,6 +91,9 @@ def evaluate(
         system=system_blocks,
         messages=messages,
         output_format=Evaluation,
+        # Medium effort: the analysis is a fixed-shape read of supplied data,
+        # not open-ended reasoning, and thinking tokens bill at the output rate.
+        output_config={"effort": "medium"},
         # Safety classifiers can decline; fall back rather than failing the run.
         betas=["server-side-fallback-2026-07-01"],
         fallbacks="default",
@@ -195,7 +204,7 @@ def run_evaluation(
     profile_path: Path,
     processed_dir: Path,
     model: str = MODEL,
-    k: int = 10,
+    k: int = DEFAULT_K,
     json_out: Path | None = None,
 ) -> Evaluation:
     """CLI entry point: load YAML profile, evaluate, print, optionally save."""
@@ -214,7 +223,7 @@ def run_evaluation(
     return evaluation
 
 
-def dry_run_prompt(profile_path: Path, processed_dir: Path, k: int = 10) -> str:
+def dry_run_prompt(profile_path: Path, processed_dir: Path, k: int = DEFAULT_K) -> str:
     """Assemble and return the exact prompt, without calling the API."""
     profile = load_profile(profile_path)
     stats = json.loads((processed_dir / "stats.json").read_text())

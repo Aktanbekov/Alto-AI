@@ -175,15 +175,22 @@ def export_web() -> None:
 def evaluate(
     profile: Path = typer.Argument(..., help="YAML file: student profile + planned answers"),
     model: str = typer.Option("claude-opus-5"),
-    k: int = typer.Option(10, help="How many comparable interviews to retrieve."),
+    # Resolved after the lazy import below rather than referenced here: naming
+    # DEFAULT_K in a default argument would import the evaluator (and pandas)
+    # every time any command runs.
+    k: int = typer.Option(
+        None, help="How many comparable interviews to retrieve. [default: 6]"
+    ),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Print the assembled prompt instead of calling the API."
     ),
     json_out: Path = typer.Option(None, "--json", help="Also write the evaluation as JSON."),
 ) -> None:
     """Evaluate a student's planned answers against the dataset."""
-    from .evaluator.evaluate import dry_run_prompt, run_evaluation
+    from .evaluator.evaluate import DEFAULT_K, dry_run_prompt, run_evaluation
 
+    if k is None:
+        k = DEFAULT_K
     if dry_run:
         console.print(dry_run_prompt(profile, PROCESSED, k=k))
         return

@@ -5,17 +5,22 @@ import {
   listAdminUsers, getAdminUser, deleteAdminUser, verifyAdminUser,
   listAdminInterviews, getAdminInterview,
   getAdminQuestions, saveAdminQuestions,
+  getEvaluatorHealth,
 } from "../api";
 import AdminDashboard from "../components/admin/AdminDashboard";
 import AdminUsers from "../components/admin/AdminUsers";
 import AdminInterviews from "../components/admin/AdminInterviews";
 import AdminQuestions from "../components/admin/AdminQuestions";
+import AdminEvaluator from "../components/admin/AdminEvaluator";
+import AdminAnalytics from "../components/admin/AdminAnalytics";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard" },
   { id: "users", label: "Users" },
   { id: "interviews", label: "Interviews" },
   { id: "questions", label: "Questions" },
+  { id: "evaluator", label: "Evaluator" },
+  { id: "analytics", label: "Analytics" },
 ];
 
 export default function AdminPage() {
@@ -101,6 +106,8 @@ export default function AdminPage() {
         {tab === "interviews" && (
           <AdminInterviews list={listAdminInterviews} get={getAdminInterview} />
         )}
+        {tab === "evaluator" && <AdminEvaluator load={getEvaluatorHealth} />}
+        {tab === "analytics" && <AdminAnalytics />}
         {tab === "questions" && (
           <AdminQuestions load={getAdminQuestions} save={saveAdminQuestions} />
         )}

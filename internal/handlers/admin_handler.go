@@ -9,6 +9,7 @@ import (
 
 	"altoai_mvp/internal/middleware"
 	"altoai_mvp/internal/repository"
+	"altoai_mvp/internal/visallm"
 	"altoai_mvp/interview"
 	"altoai_mvp/pkg/response"
 
@@ -18,10 +19,47 @@ import (
 type AdminHandler struct {
 	users      repository.UserRepo
 	interviews repository.InterviewRepo
+	incidents  *visallm.IncidentLog
 }
 
-func NewAdminHandler(users repository.UserRepo, interviews repository.InterviewRepo) *AdminHandler {
-	return &AdminHandler{users: users, interviews: interviews}
+func NewAdminHandler(users repository.UserRepo, interviews repository.InterviewRepo, incidents *visallm.IncidentLog) *AdminHandler {
+	return &AdminHandler{users: users, interviews: interviews, incidents: incidents}
+}
+
+// EvaluatorHealth reports the evaluation failures that students were never
+// shown. Students get a neutral "temporarily unavailable"; the real cause —
+// "the Anthropic account has no credits" — surfaces only here.
+//
+// Counts are since the last process restart, which is also what "since" means.
+func (h *AdminHandler) EvaluatorHealth(c *gin.Context) {
+	if h.incidents == nil {
+		response.OK(c, gin.H{"incidents": []any{}, "totals": gin.H{}, "healthy": true, "spend": gin.H{}})
+		return
+	}
+	items, totals, since := h.incidents.Snapshot()
+	runs, nRuns, totalCost, avgCost := h.incidents.Spend()
+
+	// "Out of credit" is the one an operator has to act on, so it is called out
+	// rather than left for them to spot in the list.
+	out := gin.H{
+		"incidents": items,
+		"totals":    totals,
+		"since":     since,
+		"healthy":   len(items) == 0,
+		"spend": gin.H{
+			"runs":      runs,
+			"count":     nRuns,
+			"total_usd": totalCost,
+			"avg_usd":   avgCost,
+		},
+	}
+	if totals["billing"] > 0 {
+		out["action_required"] = "The Anthropic account ran out of credit. " +
+			"Add credit in the console under Plans & Billing."
+	} else if totals["credentials"] > 0 {
+		out["action_required"] = "The Anthropic API key was rejected. Check ANTHROPIC_API_KEY on the sidecar."
+	}
+	response.OK(c, out)
 }
 
 // Me tells the frontend whether the caller is an admin, so the UI can decide
@@ -162,9 +200,9 @@ func (h *AdminHandler) GetSession(c *gin.Context) {
 // along with how many questions each level draws from each category.
 func (h *AdminHandler) ListQuestions(c *gin.Context) {
 	response.OK(c, gin.H{
-		"categories":     interview.QuestionsByCategory,
+		"categories":      interview.QuestionsByCategory,
 		"selection_rules": interview.QuestionSelectionRules,
-		"path":           interview.QuestionsPath(),
+		"path":            interview.QuestionsPath(),
 	})
 }
 

@@ -82,7 +82,8 @@
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
   line-height: 1.5;
   font-weight: 400;
 
@@ -159,4 +160,775 @@ button {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     tap-highlight-color: rgba(0, 0, 0, 0.1);
   }
+}
+/* ==========================================================================
+   Alto Visas design language — ported from the landing prototype.
+   Scoped under .tf so it cannot leak into the indigo/stone pages
+   (auth, chat, admin), which keep their existing look.
+   ========================================================================== */
+
+.tf {
+  --paper: #E7ECE6;
+  --paper-2: #F3F6F1;
+  --ink: #16233B;
+  --ink-soft: #4A5568;
+  --guilloche: #7C6BA8;
+  --ok: #2F6B4F;
+  --bad: #A33556;
+  --rule: rgba(22, 35, 59, .16);
+  --rule-soft: rgba(22, 35, 59, .08);
+  --display: 'Inter', system-ui, -apple-system, sans-serif;
+  --body: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'Inter', system-ui, -apple-system, sans-serif;
+
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tf :focus-visible { outline: 2px solid var(--guilloche); outline-offset: 3px; }
+
+.tf h1, .tf h2, .tf h3, .tf h4 {
+  font-family: var(--display); margin: 0;
+  letter-spacing: -.022em; line-height: 1.15; font-weight: 600;
+}
+.tf h1 { font-size: clamp(32px, 5.4vw, 56px); font-weight: 600; letter-spacing: -.035em; }
+.tf h2 { font-size: clamp(21px, 3vw, 28px); font-weight: 600; }
+.tf h3 { font-size: 18px; font-weight: 600; letter-spacing: -.012em; }
+.tf h4 { font-size: 15px; font-weight: 600; }
+.tf p  { margin: 0 0 1em; }
+
+.tf .wrap    { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-pad); }
+.tf .narrow  { max-width: 700px; margin: 0 auto; padding: 0 24px; }
+.tf .section { padding: 56px 0; }
+.tf .pt { padding-top: 48px; }
+.tf .pb { padding-bottom: 80px; }
+
+.tf .lede {
+  font-size: clamp(17px, 2vw, 20px); color: var(--ink-soft);
+  max-width: 54ch; font-weight: 320;
+}
+.tf .eyebrow {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.tf .eyebrow::before {
+  content: ""; width: 24px; height: 1px; background: var(--ink);
+  opacity: .4; flex: none;
+}
+.tf .tiny {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .05em;
+  color: var(--ink-soft); line-height: 1.6;
+}
+.tf .mono { font-family: var(--mono); }
+.tf .pull {
+  font-family: var(--display); font-weight: 600;
+  font-size: clamp(20px, 2.8vw, 27px); letter-spacing: -.02em;
+  line-height: 1.25; max-width: 30ch; margin: 0 0 26px;
+}
+
+.tf .btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-family: var(--display); font-weight: 600; font-size: 16px;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink);
+  padding: 15px 24px; border-radius: 2px; text-decoration: none;
+  transition: transform .12s, box-shadow .12s;
+}
+.tf .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 0 -2px rgba(22, 35, 59, .25); }
+.tf .btn .arrow { font-family: var(--mono); font-weight: 400; opacity: .65; }
+.tf .btn-ghost { background: transparent; color: var(--ink); }
+.tf .btn-ghost:hover { background: rgba(22, 35, 59, .05); box-shadow: none; }
+
+.tf .logo { font-family: var(--display); font-weight: 600; letter-spacing: -.03em; font-size: 18px; }
+.tf .logo span { color: var(--guilloche); }
+
+.tf .banner {
+  border-left: 3px solid var(--guilloche); background: var(--paper-2);
+  padding: 18px 20px; margin: 0 0 30px; font-size: 15.5px;
+  color: var(--ink-soft); font-weight: 300;
+}
+.tf .banner b { color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 15px; }
+.tf .banner-bad { border-left-color: var(--bad); }
+
+/* Security-print panel in the hero */
+.tf .foil {
+  position: relative; overflow: hidden;
+  background: linear-gradient(152deg, #DCE7E0 0%, #E8E2EE 46%, #DDE6EC 100%);
+  border: 1px solid rgba(22, 35, 59, .28); border-radius: 3px;
+  padding: 24px 24px 0;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .7) inset, 0 14px 34px -22px rgba(22, 35, 59, .55);
+}
+.tf .foil-g { position: absolute; inset: -30% -10%; opacity: .38; pointer-events: none; }
+.tf .foil-in { position: relative; }
+.tf .foil-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+.tf .foil-head .t {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.tf .foil-score { display: flex; align-items: flex-end; gap: 13px; }
+.tf .foil-score .big {
+  font-family: var(--display); font-weight: 600; font-size: 64px;
+  line-height: .82; letter-spacing: -.05em; color: var(--bad);
+}
+.tf .foil-score .cap {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-soft);
+  padding-bottom: 8px; max-width: 19ch; line-height: 1.45;
+}
+.tf .foil-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px;
+  padding: 15px 0; border-top: 1px solid rgba(22, 35, 59, .18);
+}
+.tf .foil-meta div { font-family: var(--mono); font-size: 11px; }
+.tf .foil-meta span {
+  display: block; font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px;
+}
+.tf .mrz {
+  margin: 0 -24px; padding: 10px 24px; background: rgba(255, 255, 255, .62);
+  border-top: 1px solid rgba(22, 35, 59, .22); font-family: var(--mono);
+  font-size: 10.5px; letter-spacing: .13em; color: rgba(22, 35, 59, .72);
+  white-space: nowrap; overflow: hidden;
+}
+
+.tf .card { border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-2); padding: 22px; margin-bottom: 14px; }
+.tf .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+.tf .grid3 {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--rule); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.tf .gcell { background: var(--paper); padding: 24px; }
+.tf .gcell .k {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: 9px;
+}
+.tf .gcell .v { font-family: var(--display); font-size: 16px; font-weight: 600; line-height: 1.35; }
+.tf .gcell p { font-size: 15.5px; color: var(--ink-soft); margin: 8px 0 0; font-weight: 320; }
+
+.tf .stakes { background: #fff; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 56px 0; }
+.tf .stakes p { color: var(--ink-soft); font-weight: 300; max-width: 62ch; margin-top: 18px; }
+.tf .stakes b { color: var(--ink); font-weight: 500; }
+
+.tf .no-list { list-style: none; padding: 0; margin: 22px 0 0; }
+.tf .no-list li {
+  border-top: 1px solid var(--rule); padding: 16px 0;
+  color: var(--ink-soft); font-weight: 300; font-size: 15.5px;
+}
+.tf .no-list strong { color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 15px; }
+
+/* Stat strip */
+.tf .stats {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--rule); border: 1px solid var(--rule); margin-bottom: 34px;
+}
+.tf .stat { background: var(--paper-2); padding: 18px 16px; }
+.tf .stat .k {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px;
+}
+.tf .stat .n { font-family: var(--display); font-weight: 600; font-size: 28px; letter-spacing: -.035em; line-height: 1; }
+.tf .stat .s { font-size: 13.5px; color: var(--ink-soft); margin-top: 6px; font-weight: 300; line-height: 1.4; }
+
+.tf .foot { border-top: 1px solid var(--rule); padding: 26px 0 40px; }
+
+@media (max-width: 900px) {
+  .tf .grid2, .tf .grid3 { grid-template-columns: 1fr; }
+  .tf .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .tf .stats { grid-template-columns: 1fr; }
+}
+
+/* ---- prototype screen primitives (test / drill / builder / library) ---- */
+.tf .timer {font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;letter-spacing:.14em;display:flex;align-items:center;gap:9px;color:var(--bad)}
+.tf .timer .dot {width:7px;height:7px;border-radius:50%;background:var(--bad);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.tf .topbar {display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:14px;flex-wrap:wrap}
+.tf .q {font-family:var(--display);font-weight:600;font-size:clamp(24px,4.2vw,36px);letter-spacing:-.028em;line-height:1.13;margin-bottom:10px}
+.tf .q-src {font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:26px}
+.tf .mic {display:flex;align-items:center;gap:15px;width:100%;justify-content:center;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:20px;font-family:var(--display);font-weight:600;font-size:15px}
+.tf .mic:hover {border-color:var(--ink)}
+.tf .ring {width:32px;height:32px;border-radius:50%;border:2px solid var(--bad);display:grid;place-items:center;flex:none}
+.tf .ring i {width:11px;height:11px;background:var(--bad);border-radius:2px;display:block}
+.tf .wave {display:flex;align-items:center;gap:3px;height:32px}
+.tf .wave i {width:3px;background:var(--guilloche);border-radius:2px;animation:w 1s ease-in-out infinite}
+@keyframes w{0%,100%{height:7px}50%{height:24px}}
+.tf .readout {border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);margin-top:26px}
+.tf .rrow {display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--rule-soft);align-items:baseline}
+.tf .rrow:last-child {border-bottom:0}
+.tf .rrow .k {font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);width:128px;flex:none}
+.tf .rrow .v {font-size:15.5px}
+.tf .probe {background:var(--ink);color:var(--paper);padding:20px 18px}
+.tf .probe .k {font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(231,236,230,.5);margin-bottom:8px}
+.tf .probe .v {font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:-.015em}
+.tf .why {font-size:15.5px;color:var(--ink-soft);font-weight:300;margin:0}
+.tf .why em {color:var(--ink);font-style:normal;font-family:var(--mono);font-size:13px}
+.tf .turn {margin-bottom:22px}
+.tf .turn .who {font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.tf .turn .said {font-size:16px;line-height:1.6}
+.tf .turn.sys .said {border-left:2px solid var(--ink);padding-left:15px}
+.tf .turn.you .said {background:#fff;border:1px solid var(--rule);padding:14px 16px;border-radius:2px}
+.tf .turn.refuse .said {border-left:2px solid var(--bad);padding-left:15px;color:var(--bad)}
+.tf .ba {border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:#fff;margin-top:6px}
+.tf .ba>div {padding:15px 17px}
+.tf .ba .before {border-bottom:1px dashed var(--rule);background:rgba(163,53,86,.05)}
+.tf .ba .after {background:rgba(47,107,79,.06)}
+.tf .ba .tag {font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px;color:var(--ink-soft)}
+.tf .ba .before .tag {color:var(--bad)}
+.tf .ba .after .tag {color:var(--ok)}
+.tf .ledger {background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:20px;position:sticky;top:66px}
+.tf .ledger h4 {font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--ink-soft);margin-bottom:14px}
+.tf .fact {border-bottom:1px solid var(--rule-soft);padding:10px 0;font-size:14.5px;display:flex;gap:9px;align-items:flex-start}
+.tf .fact .m {font-family:var(--mono);font-size:10px;color:var(--ok);padding-top:5px;flex:none}
+.tf .ledger .note {font-size:13px;color:var(--ink-soft);margin:14px 0 0;font-weight:300;line-height:1.5}
+.tf .lib {border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);margin-bottom:12px;overflow:hidden}
+.tf .lib-h {display:flex;gap:12px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.tf .pill {font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border-radius:2px;flex:none}
+.tf .pill.a {background:rgba(47,107,79,.14);color:var(--ok)}
+.tf .pill.r {background:rgba(163,53,86,.12);color:var(--bad)}
+.tf .lib-b {padding:16px 18px;font-size:16px;font-style:italic}
+.tf .lib-f {padding:0 18px 16px;font-size:14.5px;color:var(--ink-soft);font-weight:300}
+.tf .ledger {position:static}
+
+/* ==========================================================================
+   Dashboard — visa_llm's own visual language, kept as-is so the charts read
+   the way they do in that frontend: white cards, blue/red series, sans-serif.
+   Deliberately NOT the Alto Visas paper/ink treatment, which is for the hero.
+   ========================================================================== */
+.vz {
+  --surface: #fff;
+  --plane: #fff;
+  --vz-ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-muted: #6f6d67;
+  --grid: #e1e0d9;
+  --border: rgba(11, 11, 11, .10);
+  --pos: #2a78d6;
+  --neg: #d03b3b;
+  --neutral: #f0efec;
+  --warn: #fab219;
+  --radius: 10px;
+  --gap: 20px;
+  --vz-font: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont,
+             "Segoe UI", Roboto, sans-serif;
+
+  background: var(--plane);
+  color: var(--vz-ink);
+  font-family: var(--vz-font);
+  font-size: 15px;
+  line-height: 1.55;
+  padding: 26px 0 40px;
+}
+.vz h1, .vz h2, .vz h3 {
+  font-family: var(--vz-font); line-height: 1.25; margin: 0 0 .4em;
+  font-weight: 640; letter-spacing: -.01em; color: var(--vz-ink);
+}
+.vz h1 { font-size: 1.6rem; }
+.vz h2 { font-size: 1.22rem; }
+.vz h3 { font-size: .98rem; }
+.vz p  { margin: 0 0 .8em; }
+
+.vz .vz-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px; margin-bottom: var(--gap);
+}
+.vz .vz-card .sub { color: var(--ink-2); font-size: .92rem; margin-bottom: 14px; }
+.vz .vz-grid-two { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+
+/* The caveat is structural, not a footnote: approval shares describe who
+   posts, and the delta chart's causation runs backwards. */
+.vz .caveat {
+  border-left: 3px solid var(--warn); background: var(--surface);
+  border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: var(--gap);
+  font-size: .95rem; color: var(--ink-2);
+}
+.vz .caveat strong { color: var(--vz-ink); }
+.vz .caveat.bad { border-left-color: var(--neg); }
+
+.vz .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; margin-bottom: var(--gap); }
+.vz .tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.vz .tile .k { font-size: .82rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .04em; }
+.vz .tile .v { font-size: 1.85rem; font-weight: 660; letter-spacing: -.02em; margin-top: 2px; white-space: nowrap; }
+.vz .tile .n { font-size: .85rem; color: var(--ink-2); }
+
+.vz .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .9rem; color: var(--ink-2); margin-top: 10px; }
+.vz .legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+/* Horizontal bars */
+.vz .vzbar { display: grid; grid-template-columns: 112px 1fr 52px; gap: 12px; align-items: center; margin-bottom: 9px; font-size: .9rem; }
+.vz .vzbar .lab { text-align: right; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vz .vzbar .track { position: relative; height: 22px; background: var(--neutral); border-radius: 3px; overflow: hidden; }
+.vz .vzbar .fill { display: block; height: 100%; background: var(--pos); border-radius: 3px; }
+.vz .vzbar .fill.lite { opacity: .45; }
+.vz .vzbar .val { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: .88rem; }
+
+/* Stacked outcome bar */
+.vz .vzprop { display: flex; height: 30px; border-radius: 4px; overflow: hidden; gap: 2px; }
+
+/* Diverging deltas — label gutter keeps bars off the text at any width */
+.vz .vzdv { position: relative; padding-left: 168px; }
+.vz .vzdv::before {
+  content: ""; position: absolute; left: calc(168px + (100% - 168px) / 2);
+  top: 0; bottom: 0; width: 1px; background: var(--grid);
+}
+.vz .vzdv-head {
+  display: flex; justify-content: center; gap: 60px; font-size: .78rem;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted);
+  margin-bottom: 12px; padding-left: 168px;
+}
+.vz .vzrow { position: relative; height: 24px; margin-bottom: 5px; font-size: .84rem; }
+.vz .vzrow .dl {
+  position: absolute; right: calc(100% + 10px); white-space: nowrap;
+  color: var(--ink-2); max-width: 158px; overflow: hidden; text-overflow: ellipsis;
+}
+.vz .vzrow .db { position: absolute; height: 17px; top: 3px; border-radius: 2px; }
+.vz .vzrow.neg .db { background: var(--neg); right: 50%; }
+.vz .vzrow.pos .db { background: var(--pos); left: 50%; }
+.vz .vzrow .dn { position: absolute; top: 3px; font-size: .78rem; font-variant-numeric: tabular-nums; }
+.vz .vzrow.neg .dn { right: 50%; padding-right: 7px; color: #fff; line-height: 17px; }
+.vz .vzrow.pos .dn { padding-left: 7px; color: var(--ink-2); line-height: 17px; }
+
+@media (max-width: 700px) {
+  .vz .vzdv, .vz .vzdv-head { padding-left: 116px; }
+  .vz .vzdv::before { left: calc(116px + (100% - 116px) / 2); }
+  .vz .vzrow .dl { max-width: 108px; font-size: .76rem; }
+  .vz .vzbar { grid-template-columns: 86px 1fr 46px; }
+}
+
+/* Top nav inside the Alto Visas hero column (restored after refactor). */
+.tf .nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 0; border-bottom: 1px solid var(--rule); gap: 16px; flex-wrap: wrap;
+}
+.tf .navlinks {
+  display: flex; gap: 20px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft);
+}
+.tf .navlinks b { color: var(--ink); font-weight: 500; }
+@media (max-width: 700px) { .tf .navlinks { display: none; } }
+
+/* ==========================================================================
+   App shell + sidebar.
+   Layout and metrics adapted from the Sunflower reference the user supplied:
+   220px transparent rail on a near-white page, Inter, 12–16px rounded rows,
+   a light grey pill for the active item, and 10px uppercase section labels.
+   ========================================================================== */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #fff;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.app-side {
+  width: 298px; flex: none; background: transparent;
+  padding: 18px 14px; display: flex; flex-direction: column;
+  /* Sticky, not stretched: without this the rail grows to the full page
+     height and its footer links end up 4,000px down the document. */
+  position: sticky; top: 0; align-self: flex-start;
+  max-height: 100vh; overflow-y: auto;
+}
+.app-side .brand {
+  display: flex; align-items: center; gap: 11px; padding: 4px 8px 20px;
+  font-weight: 600; font-size: 21px; letter-spacing: -.02em;
+  color: #111827; text-decoration: none;
+}
+
+/* 10px uppercase, wide-tracked, muted grey — the reference's section header. */
+.app-side .side-label {
+  font-size: 11px; letter-spacing: .5px; text-transform: uppercase;
+  color: #61697a; font-weight: 500; margin-bottom: 8px; padding: 0 8px;
+}
+.app-nav { display: flex; flex-direction: column; }
+
+.app-navitem {
+  display: flex; align-items: center; gap: 8px;
+  padding: 13px 16px; border-radius: 12px; text-decoration: none;
+  font-size: 15px; font-weight: 400; line-height: 22px; color: #111827;
+}
+.app-navitem:hover { background: #f3f4f6; }
+.app-navitem.is-active { background: #f3f4f6; font-weight: 500; }
+.app-navitem .ic { flex: none; width: 21px; height: 21px; color: #111827; }
+
+/* Sits directly beneath the last nav section, as in the reference — a wrapped
+   run of small links rather than a block pinned to the bottom of the rail. */
+.app-side .side-foot {
+  margin-top: 18px; padding: 14px 12px 4px;
+  border-top: 1px solid #e6e7ea;
+}
+.app-side .side-legal { display: block; margin-bottom: 10px; }
+.app-side .side-legal a {
+  font-size: 12.5px; color: #61697a; text-decoration: underline;
+  text-underline-offset: 2px; line-height: 1.9;
+}
+.app-side .side-legal a:hover { color: #111827; }
+.app-side .side-legal a:not(:last-child)::after {
+  /* inline-block collapsed the padding spaces, so the dot is spaced with
+     margin instead. */
+  content: "·"; color: #a2a7b4; text-decoration: none;
+  margin: 0 5px;
+}
+.app-side .side-note { margin: 0; font-size: 11px; color: #8a90a0; line-height: 1.45; }
+
+.app-main {
+  flex: 1; min-width: 0; background: #fff;
+  border-left: 1px solid #e6e7ea;
+}
+
+/* Lives inside the header row, so mobile gets one bar rather than a floating
+   button hovering above an empty strip. */
+.app-burger {
+  display: none; flex: none; margin-right: 4px;
+  background: #fff; border: 1px solid #e6e7ea; border-radius: 10px;
+  width: 40px; height: 40px; align-items: center; justify-content: center;
+  color: #111827;
+}
+.app-burger:hover { background: #f3f4f6; }
+.app-scrim { position: fixed; inset: 0; z-index: 65; background: rgba(17, 24, 39, .35); }
+
+@media (max-width: 900px) {
+  .app-burger { display: flex; }
+  .app-side {
+    position: fixed; inset: 0 auto 0 0; z-index: 70; background: #fff;
+    /* Never wider than the phone it opens on. */
+    width: min(298px, 86vw); max-height: none; height: 100%;
+    transform: translateX(-100%); transition: transform .2s ease;
+    box-shadow: 0 0 40px rgba(17, 24, 39, .16);
+  }
+  .app-side.is-open { transform: none; }
+  .app-main { border-left: 0; }
+
+  /* Tighter gutters: 28px each side eats 15% of a 375px screen. */
+  .app-root { --page-pad: 18px; }
+  .page-head-in { min-height: 58px; gap: 10px; }
+}
+
+/* ==========================================================================
+   Auth dialog — sign-in / sign-up without leaving the page.
+   Neutral Inter styling so it sits over either design language.
+   ========================================================================== */
+.auth-scrim {
+  position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+  padding: 20px; background: rgba(17, 24, 39, .45);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  animation: authFade .14s ease-out;
+}
+@keyframes authFade { from { opacity: 0 } to { opacity: 1 } }
+
+.auth-dialog {
+  position: relative; width: 100%; max-width: 400px;
+  max-height: calc(100vh - 40px); overflow-y: auto;
+  background: #fff; border-radius: 20px; padding: 32px 28px 24px;
+  box-shadow: 0 24px 60px -12px rgba(17, 24, 39, .35);
+  animation: authRise .16s ease-out;
+}
+@keyframes authRise { from { transform: translateY(8px); opacity: 0 } to { transform: none; opacity: 1 } }
+@media (prefers-reduced-motion: reduce) {
+  .auth-scrim, .auth-dialog { animation: none }
+}
+
+.auth-close {
+  position: absolute; top: 14px; right: 14px; width: 32px; height: 32px;
+  display: grid; place-items: center; border: 0; border-radius: 8px;
+  background: transparent; color: #697586;
+}
+.auth-close:hover { background: #f3f4f6; color: #111827; }
+
+.auth-title {
+  font-size: 22px; font-weight: 600; letter-spacing: -.01em;
+  color: #111827; text-align: center; margin: 4px 0 6px;
+}
+.auth-sub {
+  font-size: 14px; color: #52514e; text-align: center; margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.auth-oauth {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 46px; padding: 12px 16px;
+  border: 1px solid #e6e7ea; border-radius: 12px; background: #fff;
+  font-size: 15px; font-weight: 500; color: #111827;
+}
+.auth-oauth:hover { background: #f9f9fb; }
+
+.auth-or {
+  display: flex; align-items: center; gap: 12px;
+  margin: 18px 0; color: #898781; font-size: 12px;
+}
+.auth-or::before, .auth-or::after {
+  content: ""; flex: 1; height: 1px; background: #e6e7ea;
+}
+
+.auth-label {
+  display: block; font-size: 12.5px; font-weight: 500;
+  color: #52514e; margin: 0 0 6px;
+}
+.auth-input {
+  width: 100%; padding: 11px 13px; margin-bottom: 14px;
+  border: 1px solid #e6e7ea; border-radius: 10px;
+  font-size: 15px; color: #111827; background: #fff; font-family: inherit;
+}
+.auth-input:focus {
+  outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, .15);
+}
+.auth-code { letter-spacing: .5em; text-align: center; font-size: 20px; font-variant-numeric: tabular-nums; }
+
+.auth-pw { position: relative; }
+.auth-pw .auth-input { padding-right: 62px; }
+.auth-reveal {
+  position: absolute; top: 10px; right: 10px; border: 0; background: transparent;
+  font-size: 12.5px; font-weight: 500; color: #697586; padding: 2px 4px;
+}
+.auth-reveal:hover { color: #111827; }
+
+.auth-primary {
+  width: 100%; min-height: 46px; margin-top: 4px;
+  border: 0; border-radius: 12px; background: #4f46e5; color: #fff;
+  font-size: 15px; font-weight: 600; font-family: inherit;
+}
+.auth-primary:hover:not(:disabled) { background: #4338ca; }
+.auth-primary:disabled { opacity: .5; }
+
+.auth-error, .auth-notice {
+  font-size: 13.5px; line-height: 1.45; border-radius: 10px;
+  padding: 10px 12px; margin: 0 0 14px;
+}
+.auth-error  { background: #fef2f2; color: #b3261e; border: 1px solid #fecaca; }
+.auth-notice { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
+
+.auth-foot {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 16px; font-size: 13.5px; color: #52514e;
+}
+.auth-link {
+  border: 0; background: transparent; padding: 0;
+  font-size: 13.5px; font-weight: 600; color: #4f46e5; font-family: inherit;
+}
+.auth-link:hover { text-decoration: underline; }
+.auth-link:disabled { opacity: .5; text-decoration: none; }
+
+/* Header auth buttons, mirroring the reference's top-right pair. */
+.hdr-auth { display: flex; align-items: center; gap: 8px; }
+.hdr-login {
+  border: 0; background: transparent; font-size: 15px; font-weight: 500;
+  color: #111827; padding: 9px 14px; border-radius: 10px; font-family: inherit;
+}
+.hdr-login:hover { background: #f3f4f6; }
+.hdr-signup {
+  border: 0; background: #111827; color: #fff; font-family: inherit;
+  font-size: 15px; font-weight: 600; padding: 10px 20px; border-radius: 999px;
+}
+.hdr-signup:hover { background: #000; }
+
+/* ==========================================================================
+   Page header + shared content width.
+   One row: brand, links, account — so the brand and the auth controls share a
+   baseline, and the rule under them ends exactly where the content does.
+   ========================================================================== */
+.app-root { --page-max: 1120px; --page-pad: 28px; }
+
+.page-w {
+  max-width: var(--page-max); margin: 0 auto;
+  padding-left: var(--page-pad); padding-right: var(--page-pad);
+}
+
+.page-head {
+  background: #fff; border-bottom: 1px solid #e6e7ea;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.page-head-in {
+  display: flex; align-items: center; gap: 24px;
+  min-height: 70px;
+}
+.page-brand {
+  font-weight: 600; font-size: 18.5px; letter-spacing: -.015em;
+  color: #111827; text-decoration: none; flex: none;
+}
+.page-spacer { flex: 1 1 auto; }
+.page-account { display: flex; align-items: center; gap: 8px; flex: none; }
+
+@media (max-width: 900px) {
+  /* Clear the fixed burger button. */
+  .page-head-in { min-height: 56px; gap: 12px; padding-left: 52px; }
+}
+
+/* ---- profile menu ---- */
+.pm { position: relative; }
+.pm-avatar {
+  width: 38px; height: 38px; border-radius: 999px; border: 0; padding: 0;
+  overflow: hidden; background: #4f46e5; color: #fff;
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  display: grid; place-items: center;
+}
+.pm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm-avatar:hover { filter: brightness(1.08); }
+.pm-avatar.sm { width: 40px; height: 40px; font-size: 14px; }
+
+.pm-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 120;
+  width: 260px; background: #fff; border: 1px solid #e6e7ea;
+  border-radius: 14px; box-shadow: 0 18px 40px -12px rgba(17, 24, 39, .28);
+  overflow: hidden;
+}
+.pm-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px; border-bottom: 1px solid #f0f0ee;
+}
+.pm-id { min-width: 0; }
+.pm-name { margin: 0; font-size: 14px; font-weight: 600; color: #111827; }
+.pm-mail {
+  margin: 2px 0 0; font-size: 12.5px; color: #697586;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.pm-item {
+  display: block; width: 100%; text-align: left; border: 0; background: none;
+  padding: 12px 14px; font-size: 14px; color: #111827; font-family: inherit;
+}
+.pm-item:hover { background: #f9f9fb; }
+.pm-item.danger { color: #b3261e; }
+.pm-item.danger:hover { background: #fef2f2; }
+
+/* The one tinted band: hero plus the three-cell strip. Everything else on
+   the page sits on white. */
+.tf .hero-band {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+}
+
+/* ---- profile evaluator form (visa_llm's Evaluate view, ported) ---- */
+.vz .ev h1 { margin-bottom: 2px; }
+.vz .ev-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px 16px; margin-top: 14px;
+}
+.vz .ev-f { display: block; }
+.vz .fl {
+  display: block; font-size: .8rem; color: var(--ink-muted);
+  margin-bottom: 5px;
+}
+.vz .ev-f input, .vz .ev-f select,
+.vz .ev-qa input, .vz .ev-qa textarea {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--border);
+  border-radius: 8px; font: inherit; font-size: .95rem;
+  color: var(--vz-ink); background: #fff;
+}
+.vz .ev-f input:focus, .vz .ev-f select:focus,
+.vz .ev-qa input:focus, .vz .ev-qa textarea:focus {
+  outline: none; border-color: var(--pos);
+  box-shadow: 0 0 0 3px rgba(42, 120, 214, .14);
+}
+.vz .ev-qa {
+  position: relative; border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px; margin-bottom: 12px;
+}
+.vz .ev-qa textarea { resize: vertical; min-height: 74px; line-height: 1.5; }
+/* The question is the officer's, not the applicant's — it reads as a prompt
+   rather than a field they could edit. */
+.vz .ev-q { margin: 0; font-size: 1.05rem; font-weight: 600; line-height: 1.35; }
+.vz .ev-q-share {
+  margin: 4px 0 12px; font-size: .8rem; color: var(--ink-2);
+}
+.vz .ev-submit {
+  border: 0; border-radius: 9px; background: var(--pos); color: #fff;
+  font: inherit; font-size: .98rem; font-weight: 600;
+  padding: 12px 26px; margin-bottom: var(--gap);
+}
+.vz .ev-submit:hover:not(:disabled) { filter: brightness(1.06); }
+.vz .ev-submit:disabled { opacity: .5; }
+
+.vz .ev-result { margin-top: var(--gap); }
+.vz .ev-fb {
+  border-top: 1px solid var(--border); padding: 14px 0;
+}
+.vz .ev-fb:first-of-type { border-top: 0; padding-top: 6px; }
+.vz .ev-fb .verdict {
+  font-size: .78rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--ink-2); margin-bottom: 4px;
+}
+.vz .ev-fb .q { font-weight: 580; margin: 4px 0 8px; }
+.vz .ev-fb ul { margin: 0 0 8px; padding-left: 20px; }
+.vz .ev-fb ul.risks li { color: var(--neg); }
+.vz .ok  { color: var(--pos); }
+.vz .bad { color: var(--neg); }
+
+/* Chart hover tooltip, ported from visa_llm's .tip. Fixed to the viewport and
+   pointer-events:none so it never steals the hover from the mark beneath it. */
+.vz-tip {
+  position: fixed; pointer-events: none; z-index: 60;
+  background: var(--surface, #fff); color: var(--vz-ink, #0b0b0b);
+  border: 1px solid var(--border, rgba(11,11,11,.10));
+  border-radius: 8px; padding: 8px 10px;
+  font-family: var(--vz-font, ui-sans-serif, system-ui, sans-serif);
+  font-size: .88rem; line-height: 1.4; max-width: 280px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .16);
+}
+.vz-tip .t-title { font-weight: 620; margin-bottom: 2px; }
+.vz-tip .t-row { color: var(--ink-2, #52514e); }
+
+/* The bar track is the hit target, so give it a pointer affordance. */
+.vz .vzbar .track, .vz .vzrow .db, .vz .vzprop > div { cursor: default; }
+
+/* "Soon" marks the screens that exist as design previews but are not wired to
+   a backend yet. They stay clickable so the designs remain reviewable. */
+.app-navitem .lbl {
+  flex: 1 1 auto; min-width: 0; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.app-navitem .soon {
+  flex: none; font-size: 10px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: #697586; background: #f3f4f6;
+  border: 1px solid #e6e7ea; border-radius: 999px; padding: 2px 7px;
+}
+.app-navitem.is-active .soon { background: #fff; }
+
+/* Coming-soon rows: visibly present but inert — no hover lift, no pointer,
+   and dimmed so they don't read as available navigation. */
+.app-navitem.is-soon {
+  color: #9aa0ad; cursor: default; user-select: none;
+}
+.app-navitem.is-soon:hover { background: transparent; }
+.app-navitem.is-soon .ic { color: #b6bac4; }
+.app-navitem.is-soon .soon { color: #8a90a0; }
+
+/* ---- mobile: dashboard ---- */
+@media (max-width: 760px) {
+  /* minmax(380px, 1fr) forces a 380px track inside a ~319px column, which
+     overflows. Below this width the pair simply stacks. */
+  .vz .vz-grid-two { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  /* The diverging chart cannot keep a label gutter this narrow — five labels
+     were truncating. Put the label on its own line above each bar instead. */
+  .vz .vzdv, .vz .vzdv-head { padding-left: 0; }
+  .vz .vzdv::before { left: 50%; }
+  .vz .vzdv-head { gap: 30px; }
+
+  .vz .vzrow { height: 38px; margin-bottom: 6px; }
+  .vz .vzrow .dl {
+    position: absolute; top: 0; left: 0; right: auto;
+    max-width: 100%; font-size: .74rem; white-space: nowrap;
+  }
+  .vz .vzrow .db { top: 19px; height: 15px; }
+  .vz .vzrow .dn { top: 19px; line-height: 15px; font-size: .72rem; }
+
+  /* Bars: give the label column less, the track more. */
+  .vz .vzbar { grid-template-columns: 74px 1fr 40px; gap: 8px; font-size: .82rem; }
+  .vz .vzbar .track { height: 20px; }
+
+  .vz .tile .v { font-size: 1.6rem; }
+  .vz { padding: 20px 0 32px; }
 }

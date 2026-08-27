@@ -14,8 +14,9 @@ class AnswerFeedback(BaseModel):
     verdict: Literal["strong", "adequate", "weak"]
     strengths: list[str] = Field(description="What already works, concretely.")
     risks: list[str] = Field(
-        description="What an officer could read badly. Cite the retrieved "
-        "interviews or the statistics when they support the concern."
+        description="What an officer could read badly, in plain words a student "
+        "understands on the first read. Where a real interview or a percentage "
+        "backs the concern, say so without naming record ids or raw counts."
     )
     suggested_revision: str = Field(
         description="A rewritten answer the student could truthfully say, "
@@ -39,8 +40,9 @@ class RiskFactor(BaseModel):
     factor: str
     severity: Severity
     evidence: str = Field(
-        description="The statistic or retrieved interview supporting this. "
-        "State the number and where it came from."
+        description="Why this is a real risk, in plain words. Any number must be "
+        "a percentage, with what it means said right after it. Never a raw count, "
+        "never a record id."
     )
 
 
@@ -48,15 +50,22 @@ class Evaluation(BaseModel):
     """The complete evaluation returned to the student."""
 
     readiness: Literal["strong", "moderate", "needs_work"]
-    summary: str = Field(description="Two or three sentences, plain and direct.")
+    summary: str = Field(
+        description="Two or three short sentences a student understands on the "
+        "first read. No jargon, no record ids, no raw counts."
+    )
     answer_feedback: list[AnswerFeedback]
     likely_questions: list[LikelyQuestion]
     risk_factors: list[RiskFactor]
     comparable_interviews: list[str] = Field(
-        description="Short references to the retrieved interviews actually used, "
-        "each as 'record_id — outcome — one-line relevance'."
+        description="Internal audit trail, never shown to the student: the "
+        "retrieved interviews actually used, each as "
+        "'record_id — outcome — one-line relevance'. Record ids belong here and "
+        "in no other field."
     )
     caveat: str = Field(
-        description="One honest paragraph on what this analysis cannot tell "
-        "them: self-selected data, correlation not causation, no guarantee."
+        description="One honest paragraph, in ordinary words, on what this "
+        "cannot tell them: the data comes from people who chose to post, a "
+        "question being asked does not cause an outcome, and nothing here "
+        "predicts a decision. Say it without statistical vocabulary."
     )
