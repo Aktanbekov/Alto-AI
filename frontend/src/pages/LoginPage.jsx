@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { login } from "../api";
+import { track, identify } from "../analytics";
 
 // Minimal inline SVG icons
 const MailIcon = (props) => (
@@ -61,6 +62,9 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await login(email, password);
+            // Links this browser's earlier anonymous events to the account, so
+            // the pre-signup half of the funnel is attributable.
+            identify();
             // Redirect to intended destination or default to /choose-level
             const redirect = searchParams.get("redirect") || "/choose-level";
             navigate(redirect);
@@ -85,28 +89,28 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 grid place-items-center px-4 py-8 sm:py-12">
+        <div className="min-h-screen bg-stone-50 grid place-items-center px-4 py-8 sm:py-12">
             <div className="w-full max-w-md animate-fade-in-up">
                 {/* Card */}
-                <div className="rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 p-6 sm:p-8">
+                <div className="rounded-2xl bg-white shadow-2xl ring-1 ring-stone-200 p-6 sm:p-8">
                     {/* Logo */}
                     <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                         <span className="text-3xl sm:text-4xl">🤖</span>
-                        <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="text-xl sm:text-2xl font-bold text-indigo-700">
                             AI Interviewer
                         </span>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 text-center">
+                    <p className="text-xs sm:text-sm text-stone-700 mb-4 sm:mb-6 text-center">
                         Sign in to continue to your interview practice
                     </p>
 
                     <form onSubmit={onSubmit} className="space-y-4">
                         {/* Email */}
                         <label className="block">
-                            <span className="text-sm text-gray-700 font-medium">Email address</span>
+                            <span className="text-sm text-stone-700 font-medium">Email address</span>
                             <div className="mt-1.5 relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400">
                                     <MailIcon className="w-4 h-4" />
                                 </span>
                                 <input
@@ -114,16 +118,16 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="name@example.com"
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-3 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 min-h-[44px]"
+                                    className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-3 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 min-h-[44px]"
                                 />
                             </div>
                         </label>
 
                         {/* Password */}
                         <label className="block">
-                            <span className="text-sm text-gray-700 font-medium">Password</span>
+                            <span className="text-sm text-stone-700 font-medium">Password</span>
                             <div className="mt-1.5 relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-stone-400">
                                     <LockIcon className="w-4 h-4" />
                                 </span>
                                 <input
@@ -131,12 +135,12 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-10 outline-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 min-h-[44px]"
+                                    className="w-full bg-stone-50 border border-stone-300 rounded-xl py-3 sm:py-2.5 pl-10 pr-10 outline-none text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-stone-900 min-h-[44px]"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShow(s => !s)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700"
                                     aria-label={show ? "Hide password" : "Show password"}
                                 >
                                     {show ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
@@ -145,7 +149,7 @@ export default function LoginPage() {
                         </label>
 
                         {error && (
-                            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3">
                                 {error}
                             </div>
                         )}
@@ -154,20 +158,20 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full rounded-xl py-3 sm:py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg disabled:opacity-60 transition-all min-h-[44px]"
+                            className="w-full rounded-xl py-3 sm:py-2.5 text-sm font-semibold bg-indigo-700 text-white hover:shadow-lg disabled:opacity-60 transition-all min-h-[44px]"
                         >
                             {loading ? "Logging in…" : "Log in"}
                         </button>
 
-                        <div className="flex justify-between text-xs text-gray-500">
+                        <div className="flex justify-between text-xs text-stone-600">
                             <Link to="/forgot-password" className="hover:text-indigo-600 transition-colors">Forgot password?</Link>
                             <Link to="/signup" className="hover:text-indigo-600 transition-colors">Sign up</Link>
                         </div>
 
                         {/* Divider */}
                         <div className="relative my-3">
-                            <div className="h-px bg-gray-200" />
-                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-white px-3 text-[11px] text-gray-400">OR</span>
+                            <div className="h-px bg-stone-200" />
+                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-white px-3 text-[11px] text-stone-400">OR</span>
                         </div>
 
                         {/* Google login */}
@@ -176,7 +180,7 @@ export default function LoginPage() {
                                 type="button"
                                 onClick={googleLogin}
                                 disabled={redirectingToGoogle}
-                                className="w-full border border-gray-300 rounded-xl py-3 sm:py-2.5 text-sm font-medium bg-white hover:bg-gray-50 transition flex items-center justify-center gap-2 text-gray-700 min-h-[44px] disabled:opacity-70"
+                                className="w-full border border-stone-300 rounded-xl py-3 sm:py-2.5 text-sm font-medium bg-white hover:bg-stone-50 transition flex items-center justify-center gap-2 text-stone-700 min-h-[44px] disabled:opacity-70"
                             >
                                 {redirectingToGoogle ? (
                                     <span className="animate-pulse">Redirecting to Google…</span>
@@ -188,7 +192,7 @@ export default function LoginPage() {
                                 )}
                             </button>
                             {redirectingToGoogle && (
-                                <p className="text-xs text-gray-500 text-center">
+                                <p className="text-xs text-stone-600 text-center">
                                     If you are not redirected,{" "}
                                     <a
                                         href={`${API_BASE ? API_BASE.replace(/\/$/, "") : ""}/auth/google?redirect=${encodeURIComponent(searchParams.get("redirect") || "/choose-level")}`}
@@ -204,7 +208,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-[11px] text-gray-500 mt-6">
+                <p className="text-center text-[11px] text-stone-600 mt-6">
                     By signing up or logging in, you consent to AI Interviewer's <a className="underline underline-offset-2 hover:text-indigo-600" href="#">Terms of Use</a> and <a className="underline underline-offset-2 hover:text-indigo-600" href="#">Privacy Policy</a>.
                 </p>
             </div>

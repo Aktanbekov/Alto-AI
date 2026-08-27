@@ -18,6 +18,14 @@ type QuestionDef struct {
 // QuestionsByCategory stores questions organized by category
 var QuestionsByCategory map[string][]QuestionDef
 
+// loadedPath records which file QuestionsByCategory came from, so the admin
+// API can write edits back to the same location it was loaded from.
+var loadedPath string
+
+// QuestionsPath returns the file the question bank was loaded from, or "" if
+// questions have not been loaded yet.
+func QuestionsPath() string { return loadedPath }
+
 // InitQuestions tries to load questions from the questions.json file
 // It tries multiple possible paths to find the file
 func InitQuestions() error {
@@ -94,17 +102,19 @@ func LoadQuestions(path string) error {
 		return fmt.Errorf("unmarshal questions: %w", err)
 	}
 
+	// Validate before swapping in, so a bad file leaves the previously loaded
+	// questions intact rather than wiping them.
+	for category := range QuestionSelectionRules {
+		if len(categories[category]) == 0 {
+			return fmt.Errorf("required category '%s' not found in questions file", category)
+		}
+	}
+
 	QuestionsByCategory = make(map[string][]QuestionDef)
 	for category, questions := range categories {
 		QuestionsByCategory[category] = questions
 	}
-
-	// Validate that all required categories exist
-	for category := range QuestionSelectionRules {
-		if _, ok := QuestionsByCategory[category]; !ok {
-			return fmt.Errorf("required category '%s' not found in questions file", category)
-		}
-	}
+	loadedPath = path
 
 	return nil
 }

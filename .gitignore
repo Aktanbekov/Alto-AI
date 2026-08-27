@@ -34,3 +34,10 @@ frontend/yarn-error.log*
 .vscode/
 .idea/
 *.swp
+
+# ---- visa-llm (Python service) ----
+visa-llm/.venv/
+visa-llm/__pycache__/
+visa-llm/**/__pycache__/
+visa-llm/*.egg-info/
+visa-llm/.pytest_cache/

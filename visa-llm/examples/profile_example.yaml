@@ -1,0 +1,34 @@
+# Student profile for: visa-llm evaluate examples/profile_example.yaml
+consulate_city: Chennai
+consulate_country: India
+university: University of Texas at Dallas
+degree_level: Masters          # Bachelors | Masters | MBA | PhD
+course: Business Analytics     # the field you will study in the US
+major: Biotechnology           # the field you already studied (postgraduate only)
+gpa: "7.1"
+gpa_scale: "10"   # 4, 4.3, 5, 10, or 100 for percentage marks
+work_experience: "2.8 years as a procurement specialist"
+funding_source: "Father's savings and an education loan of INR 25 lakh"
+scholarship: "None"
+attempt_number: 1
+test_scores:
+  GRE: "324"
+  Duolingo: "135"
+
+planned_answers:
+  - question: "Why did you choose this university?"
+    answer: >-
+      UTD offers a STEM-designated MS in Business Analytics with a strong
+      capstone program, and the faculty in the Naveen Jindal School have
+      published in the supply-chain analytics area I worked in.
+  - question: "Who is sponsoring your education?"
+    answer: >-
+      My father is sponsoring me. He runs a textile trading business and
+      we have also sanctioned an education loan of 25 lakh rupees.
+  - question: "What will you do after graduation?"
+    answer: >-
+      I will come back to India and move into an analytics role in
+      procurement, ideally with a larger manufacturer.
+  - question: "Why not study this in India?"
+    answer: >-
+      Indian programs are mostly theoretical. The US is better.

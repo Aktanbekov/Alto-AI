@@ -1,0 +1,111 @@
+# F1 Visa Interview Prep Tool — Dataset Pipeline, Analytics, and Grounded Evaluator
+
+## Context
+
+Goal: a tool that helps international students prepare for F1 visa interviews, built on real interview reviews from Telegram. Decided direction (user-confirmed): **dataset pipeline first**, then an **answer evaluator** + **insights report**, using a **hybrid** of precomputed pandas statistics and RAG — at evaluation time, retrieve similar past interviews and inject them plus the stats into a Claude prompt so feedback is grounded in data, not model priors.
+
+### Actual data (inspected in `raw_data/`)
+
+Three Telegram Desktop JSON exports, **77MB total** (not the 8GB originally estimated — everything fits in memory; no streaming parser needed):
+
+| File | Channel | Messages | With VO dialogue | Date range |
+|---|---|---|---|---|
+| `F1_80k.json` | F1 visa interview Experiences ❁ | 12,221 | 11,247 | 2020-10 → 2023-09 |
+| `F1_25k.json` | 🇺🇸 F1 Visa Interview Experiences (supergroup) | 5,528 | 2,826 | 2022-05 → 2026-08 |
+| `F1_uzb.json` | F1 Visa (Uzbekistan) Exp. | 469 | 290 | 2022-06 → 2025-01 |
+
+Measured profile of the corpus:
+- **~17,400 unique long messages** (341 near-exact duplicates to drop).
+- **Three format families**: (a) checkvisaslots template (`Visa Profile` / `Interview Outcome:` / `Grad Level:` … — ~2,500 records), (b) key-value header + transcript (`Consulate:` / `University:` / `Status:` / `Course:` — ~5,000–8,000), (c) freeform with dialogue only.
+- Dialogue markers vary: `VO:`, `Vo:`, `VI:`, `Me:`, `ME:`, `me:` (~98k Me-turns, ~108k officer-turns total).
+- Outcome labels need normalization: "Approved ✅" / "approved✅" / "Rejected ❌" / "accepted" etc. → roughly **8,300 approved vs 1,100 rejected** (imbalanced but enough rejection signal).
+- Telegram `text` fields are string-or-entity-list; must be flattened.
+
+Scope guardrail: the tool coaches clarity and preparation; the evaluator prompt explicitly refuses to coach fabrication (the corpus's own advice: "Don't lie").
+
+## Project setup
+
+Python project in `/Users/Macbook/Code/code/visa_llm`:
+
+```
+visa_llm/
+├── pyproject.toml            # deps: pandas, pyarrow, duckdb, pydantic,
+│                             #       anthropic, sentence-transformers, typer, rich
+├── src/visa_llm/
+│   ├── ingest/               # Stage 1: read + filter + dedup
+│   │   ├── telegram_reader.py
+│   │   ├── review_filter.py
+│   │   └── dedup.py
+│   ├── extract/              # Stage 2: raw text → structured records
+│   │   ├── schema.py
+│   │   ├── template_parser.py     # both template families (a) and (b)
+│   │   └── llm_extractor.py       # freeform residue only
+│   ├── analytics/            # Stage 3: taxonomy + stats + report
+│   │   ├── taxonomy.py
+│   │   ├── stats.py
+│   │   └── report.py
+│   ├── rag/                  # Stage 4: embeddings + retrieval
+│   │   ├── embed.py
+│   │   └── retrieve.py
+│   ├── evaluator/            # Stage 5: student-facing tool
+│   │   ├── prompts.py
+│   │   └── evaluate.py
+│   └── cli.py                # typer CLI: ingest / extract / analyze / index / evaluate
+├── raw_data/                 # exists: F1_80k.json, F1_25k.json, F1_uzb.json
+├── data/                     # gitignored: interim/ + processed/
+└── tests/
+    └── fixtures/             # real samples of each format family
+```
+
+## Stage 1 — Ingest
+
+- `telegram_reader.py`: `json.load` each `raw_data/*.json` (77MB total — plain loading is fine); keep `type == "message"` entries; flatten string-or-entity-list `text`; carry `channel`, `message_id`, `date`.
+- `review_filter.py`: keep interview reviews, drop chatter/ads. Signals measured in the data: officer-dialogue markers (`VO:`/`Vo:`/`VI:` at line start), template headers (`Visa Profile`, `Interview Outcome:`, `Consulate:`, `Status:`), min length ~200 chars. Strip boilerplate footers (checkvisaslots promo, channel handles) and usernames/phone numbers (PII hygiene).
+- `dedup.py`: normalize (lowercase, strip links/handles, collapse whitespace) → hash → drop the ~341 duplicates. Output `data/interim/reviews.jsonl`.
+
+## Stage 2 — Extraction into a unified schema
+
+`schema.py` — pydantic `InterviewRecord`: outcome (`approved`/`rejected`/`administrative_processing_221g`/`unknown`), attempt_number, consulate_city, consulate_country, interview_date, university, course + degree_level, major, gpa, test_scores (GRE/TOEFL/IELTS/Duolingo), work_experience, funding/sponsorship, scholarship, intake term, `qa_turns: list[{question, answer}]`, tips, source (channel, msg id, hash).
+
+- **`template_parser.py` (deterministic, free)** — handles both measured template families:
+  - key-value line parser with a label-alias map built from the measured top labels (`University:`, `Consulate:`, `Course:`, `Status:`, `Interview Date:`, `Grad Level:`, `Exam Type:`, `F1 Visa Intake:`, …);
+  - outcome normalizer (strip emoji/punctuation, map approved/accepted/issued/rejected/refused/221g);
+  - dialogue splitter tolerant of `VO:`/`Vo:`/`VI:`/`Me:`/`ME:` case variants and multi-line answers.
+  Expected to cover the large majority of the ~17k records at zero cost.
+- **`llm_extractor.py` (Claude, residue only)** — records where the template parser can't find an outcome or Q&A turns. Corpus is small (~8–10M tokens total, residue far less), so cost is trivial: **Message Batches API** (50% off) + **structured outputs** (`client.messages.parse()` against the pydantic schema) on `claude-opus-5`. Dry-run token/cost estimate printed before submitting.
+
+Output: `data/processed/interviews.parquet` + DuckDB view.
+
+## Stage 3 — Analytics (pandas/DuckDB)
+
+- `taxonomy.py`: canonicalize the ~108k officer questions into ~20–30 types (why-this-university, funding, post-grad plans, ties-to-home, academics/scores, work-experience, relatives-in-US, why-USA, gap-years…). Method: sentence-transformers embeddings → clustering → one cheap LLM call per cluster to label it.
+- `stats.py` precomputes (keyed for prompt injection): approval rate by consulate/country, attempt number, degree level, funding type; question-type frequency by consulate/segment; question-type ↔ outcome associations; answer traits vs outcome. Output `data/processed/stats.json`.
+- `report.py`: insights report (markdown + HTML artifact), with stated caveats: self-selection bias, correlation ≠ causation, approved-heavy imbalance (8.3k vs 1.1k).
+
+## Stage 4 — RAG index
+
+- `embed.py`: local sentence-transformers (`all-MiniLM-L6-v2` or `bge-small-en`) over a per-record summary (profile + first Q&A turns); vectors stored in DuckDB (17k records — no FAISS needed).
+- `retrieve.py`: hard filters first (country, consulate, degree level), then cosine top-k (~10), balanced across outcomes so rejections are represented.
+
+## Stage 5 — Evaluator (CLI first)
+
+`visa-llm evaluate profile.yaml` — student supplies profile + planned answers.
+
+- Prompt = system prompt (ground ONLY in provided stats + examples; honest-prep guardrail) + relevant `stats.json` slices + retrieved examples + student's profile/answers.
+- `claude-opus-5` via Python `anthropic` SDK: streaming, adaptive thinking, plus the recommended refusal fallback (`fallbacks: "default"`, `betas=["server-side-fallback-2026-07-01"]`).
+- Structured output (`output_config.format`): per-answer feedback (strength / risk / suggested revision), most-likely questions for this profile+consulate with prep pointers, comparable past interviews cited by id, honest risk-factors section.
+- Prompt-cache the static system prompt + stats block (`cache_control`) since students iterate on answers.
+
+## Build order & verification
+
+1. **Setup + Stage 1** — run on the three real files; verify counts match the measured profile (~17.4k unique reviews after dedup) and duplicates are gone.
+2. **Stage 2 template parser** — pytest fixtures taken from real messages of each format family; run over the full corpus and report parse rate (% with outcome + ≥1 Q&A turn extracted). Target: >85% without LLM.
+3. **Stage 2 LLM residue** — print token/cost estimate, confirm with user, run batch, merge.
+4. **Stage 3** — sanity-check stats (e.g. approval ratio ≈ 88% given sharing bias); render report.
+5. **Stages 4–5** — end-to-end: use a held-out real review's profile as a fake student; confirm retrieval surfaces same-consulate/major records and the evaluation cites them.
+
+## Open items (non-blocking)
+
+- Anthropic API key (`ant auth status` / `ANTHROPIC_API_KEY`) — needed from Stage 2 residue onward; Stages 1–2(template) run without it.
+- The F1_25k channel runs to 2026-08 — freshest signal; consider a recency weight in retrieval later.
+- Web UI (FastAPI/Streamlit) after the CLI works; not in this phase.

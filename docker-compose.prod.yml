@@ -1,0 +1,104 @@
+# Production stack — pulls prebuilt images from Docker Hub instead of building.
+#
+# The server never sees the source: images are built and pushed from a machine
+# that has the repo, and the droplet only pulls. That keeps the droplet small
+# and means a deploy is `pull && up -d`, not a rebuild.
+#
+# Usage on the server:
+#   export DOCKERHUB_USER=<your-docker-hub-username>
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Requires, next to this file:
+#   .env       — secrets (see .env.example). NEVER baked into an image.
+#   Caddyfile  — the TLS/reverse-proxy config.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: altoai-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-altoai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-altoai_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks: [altoai-network]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-altoai} -d ${POSTGRES_DB:-altoai_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  altoai-mvp:
+    image: ${DOCKERHUB_USER:?set DOCKERHUB_USER}/altoai-mvp:${TAG:-latest}
+    container_name: altoai-mvp
+    depends_on:
+      postgres: {condition: service_healthy}
+      visa-llm: {condition: service_started}
+    expose: ["8080"]
+    environment:
+      - GIN_MODE=release
+      - FRONTEND_URL=${FRONTEND_URL:-https://altovisas.com}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL:-https://altovisas.com/auth/google/callback}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-altoai}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-altoai_db}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - ACCESS_TOKEN_EXPIRY=${ACCESS_TOKEN_EXPIRY:-30m}
+      - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-720h}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+      - VISA_LLM_URL=http://visa-llm:8000
+      # The corpus files the stats and question-bank endpoints read. Both ship
+      # inside the visa-llm image, so they are mounted read-only here rather
+      # than duplicated into the app image.
+      - STATS_PATH=/corpus/stats.json
+      - QUESTIONS_PATH=/corpus/questions.json
+    volumes:
+      - corpus:/corpus:ro
+    env_file: [.env]
+    restart: unless-stopped
+    networks: [altoai-network]
+
+  visa-llm:
+    image: ${DOCKERHUB_USER:?set DOCKERHUB_USER}/altoai-visa-llm:${TAG:-latest}
+    container_name: altoai-visa-llm
+    expose: ["8000"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY must be set}
+    # Publishes the two corpus JSON files the Go app serves, so there is one
+    # copy of the corpus on the box.
+    volumes:
+      - corpus:/corpus
+    command: >
+      sh -c "cp -f /app/data/processed/stats.json /corpus/stats.json 2>/dev/null;
+             cp -f /app/web/data/questions.json /corpus/questions.json 2>/dev/null;
+             visa-llm serve --host 0.0.0.0 --port 8000"
+    restart: unless-stopped
+    networks: [altoai-network]
+
+  caddy:
+    image: caddy:2
+    container_name: altoai-caddy
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    networks: [altoai-network]
+    depends_on: [altoai-mvp]
+
+volumes:
+  postgres_data: {driver: local}
+  caddy_data: {driver: local}
+  caddy_config: {driver: local}
+  corpus: {driver: local}
+
+networks:
+  altoai-network: {driver: bridge}

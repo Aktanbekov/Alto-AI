@@ -854,7 +854,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-stone-50 flex flex-col overflow-hidden">
       {/* Top Navigation Bar */}
       <nav className="bg-white shadow-md flex-shrink-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
@@ -864,7 +864,7 @@ export default function Chat() {
               className="flex items-center gap-2 sm:gap-3 cursor-pointer bg-transparent border-none outline-none p-0"
             >
               <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-xl sm:text-2xl font-bold text-indigo-700">
                 AI Interviewer
               </span>
             </button>
@@ -883,7 +883,7 @@ export default function Chat() {
             {/* Close button for mobile */}
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="lg:hidden absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-700 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Close sidebar"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -902,25 +902,25 @@ export default function Chat() {
             </div>
 
             {/* AI Info */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">AI Interviewer</h2>
-            <p className="text-gray-500 text-center text-xs sm:text-sm mb-4 sm:mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-stone-800 mb-2">AI Interviewer</h2>
+            <p className="text-stone-600 text-center text-xs sm:text-sm mb-4 sm:mb-6">
               I'm here to chat with you and learn about your experiences!
             </p>
 
             {/* Status Indicator */}
-            <div className="flex items-center gap-2 mb-4 sm:mb-6 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-50 rounded-full">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs sm:text-sm text-green-700 font-medium">{statusTexts[emojiState]}</span>
+            <div className="flex items-center gap-2 mb-4 sm:mb-6 px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-50 rounded-full">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-xs sm:text-sm text-emerald-700 font-medium">{statusTexts[emojiState]}</span>
             </div>
 
             {/* Progress Section */}
             <div className="w-full mb-4 sm:mb-6">
-              <div className="flex justify-between text-xs text-gray-500 mb-2">
+              <div className="flex justify-between text-xs text-stone-600 mb-2">
                 <span>Interview Progress</span>
               </div>
-              <div className="bg-gray-200 rounded-full h-2 sm:h-3 w-full overflow-hidden">
+              <div className="bg-stone-200 rounded-full h-2 sm:h-3 w-full overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-green-400 to-emerald-500 rounded-full h-2 sm:h-3 transition-all duration-500"
+                  className="bg-emerald-500 rounded-full h-2 sm:h-3 transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -938,7 +938,7 @@ export default function Chat() {
                       // Reload the page to restart with new level
                       window.location.reload();
                     }}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base min-h-[44px]"
+                    className="w-full bg-emerald-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:bg-emerald-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base min-h-[44px]"
                   >
                     ⬆️ Try Next Level
                   </button>
@@ -946,7 +946,7 @@ export default function Chat() {
                 {/* Restart Interview Button */}
                 <button
                   onClick={handleRestartInterview}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base min-h-[44px]"
+                  className="w-full bg-indigo-700 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:bg-indigo-800 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base min-h-[44px]"
                 >
                   🔄 Restart Interview
                 </button>
@@ -965,16 +965,16 @@ export default function Chat() {
           {/* Chat Area */}
           <div className="flex-1 w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full max-h-full">
             {/* Chat Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 text-white">
+            <div className="bg-indigo-700 p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate mb-1">Interview Session</h1>
                   <div className="flex items-center gap-3 flex-wrap">
                     <p className="text-indigo-100 text-xs sm:text-sm truncate">F1 Visa • Interview Practice</p>
                     {selectedLevel && (
-                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-sm ${selectedLevel === "easy" ? "bg-green-500/20 border border-green-300/30" :
-                        selectedLevel === "medium" ? "bg-blue-500/20 border border-blue-300/30" :
-                          "bg-purple-500/20 border border-purple-300/30"
+                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg backdrop-blur-sm ${selectedLevel === "easy" ? "bg-emerald-500/20 border border-emerald-300/30" :
+                        selectedLevel === "medium" ? "bg-amber-500/20 border border-amber-300/30" :
+                          "bg-rose-500/20 border border-rose-300/30"
                         }`}>
                         <span className="text-sm">
                           {selectedLevel === "easy" ? "🌱" :
@@ -994,7 +994,7 @@ export default function Chat() {
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-gray-50 to-white">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 bg-stone-50 to-white">
               {/* Overall Grade Component - Show when finished */}
               {finished && overallGradeData && messages.length > 0 && (
                 <div className="mb-6">
@@ -1015,8 +1015,8 @@ export default function Chat() {
                     >
                       <div
                         className={`max-w-[85%] sm:max-w-[80%] rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-md transition-all hover:shadow-lg ${message.sender === "ai"
-                          ? "bg-white text-gray-900 border-2 border-indigo-100"
-                          : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
+                          ? "bg-white text-stone-900 border-2 border-indigo-100"
+                          : "bg-indigo-700 text-white"
                           }`}
                       >
                         {message.sender === "ai" && (
@@ -1048,7 +1048,7 @@ export default function Chat() {
               {/* Final per-answer analysis cards */}
               {finished && answerAnalyses.length > 0 && (
                 <div className="mt-4 space-y-3">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-semibold text-stone-900 flex items-center gap-2">
                     <span>📊 Interview Results ({answerAnalyses.filter(a => a.analysis).length} of {selectedLevel === "easy" ? 4 : selectedLevel === "medium" ? 7 : 12} answers analyzed)</span>
                   </h3>
 
@@ -1056,10 +1056,10 @@ export default function Chat() {
                   {sessionEvaluation && (
                     <div className={`rounded-xl p-4 text-center font-semibold text-sm sm:text-base ${
                       sessionEvaluation.verdict === "Likely Approved"
-                        ? "bg-green-100 text-green-800 border border-green-300"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                         : sessionEvaluation.verdict === "Needs Work"
-                          ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                          : "bg-red-100 text-red-800 border border-red-300"
+                          ? "bg-amber-100 text-amber-800 border border-amber-300"
+                          : "bg-rose-100 text-rose-800 border border-rose-300"
                     }`}>
                       {sessionEvaluation.verdict === "Likely Approved" ? "✅" : sessionEvaluation.verdict === "Needs Work" ? "⚠️" : "🚩"}{" "}
                       Verdict: {sessionEvaluation.verdict} — Score: {sessionEvaluation.overall_score}/100
@@ -1073,7 +1073,7 @@ export default function Chat() {
                         key={`${index}-${item.questionId || item.question}-${item.answer}`}
                         className="space-y-2"
                       >
-                        <div className="text-xs sm:text-sm text-gray-800">
+                        <div className="text-xs sm:text-sm text-stone-800">
                           <div className="font-semibold">
                             Question {index + 1}:
                           </div>
@@ -1126,7 +1126,7 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="border-t-2 border-gray-100 p-3 sm:p-4 md:p-6 bg-white">
+            <div className="border-t-2 border-stone-100 p-3 sm:p-4 md:p-6 bg-white">
               <form onSubmit={handleSend} className="flex gap-2 sm:gap-3">
                 <input
                   ref={inputRef}
@@ -1136,17 +1136,17 @@ export default function Chat() {
                   onKeyPress={handleKeyPress}
                   placeholder={finished ? "Interview completed" : "Type your answer here..."}
                   disabled={finished}
-                  className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all text-gray-900 min-h-[44px] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 sm:px-6 py-3 sm:py-4 border-2 border-stone-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all text-stone-900 min-h-[44px] disabled:bg-stone-100 disabled:cursor-not-allowed"
                 />
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base min-h-[44px] min-w-[80px] sm:min-w-[100px]"
+                  className="bg-indigo-700 text-white px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full hover:bg-indigo-800 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 font-medium text-sm sm:text-base min-h-[44px] min-w-[80px] sm:min-w-[100px]"
                 >
                   <span className="hidden sm:inline">Send ➤</span>
                   <span className="sm:hidden">➤</span>
                 </button>
               </form>
-              <div className="hidden sm:flex items-center gap-4 mt-2 sm:mt-3 text-xs text-gray-500">
+              <div className="hidden sm:flex items-center gap-4 mt-2 sm:mt-3 text-xs text-stone-600">
                 <span>💡 Press Enter to send</span>
                 <span>•</span>
                 <span>Shift + Enter for new line</span>

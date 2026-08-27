@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"altoai_mvp/interview"
+	"altoai_mvp/internal/repository"
 	"altoai_mvp/internal/services"
 	"altoai_mvp/pkg/response"
 	"fmt"
@@ -14,11 +15,72 @@ import (
 )
 
 type ChatHandler struct {
-	userSvc services.UserService
+	userSvc    services.UserService
+	interviews repository.InterviewRepo
 }
 
-func NewChatHandler(userSvc services.UserService) *ChatHandler {
-	return &ChatHandler{userSvc: userSvc}
+func NewChatHandler(userSvc services.UserService, interviews repository.InterviewRepo) *ChatHandler {
+	return &ChatHandler{userSvc: userSvc, interviews: interviews}
+}
+
+// persistSession writes a durable record of a finished interview so the admin
+// panel can report on it. The live session still lives in memory; this is a
+// best-effort snapshot, and a failure here must never break the interview, so
+// errors are logged rather than returned.
+func (h *ChatHandler) persistSession(session *interview.Session, userEmail, level string) {
+	if h.interviews == nil || session == nil {
+		return
+	}
+
+	finishedAt := session.UpdatedAt
+	rec := repository.InterviewSession{
+		ID:            session.ID,
+		UserEmail:     userEmail,
+		Level:         level,
+		Status:        string(session.Status),
+		QuestionCount: len(session.SelectedQuestions),
+		AnswerCount:   len(session.Answers),
+		StartedAt:     session.CreatedAt,
+		FinishedAt:    &finishedAt,
+	}
+	if session.SessionEval != nil {
+		score := session.SessionEval.OverallScore
+		rec.OverallScore = &score
+		rec.OverallGrade = session.SessionEval.OverallGrade
+		rec.Verdict = session.SessionEval.Verdict
+	}
+
+	// Prefer the deep per-answer evaluation when V2 produced one, since it
+	// carries the classification the admin UI displays.
+	deepByID := map[string]interview.DeepAnswerAnalysis{}
+	if session.SessionEval != nil {
+		for _, a := range session.SessionEval.Answers {
+			deepByID[a.QuestionID] = a
+		}
+	}
+
+	answers := make([]repository.InterviewAnswer, 0, len(session.Answers))
+	for _, a := range session.Answers {
+		row := repository.InterviewAnswer{
+			QuestionID:   a.QuestionID,
+			QuestionText: a.QuestionText,
+			AnswerText:   a.Text,
+		}
+		if deep, ok := deepByID[a.QuestionID]; ok {
+			score := deep.Scores.TotalScore
+			row.TotalScore = &score
+			row.Classification = deep.Classification
+		} else if a.Analysis != nil {
+			score := a.Analysis.Scores.TotalScore
+			row.TotalScore = &score
+			row.Classification = a.Analysis.Classification
+		}
+		answers = append(answers, row)
+	}
+
+	if err := h.interviews.SaveSession(rec, answers); err != nil {
+		log.Printf("failed to persist interview session %s: %v", session.ID, err)
+	}
 }
 
 type ChatRequest struct {
@@ -64,6 +126,18 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 	// Get or create session
 	var session *interview.Session
 	var isNewSession bool
+
+	// The interview finishes on several different code paths, each returning
+	// early. Persisting from a defer catches all of them in one place.
+	var userEmail string
+	if claims, ok := currentClaims(c); ok && claims != nil {
+		userEmail = claims.Email
+	}
+	defer func() {
+		if session != nil && session.Status == interview.SessionStatusFinished {
+			h.persistSession(session, userEmail, req.Level)
+		}
+	}()
 
 	if req.SessionID != "" {
 		// Try to retrieve existing session

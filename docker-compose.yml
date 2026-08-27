@@ -26,6 +26,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      visa-llm:
+        condition: service_started
     expose:
       - "8080"
     environment:
@@ -42,11 +44,26 @@ services:
       - REFRESH_TOKEN_EXPIRY=${REFRESH_TOKEN_EXPIRY:-720h}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+      - VISA_LLM_URL=http://visa-llm:8000
     env_file:
       - .env
  
     restart: unless-stopped
 
+    networks:
+      - altoai-network
+
+  visa-llm:
+    build:
+      context: ./visa-llm
+      dockerfile: Dockerfile
+    container_name: altoai-visa-llm
+    expose:
+      - "8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    restart: unless-stopped
     networks:
       - altoai-network
 
