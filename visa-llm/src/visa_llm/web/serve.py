@@ -16,6 +16,26 @@ from pydantic import BaseModel, Field
 from ..evaluator.schema import Evaluation
 from ..rag.retrieve import StudentProfile
 
+# Imported here rather than inside create_app, where the rest of the FastAPI
+# names live.
+#
+# This module sets `from __future__ import annotations`, so every route
+# annotation is stored as a string and FastAPI resolves it later against the
+# function's *module* globals. A name imported inside the factory is invisible
+# there: `response: Response` failed to resolve as the ASGI response object and
+# quietly degraded into a required query parameter, so every POST /api/evaluate
+# answered 422 "field required: query.response" before reaching the evaluator.
+#
+# The try/except keeps fastapi optional — it belongs to the `web` extra, and
+# importing this module must not require it. Anything that calls create_app has
+# it installed by definition.
+try:
+    from fastapi import Response
+    from fastapi.responses import FileResponse
+except ImportError:  # pragma: no cover - the web extra is not installed
+    Response = None  # type: ignore[assignment,misc]
+    FileResponse = None  # type: ignore[assignment,misc]
+
 # One evaluation costs real money, so cap what a single caller can submit.
 MAX_ANSWERS = 12
 MAX_FIELD_CHARS = 2000
@@ -81,8 +101,7 @@ def usage_cost(meta: dict[str, Any]) -> float:
 def create_app(processed_dir: Path, web_dir: Path):
     import logging
 
-    from fastapi import FastAPI, HTTPException, Response
-    from fastapi.responses import FileResponse
+    from fastapi import FastAPI, HTTPException
     from fastapi.staticfiles import StaticFiles
 
     log = logging.getLogger("visa_llm.evaluate")
