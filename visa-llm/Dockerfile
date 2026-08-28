@@ -4,15 +4,30 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Build deps for scientific wheels; removed in the same layer to keep it small.
+# curl is used by the container health check. All Python dependencies used here
+# publish wheels, so a compiler toolchain only bloats the runtime image.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential curl \
+    && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies first so code edits don't invalidate the wheel cache.
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install --no-cache-dir ".[rag,web]"
+
+# The droplet is CPU-only. Installing torch from PyPI now pulls CUDA 13 and
+# several gigabytes of NVIDIA libraries; use PyTorch's CPU wheel repository
+# explicitly, then let the project install reuse that already-satisfied torch.
+# Keep the project package editable so paths derived from visa_llm.__file__
+# resolve to /app, where the runtime corpus and web assets are copied below.
+RUN pip install --no-cache-dir \
+        --index-url https://download.pytorch.org/whl/cpu \
+        "torch==2.7.1+cpu" \
+    && pip install --no-cache-dir -e ".[rag,web]"
+
+# Cache the exact embedding model used to build the shipped vectors. Without
+# this, the first student's request downloads it at runtime and can time out.
+ENV HF_HOME=/app/.cache/huggingface
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
 # Corpus: data/processed holds the parquet, stats.json and the embedding index.
 COPY data ./data

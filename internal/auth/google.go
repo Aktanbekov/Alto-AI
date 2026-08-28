@@ -74,7 +74,7 @@ func HandleGoogleLogin(c *gin.Context) {
 	}
 	redirect := c.Query("redirect")
 	if redirect == "" {
-		redirect = "/choose-level"
+		redirect = "/"
 	}
 	cookieDomain := os.Getenv("COOKIE_DOMAIN")
 	if cookieDomain == "" {
@@ -245,7 +245,7 @@ func HandleGoogleCallback(c *gin.Context) {
 
 	// Get frontend URL from environment or use default
 	frontendURL := os.Getenv("FRONTEND_URL")
-	
+
 	// In Docker/release mode, always use port 8080 (same as the app server)
 	// This ensures OAuth redirects work correctly in Docker even if .env has dev server URL
 	if os.Getenv("GIN_MODE") == "release" {
@@ -259,7 +259,7 @@ func HandleGoogleCallback(c *gin.Context) {
 	}
 
 	// Get redirect destination from cookie (set during login initiation)
-	redirectPath := "/choose-level" // Default
+	redirectPath := "/" // Default: authentication returns to the main page.
 	if redirectCookie, err := c.Cookie("oauth_redirect"); err == nil && redirectCookie != "" {
 		redirectPath = redirectCookie
 		// Clear the cookie after reading

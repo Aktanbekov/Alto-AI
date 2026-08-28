@@ -1,0 +1,16 @@
+# Source corpus and intermediate extraction output are not needed by the
+# evaluator service. The runtime only needs data/processed (retrieval index,
+# parquet and statistics) plus the generated web question bank.
+raw_data/
+data/interim/
+
+# Generated reports are analysis artifacts, not runtime inputs.
+data/processed/report.html
+data/processed/report.md
+
+# Local caches and environments.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store

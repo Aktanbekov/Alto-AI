@@ -16,6 +16,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: altoai-postgres
+    ports: ["127.0.0.1:5432:5432"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-altoai}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
@@ -32,11 +33,16 @@ services:
       retries: 5
 
   altoai-mvp:
-    image: ${DOCKERHUB_USER:?set DOCKERHUB_USER}/altoai-mvp:${TAG:-latest}
+    # Keep the existing Docker Hub repository name so deployments remain
+    # compatible with the server's established aktanov/altoai image.
+    image: ${DOCKERHUB_USER:?set DOCKERHUB_USER}/altoai:${TAG:-latest}
     container_name: altoai-mvp
     depends_on:
       postgres: {condition: service_healthy}
-      visa-llm: {condition: service_started}
+      # The sidecar copies the corpus JSON files into the shared volume before
+      # its API becomes healthy. Waiting here prevents the Go handler from
+      # caching a missing-file error during a deployment race.
+      visa-llm: {condition: service_healthy}
     expose: ["8080"]
     environment:
       - GIN_MODE=release
@@ -87,7 +93,7 @@ services:
     container_name: altoai-caddy
     ports: ["80:80", "443:443", "443:443/udp"]
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     restart: unless-stopped
