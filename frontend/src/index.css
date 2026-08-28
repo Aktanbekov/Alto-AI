@@ -26,6 +26,12 @@
   animation: bounceLow 2s ease-in-out infinite;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 * {
   scroll-behavior: smooth;
 }
@@ -202,9 +208,12 @@ button {
 .tf h4 { font-size: 15px; font-weight: 600; }
 .tf p  { margin: 0 0 1em; }
 
-.tf .wrap    { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-pad); }
+.tf .wrap    {
+  width: 100%; max-width: var(--page-max); margin: 0 auto;
+  padding-inline: var(--page-pad);
+}
 .tf .narrow  { max-width: 700px; margin: 0 auto; padding: 0 24px; }
-.tf .section { padding: 56px 0; }
+.tf .section { padding-block: 56px; }
 .tf .pt { padding-top: 48px; }
 .tf .pb { padding-bottom: 80px; }
 
@@ -341,6 +350,9 @@ button {
   .tf .stats { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 560px) {
+  .tf .section { padding-block: 40px; }
+  .tf .grid2[style] { padding-block: 40px !important; }
+  .tf .btn { width: 100%; justify-content: center; }
   .tf .stats { grid-template-columns: 1fr; }
 }
 
@@ -864,6 +876,106 @@ button {
 .vz .ok  { color: var(--pos); }
 .vz .bad { color: var(--neg); }
 
+/* --------------------------------------------------------------------------
+   Progressive validation: the two short feedback prompts, the access screen,
+   the unlock survey and the waitlist.
+   
+   Built from the same tokens as the report above it, because these cards sit
+   directly under one and a visual seam there reads as a different product
+   asking for something.
+   -------------------------------------------------------------------------- */
+
+.vz .vfb, .vz .vac, .vz .vwl, .vz .vsv, .vz .vsv-done { margin-top: var(--gap); }
+.vz .vfb-q { font-size: 1.05rem; margin: 0 0 10px; }
+.vz .vfb-thanks { margin: 0; color: var(--pos); font-weight: 580; }
+.vz .vfb-err { margin: 8px 0 0; color: var(--neg); font-size: .9rem; }
+
+/* Rating: five equal targets that stay comfortably tappable on a phone. */
+.vz .vfb-scale { display: flex; gap: 8px; flex-wrap: wrap; }
+.vz .vfb-num {
+  flex: 1 1 56px; min-width: 56px; min-height: 46px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--vz-ink);
+  font: inherit; font-size: 1rem; font-weight: 600; cursor: pointer;
+}
+.vz .vfb-num:hover:not(:disabled) { border-color: var(--pos); color: var(--pos); }
+.vz .vfb-num:disabled { opacity: .5; }
+.vz .vfb-ends {
+  display: flex; justify-content: space-between;
+  margin-top: 6px; font-size: .8rem; color: var(--ink-2);
+}
+
+/* Options: a wrapping row on the card, one per line in the survey. */
+.vz .vfb-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.vz .vfb-options.col { flex-direction: column; flex-wrap: nowrap; }
+.vz .vfb-option {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--vz-ink);
+  font: inherit; font-size: .94rem; text-align: left;
+  padding: 11px 14px; min-height: 44px; cursor: pointer;
+}
+.vz .vfb-option:hover:not(:disabled) { border-color: var(--pos); }
+.vz .vfb-option.on {
+  border-color: var(--pos); color: var(--pos); font-weight: 580;
+  box-shadow: inset 0 0 0 1px var(--pos);
+}
+
+.vz .vfb-text { display: block; margin-bottom: 12px; }
+.vz .vfb-text textarea {
+  width: 100%; box-sizing: border-box; resize: vertical; min-height: 74px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; font: inherit; font-size: .95rem; line-height: 1.5;
+  background: var(--surface); color: var(--vz-ink);
+}
+.vz .vfb-text textarea:focus { outline: 2px solid var(--pos); outline-offset: 1px; }
+.vz .vfb-count {
+  display: block; text-align: right; margin-top: 4px;
+  font-size: .78rem; color: var(--ink-muted); font-variant-numeric: tabular-nums;
+}
+.vz .vfb-count.over { color: var(--neg); }
+
+.vz .vfb-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.vz .vfb-primary { margin-bottom: 0; }
+/* Skip is a real choice, not a trap: same hit area, plainly readable. */
+.vz .vfb-skip {
+  border: 0; background: none; color: var(--ink-2);
+  font: inherit; font-size: .92rem; text-decoration: underline;
+  padding: 11px 4px; min-height: 44px; cursor: pointer;
+}
+.vz .vfb-skip:hover:not(:disabled) { color: var(--vz-ink); }
+.vz .vfb-skip:disabled { opacity: .5; }
+
+/* Access screen. */
+.vz .vac-primary { margin-top: 4px; }
+.vz .vac-primary .ev-submit { margin-bottom: 8px; }
+.vz .vac-support { margin: 0; font-size: .9rem; color: var(--ink-2); }
+.vz .vac-receipt { margin: 0; color: var(--pos); font-weight: 580; }
+.vz .vwl-submit { margin-bottom: 0; margin-top: 4px; }
+
+/* Survey. */
+.vz .vsv-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.vz .vsv-bar {
+  height: 5px; border-radius: 3px; background: var(--neutral);
+  overflow: hidden; margin-bottom: 18px;
+}
+.vz .vsv-bar span {
+  display: block; height: 100%; background: var(--pos);
+  transition: width .2s ease;
+}
+.vz .vsv-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 18px;
+}
+.vz .vsv-next { margin-bottom: 0; }
+.vz .vsv-done .ev-submit { margin-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vz .vsv-bar span { transition: none; }
+}
+
 /* Chart hover tooltip, ported from visa_llm's .tip. Fixed to the viewport and
    pointer-events:none so it never steals the hover from the mark beneath it. */
 .vz-tip {
@@ -931,4 +1043,10 @@ button {
 
   .vz .tile .v { font-size: 1.6rem; }
   .vz { padding: 20px 0 32px; }
+
+  /* Full-width targets beat a cramped row on a phone, and the survey is
+     answered on one more often than not. */
+  .vz .vfb-actions, .vz .vsv-nav { flex-direction: column-reverse; align-items: stretch; }
+  .vz .vfb-actions .ev-submit, .vz .vsv-nav .ev-submit { width: 100%; }
+  .vz .vfb-num { flex-basis: 18%; min-width: 0; }
 }

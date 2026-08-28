@@ -70,7 +70,6 @@ var notYetInstrumented = map[string]string{
 	"locked_flag_click":         "no paywall or locked flags exist yet",
 	"paywall_cta_click":         "no pricing tiers exist yet",
 	"share_click":               "no share button yet",
-	"feedback_answer":           "no feedback widget yet",
 	"outcome_submitted":         "no outcome follow-up yet",
 	"outcome_email_opened":      "no outcome follow-up yet",
 	"fabrication_refusal_shown": "evaluator refuses, but nothing surfaces it yet",

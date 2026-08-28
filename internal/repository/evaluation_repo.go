@@ -23,6 +23,12 @@ type EvaluationRepo interface {
 	ListForUser(userID string, limit int) ([]StoredEvaluation, error)
 	Get(id string) (StoredEvaluation, error)
 	DeleteForUser(userID string) (int64, error)
+
+	// Entitlement. Sets are counted by distinct set_index rather than by row so
+	// that re-scoring a set already paid for does not consume another one.
+	SetsUsed(s Subject) (distinct int, total int, err error)
+	UsedSet(s Subject, setIndex int) (bool, error)
+	ClaimForUser(userID, visitorID string) error
 }
 
 // StoredEvaluation is one submission and the report it produced.
@@ -54,6 +60,10 @@ type StoredEvaluation struct {
 	FlagCount      int    `json:"flag_count"`
 	AttemptNumber  int    `json:"attempt_number,omitempty"`
 	HasConsulateNs bool   `json:"has_consulate_data"`
+
+	// Which set of three questions this was, counted from zero. The free-set
+	// allowance is measured in these.
+	SetIndex int `json:"set_index"`
 }
 
 type evaluationRepo struct{ db *sql.DB }
@@ -87,7 +97,11 @@ func EnsureEvaluationSchema(db *sql.DB) error {
 			attempt_number INTEGER,
 			has_consulate_data BOOLEAN NOT NULL DEFAULT FALSE
 		)`,
+		// Added after the table shipped, so it arrives as an alter rather than
+		// part of the create above.
+		`ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS set_index SMALLINT NOT NULL DEFAULT 0`,
 		`CREATE INDEX IF NOT EXISTS idx_evaluations_user ON evaluations (user_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_evaluations_visitor ON evaluations (visitor_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_evaluations_created ON evaluations (created_at DESC)`,
 		`CREATE INDEX IF NOT EXISTS idx_evaluations_consulate ON evaluations (consulate)`,
 	}
@@ -115,14 +129,14 @@ func (r *evaluationRepo) Save(e StoredEvaluation) (string, error) {
 			(id, user_id, visitor_id, created_at, profile, answers, report,
 			 model, input_tokens, output_tokens, cached_tokens, cost_usd, latency_ms,
 			 consulate, country, degree_level, gpa_band, readiness_band, flag_count,
-			 attempt_number, has_consulate_data)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+			 attempt_number, has_consulate_data, set_index)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
 		e.ID, nullable(e.UserID), nullable(e.VisitorID), e.CreatedAt,
 		profile, answers, report,
 		nullable(e.Model), e.InputTokens, e.OutputTokens, e.CachedTokens, e.CostUSD, e.LatencyMS,
 		nullable(e.Consulate), nullable(e.Country), nullable(e.DegreeLevel),
 		nullable(e.GPABand), nullable(e.ReadinessBand), e.FlagCount,
-		nullableInt(e.AttemptNumber), e.HasConsulateNs)
+		nullableInt(e.AttemptNumber), e.HasConsulateNs, e.SetIndex)
 	return e.ID, err
 }
 
@@ -130,7 +144,7 @@ const evalColumns = `id, COALESCE(user_id,''), COALESCE(visitor_id,''), created_
 	profile, answers, report, COALESCE(model,''), input_tokens, output_tokens,
 	cached_tokens, cost_usd, latency_ms, COALESCE(consulate,''), COALESCE(country,''),
 	COALESCE(degree_level,''), COALESCE(gpa_band,''), COALESCE(readiness_band,''),
-	flag_count, COALESCE(attempt_number,0), has_consulate_data`
+	flag_count, COALESCE(attempt_number,0), has_consulate_data, set_index`
 
 func scanEvaluation(scan func(...any) error) (StoredEvaluation, error) {
 	var e StoredEvaluation
@@ -138,7 +152,7 @@ func scanEvaluation(scan func(...any) error) (StoredEvaluation, error) {
 	err := scan(&e.ID, &e.UserID, &e.VisitorID, &e.CreatedAt, &profile, &answers, &report,
 		&e.Model, &e.InputTokens, &e.OutputTokens, &e.CachedTokens, &e.CostUSD, &e.LatencyMS,
 		&e.Consulate, &e.Country, &e.DegreeLevel, &e.GPABand, &e.ReadinessBand,
-		&e.FlagCount, &e.AttemptNumber, &e.HasConsulateNs)
+		&e.FlagCount, &e.AttemptNumber, &e.HasConsulateNs, &e.SetIndex)
 	if err != nil {
 		return e, err
 	}
@@ -185,6 +199,52 @@ func (r *evaluationRepo) DeleteForUser(userID string) (int64, error) {
 		return 0, err
 	}
 	return res.RowsAffected()
+}
+
+// SetsUsed returns how many distinct sets the subject has scored, and how many
+// evaluations they ran in total.
+//
+// The two differ when someone re-scores a set they already own — refreshing the
+// page and submitting the same three answers again. That must not cost them an
+// allowance, so the entitlement is spent on the first number; the second exists
+// only as a ceiling, because every run costs us a model call.
+func (r *evaluationRepo) SetsUsed(s Subject) (int, int, error) {
+	if !s.Valid() {
+		return 0, 0, nil
+	}
+	pred, args := s.where(1)
+	var distinct, total int
+	err := r.db.QueryRow(
+		`SELECT COUNT(DISTINCT set_index), COUNT(*) FROM evaluations WHERE `+pred,
+		args...).Scan(&distinct, &total)
+	return distinct, total, err
+}
+
+// UsedSet reports whether this subject has already scored this set, which is
+// what separates a re-score from reaching for a new one.
+func (r *evaluationRepo) UsedSet(s Subject, setIndex int) (bool, error) {
+	if !s.Valid() {
+		return false, nil
+	}
+	pred, args := s.where(1)
+	args = append(args, setIndex)
+	var exists bool
+	err := r.db.QueryRow(
+		`SELECT EXISTS (SELECT 1 FROM evaluations WHERE `+pred+` AND set_index = $2)`,
+		args...).Scan(&exists)
+	return exists, err
+}
+
+// ClaimForUser attaches a guest's reports to the account they just created, so
+// the sets they have already spent follow them rather than resetting.
+func (r *evaluationRepo) ClaimForUser(userID, visitorID string) error {
+	if userID == "" || visitorID == "" {
+		return nil
+	}
+	_, err := r.db.Exec(
+		`UPDATE evaluations SET user_id = $1 WHERE visitor_id = $2 AND user_id IS NULL`,
+		userID, visitorID)
+	return err
 }
 
 func orEmptyMap(m map[string]any) map[string]any {

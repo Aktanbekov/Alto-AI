@@ -31,6 +31,8 @@ type EvaluateHandler struct {
 	incidents *visallm.IncidentLog
 	evals     repository.EvaluationRepo
 	analytics repository.AnalyticsRepo
+	val       repository.ValidationRepo
+	subjects  subjectResolver
 }
 
 func NewEvaluateHandler(
@@ -39,45 +41,68 @@ func NewEvaluateHandler(
 	incidents *visallm.IncidentLog,
 	evals repository.EvaluationRepo,
 	analytics repository.AnalyticsRepo,
+	val repository.ValidationRepo,
 ) *EvaluateHandler {
 	return &EvaluateHandler{
 		client: client, userSvc: userSvc, incidents: incidents,
-		evals: evals, analytics: analytics,
+		evals: evals, analytics: analytics, val: val,
+		subjects: subjectResolver{users: userSvc, evals: evals, val: val},
 	}
 }
 
 // Status lets the frontend hide the feature when the sidecar isn't deployed,
 // rather than surfacing a failed request.
 func (h *EvaluateHandler) Status(c *gin.Context) {
-	if !h.client.Configured() {
-		response.OK(c, gin.H{"available": false, "detail": "visa-llm is not configured"})
-		return
+	// The access state rides along so the page needs one round trip on mount to
+	// learn both whether scoring works and how many sets are left.
+	//
+	// signup_required is still in the payload, always false. Signing up stopped
+	// being a condition of practising when the free allowance went to two sets
+	// for everyone, but a cached bundle from before that release still reads
+	// this field and would bounce people to /signup if it went missing.
+	access := computeAccess(h.evals, h.val, h.subjects.resolve(c))
+	body := gin.H{"signup_required": false, "access": access}
+
+	switch {
+	case !h.client.Configured():
+		body["available"], body["detail"] = false, "visa-llm is not configured"
+	default:
+		health, err := h.client.Health(c.Request.Context())
+		if err != nil {
+			body["available"], body["detail"] = false, err.Error()
+		} else {
+			body["available"], body["detail"] = health.APIKeyConfigured, health.Detail
+		}
 	}
-	health, err := h.client.Health(c.Request.Context())
-	if err != nil {
-		response.OK(c, gin.H{"available": false, "detail": err.Error()})
-		return
-	}
-	response.OK(c, gin.H{"available": health.APIKeyConfigured, "detail": health.Detail})
+	response.OK(c, body)
 }
 
 // Evaluate proxies a profile to the sidecar. The caller's college and major
 // are filled in from their account when not supplied explicitly.
 func (h *EvaluateHandler) Evaluate(c *gin.Context) {
-	var req visallm.ProfileRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// The set number is ours, not the sidecar's. Binding it into a wrapper
+	// around ProfileRequest keeps the body forwarded to visa-llm byte-identical
+	// to what it received before this field existed.
+	var body struct {
+		visallm.ProfileRequest
+		SetIndex int `json:"set_index"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
 		response.Error(c, http.StatusBadRequest, "invalid request body")
 		return
 	}
+	req := body.ProfileRequest
+	setIndex := clampSetIndex(body.SetIndex)
+
 	if len(req.PlannedAnswers) == 0 {
 		response.Error(c, http.StatusBadRequest, "add at least one question and answer")
 		return
 	}
 
-	userID := ""
-	if claims, ok := currentClaims(c); ok && claims != nil {
+	subject := h.subjects.resolve(c)
+	userID := subject.UserID
+	if claims, ok := currentClaims(c); ok && claims != nil && h.userSvc != nil {
 		if user, err := h.userSvc.GetByEmail(c.Request.Context(), claims.Email); err == nil {
-			userID = user.ID
 			if req.University == "" {
 				req.University = user.College
 			}
@@ -85,6 +110,17 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 				req.Major = user.Major
 			}
 		}
+	}
+	if !subject.SignedIn() {
+		// The server-issued browser identity is what anonymous persistence
+		// hangs off. It cannot be reset by clearing localStorage because the
+		// cookie is HttpOnly.
+		c.Request.Header.Set("X-Visitor-Id", subject.VisitorID)
+	}
+
+	if msg, ok := h.allowed(subject, setIndex); !ok {
+		c.JSON(http.StatusForbidden, gin.H{"error": msg, "code": "sets_exhausted"})
+		return
 	}
 
 	started := time.Now()
@@ -102,9 +138,69 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	if h.incidents != nil {
 		h.incidents.RecordRun(visallm.Run{Usage: usage, UserEmail: email})
 	}
-	h.persist(c, req, evaluation, usage, latency, userID)
+	h.persist(c, req, evaluation, usage, latency, userID, setIndex)
 	response.OK(c, evaluation)
 }
+
+// setsExhaustedMessage is what the page turns into the access screen. It names
+// the exchange on offer rather than a wall, because there is one.
+const setsExhaustedMessage = "You have used all of your practice sets. " +
+	"Complete the short survey to unlock three more."
+
+// allowed decides whether this evaluation may run.
+//
+// Two separate limits, for two separate reasons:
+//
+//   - The product rule is counted in distinct sets, so re-scoring a set already
+//     spent — the same three questions after a refresh — is free. Charging for
+//     that would punish people for reloading a page.
+//   - The cost ceiling is counted in evaluations, because every one is a model
+//     call we pay for. Without it a client that pinned set_index to a set it
+//     already owned could re-score forever on our budget.
+func (h *EvaluateHandler) allowed(s repository.Subject, setIndex int) (string, bool) {
+	if h.evals == nil {
+		return "", true
+	}
+	distinct, total, err := h.evals.SetsUsed(s)
+	if err != nil {
+		// Fail open. A counting query that cannot run is our problem, and
+		// refusing to score someone over it is the worse of the two failures.
+		log.Printf("evaluate: could not count sets, allowing: %v", err)
+		return "", true
+	}
+
+	allowedSets := freeSets
+	if h.val != nil {
+		if extra, err := h.val.ExtraSets(s); err == nil {
+			allowedSets += extra
+		} else {
+			log.Printf("evaluate: could not read entitlements: %v", err)
+		}
+	}
+
+	if total >= allowedSets+rescoreSlack {
+		return setsExhaustedMessage, false
+	}
+	if distinct < allowedSets {
+		return "", true
+	}
+	// Their allowance is spent, so this is only allowed if it is a set they
+	// already hold.
+	owned, err := h.evals.UsedSet(s, setIndex)
+	if err != nil {
+		log.Printf("evaluate: could not check set ownership, allowing: %v", err)
+		return "", true
+	}
+	if owned {
+		return "", true
+	}
+	return setsExhaustedMessage, false
+}
+
+// rescoreSlack is how many repeat runs sit on top of the set allowance before
+// the cost ceiling bites — enough for genuine refreshes and retries, not enough
+// to be worth automating.
+const rescoreSlack = 2
 
 // failed turns an evaluation error into a student-facing response and, when the
 // cause is ours, an admin-visible incident.
@@ -201,6 +297,7 @@ func (h *EvaluateHandler) persist(
 	usage visallm.Usage,
 	latencyMS int64,
 	userID string,
+	setIndex int,
 ) {
 	raw, _ := json.Marshal(ev)
 	var report map[string]any
@@ -246,6 +343,7 @@ func (h *EvaluateHandler) persist(
 			FlagCount:      flagCount,
 			AttemptNumber:  req.AttemptNumber,
 			HasConsulateNs: hasConsulate,
+			SetIndex:       setIndex,
 		}); err != nil {
 			log.Printf("evaluate: could not store evaluation: %v", err)
 		}
@@ -282,6 +380,7 @@ func (h *EvaluateHandler) persist(
 				"degree_level":       req.DegreeLevel,
 				"gpa_band":           band,
 				"answers_in_round":   len(req.PlannedAnswers),
+				"set_index":          setIndex,
 			},
 		}})
 	}

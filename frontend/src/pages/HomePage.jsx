@@ -1,14 +1,14 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getMe } from "../api";
 import { setAccessToken } from "../utils/tokenStorage";
+import { safeRedirect } from "../utils/authRedirect";
 import CorpusDashboard from "../components/CorpusDashboard";
 import { track } from "../analytics";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [user, setUser] = useState(null);
 
   // Google OAuth callback: the backend redirects here with an access token.
   useEffect(() => {
@@ -22,22 +22,19 @@ export default function HomePage() {
     setSearchParams(searchParams, { replace: true });
 
     getMe()
-      .then((userData) => {
-        setUser(userData);
-        if (redirect) navigate(redirect);
+      .then(() => {
+        // The path made a round trip through Google and back as a query
+        // parameter, so it is only trusted as far as being same-site.
+        if (redirect) navigate(safeRedirect(redirect));
       })
-      .catch(() => setUser(null));
+      .catch(() => {});
   }, [searchParams, setSearchParams, navigate]);
 
-  useEffect(() => {
-    getMe().then(setUser).catch(() => setUser(null));
-  }, []);
-
-  // "Check my profile" leads to the grounded evaluator, not the interview
-  // practice flow. It needs a session because the evaluation costs credits.
+  // The first profile check is available to guests. The server asks them to
+  // create an account only when they come back for another report.
   const start = (location = "hero") => {
     track("cta_click", { location });
-    navigate(user ? "/check-profile" : "/login?redirect=/check-profile");
+    navigate("/check-profile");
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { register, verifyEmail, resendVerificationCode } from "../api";
+import { keepRedirect, safeRedirect } from "../utils/authRedirect";
 import { track, identify } from "../analytics";
 
 // Minimal inline SVG icons
@@ -40,6 +41,9 @@ const UserIcon = (props) => (
 
 export default function SignupPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    // See LoginPage: the "Log in" link below has to carry ?redirect= with it.
+    const { search } = useLocation();
     const [step, setStep] = useState("signup"); // "signup" or "verify"
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
@@ -90,7 +94,7 @@ export default function SignupPage() {
         try {
             await verifyEmail(email, code);
             identify();
-            navigate("/");
+            navigate(safeRedirect(searchParams.get("redirect")));
         } catch (err) {
             setError(err.message || "Verification failed");
         } finally {
@@ -299,7 +303,7 @@ export default function SignupPage() {
 
                         <div className="text-center text-xs text-stone-600">
                             Already have an account?{" "}
-                            <Link to="/login" className="hover:text-indigo-600 transition-colors font-medium">
+                            <Link to={keepRedirect("/login", search)} className="hover:text-indigo-600 transition-colors font-medium">
                                 Log in
                             </Link>
                         </div>
@@ -309,4 +313,3 @@ export default function SignupPage() {
         </div>
     );
 }
-

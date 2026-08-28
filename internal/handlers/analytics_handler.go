@@ -74,6 +74,17 @@ var knownEvents = map[string]bool{
 	// Feedback and flywheel
 	"feedback_answer": true, "outcome_email_opened": true,
 	"outcome_submitted": true, "fabrication_refusal_shown": true,
+	// Progressive validation. The two short prompts under the first and second
+	// reports, the access screen they lead to, the unlock survey, and the
+	// waitlist. Each prompt records its skip as well as its answer: a skip is a
+	// result, and a funnel that only counts submissions cannot tell a question
+	// nobody wanted from one nobody was asked.
+	"first_feedback_shown": true, "first_feedback_submitted": true,
+	"first_feedback_skipped": true, "second_feedback_shown": true,
+	"second_feedback_submitted": true, "second_feedback_skipped": true,
+	"access_screen_viewed": true, "validation_survey_started": true,
+	"validation_survey_completed": true, "validation_survey_abandoned": true,
+	"extra_sets_unlocked": true, "premium_waitlist_joined": true,
 }
 
 // Properties that must never be stored, whatever the client sends. The spec

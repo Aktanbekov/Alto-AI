@@ -1,25 +1,14 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PreviewChip from "../components/shell/PreviewChip";
-import { getMe } from "../api";
 
 export default function TakeATestPage() {
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let cancelled = false;
-    getMe()
-      .then((u) => !cancelled && setUser(u))
-      .catch(() => !cancelled && setUser(null));
-    return () => { cancelled = true; };
-  }, []);
-
   // The spoken flow above is still a prototype, so the page hands the user off
-  // to the evaluator — the same grounded scoring the home page CTA opens. It
-  // needs a session there, so an anonymous visitor goes through login first.
-  const evaluate = () =>
-    navigate(user ? "/check-profile" : "/login?redirect=/check-profile");
+  // to the evaluator — the same grounded scoring the home page CTA opens. No
+  // login detour any more: two practice sets are free to everyone, account or
+  // not, so sending a guest to /login would gate what is no longer gated.
+  const evaluate = () => navigate("/check-profile");
 
   return (
     <div className="tf">

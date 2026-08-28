@@ -47,6 +47,13 @@ func New() (*gin.Engine, error) {
 	}
 	evalRepo := repository.NewEvaluationRepo(dbProvider.DB())
 
+	// Short feedback, the unlock survey, the sets it grants, and the premium
+	// waitlist — everything the progressive validation flow reads and writes.
+	if err := repository.EnsureValidationSchema(dbProvider.DB()); err != nil {
+		return nil, fmt.Errorf("failed to initialize validation storage: %v", err)
+	}
+	validationRepo := repository.NewValidationRepo(dbProvider.DB())
+
 	userSvc := services.NewUserService(userRepo)
 	authSvc := services.NewAuthService(userRepo)
 	userH := handlers.NewUserHandler(userSvc)
@@ -57,7 +64,8 @@ func New() (*gin.Engine, error) {
 	evalIncidents := visallm.NewIncidentLog()
 	adminH := handlers.NewAdminHandler(userRepo, interviewRepo, evalIncidents)
 	evaluateH := handlers.NewEvaluateHandler(
-		visallm.New(), userSvc, evalIncidents, evalRepo, analyticsRepo)
+		visallm.New(), userSvc, evalIncidents, evalRepo, analyticsRepo, validationRepo)
+	accessH := handlers.NewAccessHandler(evalRepo, validationRepo, userSvc, analyticsRepo)
 	analyticsH := handlers.NewAnalyticsHandler(analyticsRepo, userSvc)
 	adminAnalyticsH := handlers.NewAdminAnalyticsHandler(analyticsRepo, evalRepo)
 	statsH := handlers.NewStatsHandler()
@@ -163,8 +171,18 @@ func New() (*gin.Engine, error) {
 		v1.DELETE("/events/mine", middleware.JWTAuth(), analyticsH.DeleteMine)
 
 		// Grounded evaluation, backed by the visa-llm sidecar
-		v1.GET("/evaluate/status", middleware.JWTAuth(), evaluateH.Status)
-		v1.POST("/evaluate", middleware.JWTAuth(), evaluateH.Evaluate)
+		v1.GET("/evaluate/status", middleware.OptionalJWT(), evaluateH.Status)
+		v1.POST("/evaluate", middleware.OptionalJWT(), evaluateH.Evaluate)
+
+		// Progressive validation: how many sets are left, the two short
+		// feedback prompts, the survey that unlocks three more, and the
+		// waitlist. All OptionalJWT — the flow is built to work for someone who
+		// never signs up, keyed to the guest cookie instead.
+		v1.GET("/access", middleware.OptionalJWT(), accessH.State)
+		v1.POST("/feedback/quick", middleware.OptionalJWT(), accessH.QuickFeedback)
+		v1.POST("/feedback/detail", middleware.OptionalJWT(), accessH.DetailFeedback)
+		v1.POST("/survey", middleware.OptionalJWT(), accessH.Survey)
+		v1.POST("/waitlist", middleware.OptionalJWT(), accessH.Waitlist)
 
 		// Any authenticated user may ask whether they are an admin; the
 		// frontend uses this to decide whether to show the panel.

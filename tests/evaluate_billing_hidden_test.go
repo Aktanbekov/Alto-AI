@@ -33,7 +33,7 @@ func evaluateAgainst(t *testing.T, status int, detail string) (*httptest.Respons
 	// nil repos: this test is about what the student is told, and the storage
 	// path is never reached on a failure.
 	h := handlers.NewEvaluateHandler(
-		&visallm.Client{BaseURL: sidecar.URL, HTTP: sidecar.Client()}, nil, incidents, nil, nil)
+		&visallm.Client{BaseURL: sidecar.URL, HTTP: sidecar.Client()}, nil, incidents, nil, nil, nil)
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()

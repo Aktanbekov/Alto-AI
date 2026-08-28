@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { forgotPassword, resetPassword } from "../api";
+import { keepRedirect } from "../utils/authRedirect";
 
 // Minimal inline SVG icons
 const MailIcon = (props) => (
@@ -33,6 +34,8 @@ const EyeOffIcon = (props) => (
 
 export default function ForgotPasswordPage() {
     const navigate = useNavigate();
+    // A reset started from a gated page still owes the visitor their page back.
+    const { search } = useLocation();
     const [step, setStep] = useState("request"); // "request" or "reset"
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
@@ -77,7 +80,7 @@ export default function ForgotPasswordPage() {
         setLoading(true);
         try {
             await resetPassword(email, code, password);
-            navigate("/login");
+            navigate(keepRedirect("/login", search));
         } catch (err) {
             setError(err.message || "Password reset failed");
         } finally {
@@ -248,7 +251,7 @@ export default function ForgotPasswordPage() {
 
                         <div className="text-center text-xs text-stone-600">
                             Remember your password?{" "}
-                            <Link to="/login" className="hover:text-indigo-600 transition-colors font-medium">
+                            <Link to={keepRedirect("/login", search)} className="hover:text-indigo-600 transition-colors font-medium">
                                 Log in
                             </Link>
                         </div>

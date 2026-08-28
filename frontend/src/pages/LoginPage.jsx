@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { login } from "../api";
-import { track, identify } from "../analytics";
+import { identify } from "../analytics";
+import { keepRedirect, safeRedirect } from "../utils/authRedirect";
 
 // Minimal inline SVG icons
 const MailIcon = (props) => (
@@ -43,6 +44,9 @@ const GoogleIcon = (props) => (
 export default function LoginPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    // Carried onto every link out of this page so a gated visitor keeps their
+    // destination when they detour through sign up or a password reset.
+    const { search } = useLocation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [show, setShow] = useState(false);
@@ -65,9 +69,9 @@ export default function LoginPage() {
             // Links this browser's earlier anonymous events to the account, so
             // the pre-signup half of the funnel is attributable.
             identify();
-            // Redirect to intended destination or default to /choose-level
-            const redirect = searchParams.get("redirect") || "/choose-level";
-            navigate(redirect);
+            // A normal login returns to the main page. Explicit deep links
+            // (for example a gated second profile check) are still honored.
+            navigate(safeRedirect(searchParams.get("redirect")));
         } catch (err) {
             const errorMessage = err.message || "Login failed";
             setError(errorMessage);
@@ -81,7 +85,7 @@ export default function LoginPage() {
     };
 
     const googleLogin = () => {
-        const redirect = searchParams.get("redirect") || "/choose-level";
+        const redirect = safeRedirect(searchParams.get("redirect"));
         const authUrl = `${API_BASE ? API_BASE.replace(/\/$/, "") : ""}/auth/google?redirect=${encodeURIComponent(redirect)}`;
         setRedirectingToGoogle(true);
         setError("");
@@ -164,8 +168,8 @@ export default function LoginPage() {
                         </button>
 
                         <div className="flex justify-between text-xs text-stone-600">
-                            <Link to="/forgot-password" className="hover:text-indigo-600 transition-colors">Forgot password?</Link>
-                            <Link to="/signup" className="hover:text-indigo-600 transition-colors">Sign up</Link>
+                            <Link to={keepRedirect("/forgot-password", search)} className="hover:text-indigo-600 transition-colors">Forgot password?</Link>
+                            <Link to={keepRedirect("/signup", search)} className="hover:text-indigo-600 transition-colors">Sign up</Link>
                         </div>
 
                         {/* Divider */}
@@ -195,7 +199,7 @@ export default function LoginPage() {
                                 <p className="text-xs text-stone-600 text-center">
                                     If you are not redirected,{" "}
                                     <a
-                                        href={`${API_BASE ? API_BASE.replace(/\/$/, "") : ""}/auth/google?redirect=${encodeURIComponent(searchParams.get("redirect") || "/choose-level")}`}
+                                        href={`${API_BASE ? API_BASE.replace(/\/$/, "") : ""}/auth/google?redirect=${encodeURIComponent(safeRedirect(searchParams.get("redirect")))}`}
                                         className="text-indigo-600 hover:underline"
                                     >
                                         click here to sign in with Google

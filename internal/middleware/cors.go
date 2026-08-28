@@ -6,6 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// The analytics headers ride along on tracked requests, so a preflight that
+// omits them fails the whole call — which in dev, where the frontend is on
+// :5173 and the API on :8080, takes the evaluator down with it. Production is
+// same-origin and never preflights, so this only ever bit local runs.
+const allowedHeaders = "Content-Type, Authorization, X-Requested-With, " +
+	"X-Visitor-Id, X-Session-Id, X-Src"
+
 // CORS returns a Gin middleware handler for CORS
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -25,7 +32,7 @@ func CORS() gin.HandlerFunc {
 		}
 		
 		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		c.Header("Access-Control-Allow-Headers", allowedHeaders)
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		
 		if c.Request.Method == http.MethodOptions {
@@ -56,7 +63,7 @@ func CORSLegacy(next http.Handler) http.Handler {
 		}
 		
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

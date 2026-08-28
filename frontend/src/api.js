@@ -39,7 +39,7 @@ async function fetchWithAuth(url, options = {}) {
           credentials: "include",
         });
       }
-    } catch (refreshError) {
+    } catch {
       // Refresh failed, clear token and let error propagate
       clearAccessToken();
       throw new Error("Session expired. Please log in again.");
@@ -193,7 +193,7 @@ export async function register(email, name, password) {
       let error;
       try {
         error = await res.json();
-      } catch (e) {
+      } catch {
         throw new Error(`Registration failed: ${res.status} ${res.statusText}`);
       }
 
@@ -250,9 +250,10 @@ export async function getQuestionBank() {
 // ---------- Grounded evaluation (visa-llm sidecar) ----------
 
 export async function getEvaluateStatus() {
-  const res = await fetchWithAuth(`${API}/api/v1/evaluate/status`);
+  const res = await fetchWithAuth(`${API}/api/v1/evaluate/status`, {
+    headers: trackingHeaders(),
+  });
   if (!res.ok) {
-    if (res.status === 401) return { available: false, detail: "Sign in to score your answers." };
     throw new Error(`Evaluator unavailable (${res.status})`);
   }
   const data = await res.json();
@@ -261,6 +262,9 @@ export async function getEvaluateStatus() {
 
 // One evaluation costs real credits, so this is deliberately only called on
 // explicit submit — never on mount or on keystroke.
+//
+// `profile.set_index` tells the server which set of three this is, so scoring
+// the same set again after a refresh is not counted as reaching for a new one.
 export async function evaluateProfile(profile) {
   const res = await fetchWithAuth(`${API}/api/v1/evaluate`, {
     method: "POST",
@@ -271,11 +275,58 @@ export async function evaluateProfile(profile) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Evaluation failed (${res.status})`);
+    const error = new Error(err.error || `Evaluation failed (${res.status})`);
+    error.status = res.status;
+    error.code = err.code || "";
+    throw error;
   }
   const data = await res.json();
   return data.data ?? data;
 }
+
+// ---------- Progressive validation and access ----------
+
+/*
+ * How many practice sets are left, which short feedback prompt is due, and
+ * whether the survey and waitlist are behind them.
+ *
+ * Always from the server. The page could track most of this locally and often
+ * be right, but "have I already been asked this" and "have I already unlocked"
+ * have to survive a refresh, a second tab and a sign-in — so the browser asks
+ * rather than remembers.
+ */
+export async function getAccess() {
+  const res = await fetchWithAuth(`${API}/api/v1/access`, {
+    headers: trackingHeaders(),
+  });
+  if (!res.ok) throw new Error(`Access state unavailable (${res.status})`);
+  const data = await res.json();
+  return data.data ?? data;
+}
+
+async function postValidation(path, body) {
+  const res = await fetchWithAuth(`${API}/api/v1/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...trackingHeaders() },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `Request failed (${res.status})`);
+  }
+  const data = await res.json();
+  return data.data ?? data;
+}
+
+// Both prompts record a skip as firmly as an answer, so nobody is asked twice.
+export const sendQuickFeedback = (body) => postValidation("feedback/quick", body);
+export const sendDetailFeedback = (body) => postValidation("feedback/detail", body);
+
+// Safe to call twice: the server grants the three sets once per person and
+// returns the same state either way.
+export const submitSurvey = (answers) => postValidation("survey", answers);
+
+export const joinWaitlist = (email) => postValidation("waitlist", { email });
 
 // ---------- Admin panel ----------
 
