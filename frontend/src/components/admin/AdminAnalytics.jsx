@@ -5,7 +5,7 @@ import {
 } from "../../api";
 
 /*
- * Product analytics — the five screens from the build spec.
+ * Product analytics - the five screens from the build spec.
  *
  * Every screen shares one filter bar. The `src` filter is the important one:
  * people who know the author personally inflate every number, so friends and
@@ -93,7 +93,7 @@ function NotWired({ map, keys }) {
       <ul className="mt-2 space-y-1">
         {rows.map((k) => (
           <li key={k} className="text-sm text-stone-700">
-            <code className="text-stone-900">{k}</code> — {map[k]}
+            <code className="text-stone-900">{k}</code> - {map[k]}
           </li>
         ))}
       </ul>
@@ -247,7 +247,7 @@ function QualityScreen({ filters }) {
           {pct(data?.locked_click_per_view)}
         </p>
         <p className="text-sm text-indigo-900 mt-1">
-          locked-flag clicks per report view — {num(data?.locked_flag_clicks)} of{" "}
+          locked-flag clicks per report view - {num(data?.locked_flag_clicks)} of{" "}
           {num(data?.report_views)} views. Someone asking &ldquo;how do I fix this&rdquo;
           without being prompted.
         </p>
@@ -333,7 +333,7 @@ function CoverageScreen({ filters }) {
     <div className="space-y-4">
       <Card className="p-3 bg-stone-50">
         <p className="text-sm text-stone-700">
-          Sorted by least corpus data first — the top rows are what to collect next.
+          Sorted by least corpus data first - the top rows are what to collect next.
           A consulate with users and no records produces a report built only from
           national and overall statistics.
         </p>
@@ -357,7 +357,7 @@ function FeedbackScreen({ filters }) {
       {!items.length && (
         <Card className="p-4 bg-stone-50">
           <p className="text-sm text-stone-700">
-            No feedback yet — {data?.note || "the widget is not built"}. The inbox reads
+            No feedback yet - {data?.note || "the widget is not built"}. The inbox reads
             <code className="mx-1">feedback_answer</code> events as soon as one exists.
           </p>
         </Card>

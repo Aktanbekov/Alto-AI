@@ -1,6 +1,6 @@
 /*
  * Follows the cursor and flips to the other side when it would run off the
- * viewport — the same behaviour as visa-llm's moveTip().
+ * viewport - the same behaviour as visa-llm's moveTip().
  */
 export default function Tooltip({ tip }) {
   if (!tip) return null;

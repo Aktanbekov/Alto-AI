@@ -5,7 +5,7 @@ export default function TakeATestPage() {
   const navigate = useNavigate();
 
   // The spoken flow above is still a prototype, so the page hands the user off
-  // to the evaluator — the same grounded scoring the home page CTA opens. No
+  // to the evaluator - the same grounded scoring the home page CTA opens. No
   // login detour any more: two practice sets are free to everyone, account or
   // not, so sending a guest to /login would gate what is no longer gated.
   const evaluate = () => navigate("/check-profile");
@@ -26,7 +26,7 @@ export default function TakeATestPage() {
 
       <button className="mic" type="button">
         <span className="ring"><i /></span>
-        <span>Recording — tap to finish</span>
+        <span>Recording - tap to finish</span>
         <span className="wave" aria-hidden="true">
           {[0, .12, .24, .36, .48, .6, .72, .1, .3].map((d, i) => (
             <i key={i} style={{ animationDelay: `${d}s` }} />
@@ -35,7 +35,7 @@ export default function TakeATestPage() {
       </button>
 
       <p className="tiny" style={{ marginTop: 16, textAlign: "center" }}>
-        Prefer to type? Switch to text — but the real thing is spoken, and speaking
+        Prefer to type? Switch to text - but the real thing is spoken, and speaking
         is the part people freeze on.
       </p>
 
@@ -48,7 +48,7 @@ export default function TakeATestPage() {
           <button className="btn" type="button" onClick={evaluate}>
             Score my answers <span className="arrow">→</span>
           </button>
-          <span className="tiny">Type your profile and answers — scored against the corpus</span>
+          <span className="tiny">Type your profile and answers - scored against the corpus</span>
         </div>
       </div>
     </div>

@@ -4,8 +4,8 @@ import { Card, StatTile, Loading, ErrorNote, Empty } from "./AdminUI";
 /*
  * Evaluator health.
  *
- * When scoring fails for a reason the student cannot act on — the Anthropic
- * account is out of credit, the API key was rejected — they see only
+ * When scoring fails for a reason the student cannot act on - the Anthropic
+ * account is out of credit, the API key was rejected - they see only
  * "temporarily unavailable". The real cause lands here, because someone has to
  * know, and it should not be every visitor.
  *
@@ -20,7 +20,7 @@ const KINDS = {
 
 function when(iso) {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString();
 }
 
 export default function AdminEvaluator({ load }) {
@@ -65,7 +65,7 @@ export default function AdminEvaluator({ load }) {
         <StatTile label="Other failures" value={totals.upstream || 0} hint="sidecar or network" />
         <StatTile
           label="Counting since"
-          value={since ? when(since).split(",")[0] : "—"}
+          value={since ? when(since).split(",")[0] : "-"}
           hint="resets on restart"
         />
       </div>

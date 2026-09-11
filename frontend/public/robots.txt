@@ -1,0 +1,55 @@
+# altovisas.com
+#
+# Everything public here is meant to be read, by people and by machines alike.
+# The dataset and its caveats are the point of the site, and an assistant that
+# summarises them for a student is doing the job we built it for.
+#
+# Two groups below, with identical rules. The first covers every crawler. The
+# second names the answer engines explicitly: several of them look for their own
+# token first, and a few (Google-Extended, Applebot-Extended) exist only as an
+# opt-out signal, where naming them with an Allow states intent unambiguously.
+#
+# The disallowed paths are signed-in or mid-flow screens. They render nothing
+# useful to a crawler and would be a dead end for anyone arriving from a search
+# result.
+#
+# Deliberately NOT listed: the admin panel. robots.txt is public, so naming a
+# private path here would advertise it to exactly the people who should not find
+# it. Authentication is what protects it.
+
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /chat
+Disallow: /choose-level
+Disallow: /voice-interview
+Disallow: /answers
+Disallow: /api/
+
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: DuckDuckBot
+User-agent: YandexBot
+Allow: /
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /chat
+Disallow: /choose-level
+Disallow: /voice-interview
+Disallow: /answers
+Disallow: /api/
+
+Sitemap: https://www.altovisas.com/sitemap.xml

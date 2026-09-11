@@ -12,33 +12,80 @@
   <meta name="theme-color" content="#6366f1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>Altovisas - AI Interview Practice</title>
+  <!--seo:start-->
+  <!--
+    Everything between the seo markers is REPLACED PER ROUTE by
+    scripts/build-seo.mjs, from the route table in src/seo/site.js.
+    The values below are the homepage's, so a bare `vite build` still
+    yields a correct homepage. Edit copy in site.js, not here.
+  -->
+  <title>Altovisas - F-1 Student Visa Interview Practice, Built on 16,204 Real Interviews</title>
+
+  <!--
+    The description is what a search engine and an answer engine both quote, so
+    it says what the site is rather than what category it belongs to. It was
+    previously absent entirely, and the social copy described a generic
+    interview-practice tool with no mention of visas or the dataset.
+  -->
+  <meta name="description"
+    content="Free F-1 student visa interview practice. Answer three questions and see where your case is weak, checked against 16,204 self-reported visa interview write-ups from 2020-2026. No account needed." />
+  <link rel="canonical" href="https://www.altovisas.com/" />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Altovisas" />
   <meta property="og:url" content="https://www.altovisas.com/" />
-  <meta property="og:title" content="Altovisas - AI Interview Practice" />
+  <meta property="og:title" content="Find out where your F-1 visa interview breaks" />
   <meta property="og:description"
-    content="Practice interviews with your AI companion. Get personalized feedback and ace your next interview." />
+    content="Answer three questions. We check them against 16,204 real student visa interview write-ups and name the exact points where officers push back on files like yours. Free, no account." />
   <meta property="og:image" content="https://www.altovisas.com/logo.svg" />
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:url" content="https://www.altovisas.com/" />
-  <meta property="twitter:title" content="Altovisas - AI Interview Practice" />
+  <meta property="twitter:title" content="Find out where your F-1 visa interview breaks" />
   <meta property="twitter:description"
-    content="Practice interviews with your AI companion. Get personalized feedback and ace your next interview." />
+    content="Answer three questions. We check them against 16,204 real student visa interview write-ups and name the exact points where officers push back on files like yours. Free, no account." />
   <meta property="twitter:image" content="https://www.altovisas.com/logo.svg" />
   <script defer src="https://cloud.umami.is/script.js" data-website-id="79af1729-1054-4335-9f72-71bc42a1ceaa"></script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Alto Visas",
-  "alternateName": "AltoVisas",
-  "url": "https://www.altovisas.com"
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.altovisas.com/#website",
+      "name": "Altovisas",
+      "url": "https://www.altovisas.com",
+      "description": "Free F-1 student visa interview practice, checked against a dataset of self-reported interview write-ups.",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://www.altovisas.com/#app",
+      "name": "Altovisas",
+      "url": "https://www.altovisas.com",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "description": "Answer three F-1 visa interview questions and receive an automated read of where a consular officer is most likely to push back, grounded in 16,204 self-reported interview write-ups."
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://www.altovisas.com/#dataset",
+      "name": "Self-reported F-1 visa interview write-ups, 2020-2026",
+      "description": "16,204 self-reported accounts of United States F-1 student visa interviews, posted publicly online by applicants, then de-duplicated and parsed question by question. Self-selected and self-reported: approval shares describe who chose to post, not the true consular approval rate, and every association in the data is correlational rather than causal.",
+      "url": "https://www.altovisas.com/",
+      "temporalCoverage": "2020/2026",
+      "isAccessibleForFree": true,
+      "creator": { "@type": "Organization", "name": "Altovisas" }
+    }
+  ]
 }
 </script>
+  <!--seo:end-->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -46,6 +93,76 @@
 
 <body>
   <div id="root"></div>
+
+  <!--seo-noscript:start-->
+  <!--
+    Content for clients that do not run JavaScript.
+
+    This is the whole reason answer engines could not read the site: the app is
+    client-rendered, so the shell they receive is <div id="root"></div> and
+    nothing else. ChatGPT-User, PerplexityBot and ClaudeBot fetch HTML and do
+    not execute scripts, so "allowed to crawl" and "able to read" were two
+    different things here, and only the first one was ever true.
+
+    Kept as a faithful summary of the rendered page, not a keyword list. If the
+    homepage copy changes materially, change this with it - a <noscript> block
+    that disagrees with the rendered page is worse than none.
+  -->
+  <noscript>
+    <main>
+      <h1>Find out where your F-1 visa interview breaks</h1>
+
+      <p>
+        Altovisas is a free practice tool for the United States F-1 student visa
+        interview. You describe your profile and answer three questions. We read
+        your answers against 16,204 self-reported interview write-ups and name the
+        specific points where consular officers push back on files like yours.
+        No account is required and it takes about four minutes.
+      </p>
+
+      <h2>Where the data comes from</h2>
+      <p>
+        16,204 accounts of F-1 visa interviews between 2020 and 2026, written by
+        applicants about their own interviews and posted publicly online, then
+        de-duplicated and parsed question by question. Roughly 200 more arrive
+        each month.
+      </p>
+
+      <h2>How to read the numbers</h2>
+      <p>
+        The dataset is self-selected and self-reported. Approval shares describe
+        who chose to write something down, not the true approval rate at any
+        consulate. Associations in the data are correlational, not causal, and
+        consular practice changes over time, so older records may describe a
+        process that no longer resembles the current one. Nothing here predicts
+        an individual outcome.
+      </p>
+
+      <h2>What this is not</h2>
+      <p>
+        Altovisas is not legal or immigration advice, and is not affiliated with
+        the U.S. Department of State, any embassy or consulate, or any other
+        government body. It cannot influence a visa decision. Answers you give at
+        a real interview must be truthful and your own. For advice about your own
+        case, consult a licensed immigration attorney.
+      </p>
+
+      <h2>Pages</h2>
+      <ul>
+        <li><a href="/check-profile">Check my profile</a> - the free profile check</li>
+        <li><a href="/about">About Altovisas</a></li>
+        <li><a href="/faq">Frequently asked questions</a></li>
+        <li><a href="/terms">Terms of Service</a></li>
+        <li><a href="/privacy">Privacy Policy</a></li>
+      </ul>
+
+      <p>
+        The interactive version of this site requires JavaScript.
+      </p>
+    </main>
+  </noscript>
+  <!--seo-noscript:end-->
+
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

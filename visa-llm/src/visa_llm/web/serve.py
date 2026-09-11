@@ -13,6 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..evaluator.providers import DEFAULT_PROVIDER, PROVIDERS, cost_of, resolve
 from ..evaluator.schema import Evaluation
 from ..rag.retrieve import StudentProfile
 
@@ -62,40 +63,28 @@ class ProfileRequest(BaseModel):
     attempt_number: int | None = Field(default=1, ge=1, le=20)
     test_scores: dict[str, str] = Field(default_factory=dict)
     planned_answers: list[PlannedAnswer] = Field(default_factory=list, max_length=MAX_ANSWERS)
+    # Which model scores this. Omitted by real users, who always get the
+    # production provider; the admin comparison names one per call.
+    model: str | None = Field(default=None, max_length=64)
 
     def to_profile(self) -> StudentProfile:
         data = self.model_dump()
         answers = data.pop("planned_answers", [])
+        # `model` is a routing instruction, not part of the student's profile -
+        # StudentProfile has no such field and would reject it.
+        data.pop("model", None)
         return StudentProfile(**data, planned_answers=answers)
 
 
-# Per-million-token rates, so a run reports what it actually cost instead of a
-# token count someone has to price by hand. Cache reads bill at a tenth of the
-# input rate; cache writes at 1.25x.
-PRICES = {
-    "claude-opus-5": (5.0, 25.0),
-    "claude-opus-4-8": (5.0, 25.0),
-    "claude-sonnet-5": (3.0, 15.0),
-    "claude-haiku-4-5": (1.0, 5.0),
-}
+def usage_cost(meta: dict[str, Any]) -> float | None:
+    """Dollar cost of one evaluation, or None when the model's rate is unknown.
 
-
-def usage_cost(meta: dict[str, Any]) -> float:
-    """Dollar cost of one evaluation from its token counts."""
-    model = str(meta.get("model", ""))
-    rate_in, rate_out = next(
-        (v for k, v in PRICES.items() if model.startswith(k)), (5.0, 25.0)
-    )
-    fresh = meta.get("input_tokens", 0) or 0
-    cached = meta.get("cache_read_input_tokens", 0) or 0
-    written = meta.get("cache_creation_input_tokens", 0) or 0
-    out = meta.get("output_tokens", 0) or 0
-    return (
-        fresh * rate_in
-        + cached * rate_in * 0.1
-        + written * rate_in * 1.25
-        + out * rate_out
-    ) / 1_000_000
+    The rate table lives in evaluator.providers, next to the models it prices,
+    so adding a provider cannot leave its cost silently defaulted. None rather
+    than 0.0 matters in the comparison view: an unpriced model showing "$0.0000"
+    beside two real figures reads as free.
+    """
+    return cost_of(meta)
 
 
 def create_app(processed_dir: Path, web_dir: Path):
@@ -119,6 +108,18 @@ def create_app(processed_dir: Path, web_dir: Path):
         return {
             "api_key_configured": configured and index_ready,
             "detail": detail,
+            # The comparison models, and whether each has a usable credential.
+            # Readiness here is "a key is present", not "the account has money" -
+            # only a real call can tell you that.
+            "providers": [
+                {
+                    "key": p.key,
+                    "label": p.label,
+                    "model": p.model,
+                    "configured": p.configured(),
+                }
+                for p in PROVIDERS.values()
+            ],
         }
 
     @app.post("/api/evaluate", response_model=Evaluation)
@@ -139,19 +140,34 @@ def create_app(processed_dir: Path, web_dir: Path):
                 index_dir=processed_dir / "index",
                 stats_path=processed_dir / "stats.json",
                 parquet_path=processed_dir / "interviews.parquet",
+                model=req.model or DEFAULT_PROVIDER,
             )
         except Exception as exc:  # surface the real cause, not a generic 500
             message = str(exc)
             # Billing and auth failures are the common ones and are actionable;
-            # they should not read as "the app is broken".
-            if "credit balance" in message.lower():
+            # they should not read as "the app is broken". Since more than one
+            # vendor can raise them, the message has to name the one that
+            # actually failed - telling an operator to top up Anthropic because
+            # DeepSeek is empty sends them to the wrong console.
+            try:
+                provider = resolve(req.model or DEFAULT_PROVIDER)
+                vendor, env_key = provider.label, provider.env_key
+            except Exception:  # noqa: BLE001 - an unknown model is reported below
+                vendor, env_key = "The model provider", "the provider API key"
+            lowered = message.lower()
+            if any(
+                phrase in lowered
+                for phrase in ("credit balance", "insufficient balance", "quota")
+            ):
                 raise HTTPException(
                     402,
-                    "The Anthropic account has no credits. Add credits in the "
-                    "console under Plans & Billing, then try again.",
+                    f"The {vendor} account has no credits. Add credits in that "
+                    "provider's console, then try again.",
                 ) from exc
-            if "authentication" in message.lower() or "api key" in message.lower():
-                raise HTTPException(401, "The API key was rejected. Check ANTHROPIC_API_KEY.") from exc
+            if "authentication" in lowered or "api key" in lowered or "invalid_api_key" in lowered:
+                raise HTTPException(
+                    401, f"The {vendor} API key was rejected. Check {env_key}."
+                ) from exc
             raise HTTPException(500, message) from exc
 
         # What the call actually cost. This used to be discarded, which left no
@@ -163,7 +179,7 @@ def create_app(processed_dir: Path, web_dir: Path):
             meta.get("input_tokens"),
             meta.get("cache_read_input_tokens"),
             meta.get("output_tokens"),
-            cost,
+            cost if cost is not None else float("nan"),
         )
         # Headers rather than body fields: the response schema is the Evaluation
         # itself, and the caller should not have to parse a wrapper to get this.
@@ -171,7 +187,10 @@ def create_app(processed_dir: Path, web_dir: Path):
         response.headers["X-Eval-Input-Tokens"] = str(meta.get("input_tokens", 0))
         response.headers["X-Eval-Cached-Tokens"] = str(meta.get("cache_read_input_tokens", 0))
         response.headers["X-Eval-Output-Tokens"] = str(meta.get("output_tokens", 0))
-        response.headers["X-Eval-Cost-Usd"] = f"{cost:.4f}"
+        response.headers["X-Eval-Cost-Usd"] = f"{cost:.4f}" if cost is not None else "0"
+        # Without this a model we have no rate for is indistinguishable from a
+        # free one, since the header is parsed into a float either way.
+        response.headers["X-Eval-Cost-Known"] = "true" if cost is not None else "false"
         return evaluation
 
     if web_dir.exists():

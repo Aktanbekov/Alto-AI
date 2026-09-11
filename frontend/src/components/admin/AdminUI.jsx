@@ -58,7 +58,7 @@ export function Badge({ tone = "stone", children }) {
   );
 }
 
-// A horizontal bar list — used for signups per day, top colleges, grades.
+// A horizontal bar list - used for signups per day, top colleges, grades.
 export function BarList({ items, emptyText = "No data yet" }) {
   if (!items?.length) return <Empty>{emptyText}</Empty>;
   const max = Math.max(...items.map((i) => i.count), 1);

@@ -28,7 +28,7 @@ export default function ProportionBar({ segments }) {
         {segments.map((s) => (
           <span key={s.label}>
             <i style={{ background: s.color }} />
-            {s.label} — {s.value.toLocaleString()} ({((s.value / total) * 100).toFixed(1)}%)
+            {s.label} - {s.value.toLocaleString()} ({((s.value / total) * 100).toFixed(1)}%)
           </span>
         ))}
       </div>

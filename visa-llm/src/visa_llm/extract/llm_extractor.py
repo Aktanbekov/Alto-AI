@@ -25,7 +25,7 @@ _BATCH_DISCOUNT = 0.5
 _CHARS_PER_TOKEN = 3.6  # measured on this corpus, which is emoji-heavy
 
 SYSTEM_PROMPT = """\
-You extract structured data from F-1 visa interview reviews posted to Telegram.
+You extract structured data from F-1 visa interview reviews posted publicly online by students.
 
 Return only what the text actually states. Use null for anything absent — never
 infer, complete, or normalize away a missing value. In particular:

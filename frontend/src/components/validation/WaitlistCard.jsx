@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getMe, joinWaitlist } from "../../api";
 import { track } from "../../analytics";
 
-// Deliberately loose, and only a first pass — the server validates too, and a
+// Deliberately loose, and only a first pass - the server validates too, and a
 // browser that rejects an address a mail server would have accepted is worse
 // than one that lets a typo through to a bounce.
 const LOOKS_LIKE_EMAIL = /^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/;
@@ -11,7 +11,7 @@ const LOOKS_LIKE_EMAIL = /^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$/;
  * The second way forward: register interest in the paid product.
  *
  * Someone signed in is asked to confirm the address we already have rather than
- * type it again — but it is a confirmation, not an assumption, because the
+ * type it again - but it is a confirmation, not an assumption, because the
  * account address and the one they want product mail at are not always the same.
  */
 export default function WaitlistCard({ access, onJoined }) {

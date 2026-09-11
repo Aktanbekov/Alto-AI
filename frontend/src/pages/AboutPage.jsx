@@ -7,9 +7,9 @@ export default function AboutPage() {
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer">
-            <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
+            <img src="/logo.svg" alt="Altovisas Logo" className="h-8 sm:h-10 w-auto" />
             <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-              AI Interviewer
+              Altovisas
             </span>
           </Link>
           <Link
@@ -31,14 +31,14 @@ export default function AboutPage() {
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3">Our Mission</h2>
             <p className="text-stone-700 leading-relaxed">
-              At Alto Visas, we believe that everyone deserves the opportunity to prepare effectively for their visa interviews. Our mission is to empower candidates with AI-powered interview practice that helps them build confidence and improve their chances of success.
+              At Altovisas, we believe that everyone deserves the opportunity to prepare effectively for their visa interviews. Our mission is to empower candidates with AI-powered interview practice that helps them build confidence and improve their chances of success.
             </p>
           </div>
 
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-stone-900 mb-3">What We Do</h2>
             <p className="text-stone-700 leading-relaxed mb-4">
-              AI Interviewer is an innovative platform that uses advanced artificial intelligence to simulate real visa interview scenarios. We provide:
+              Altovisas is an innovative platform that uses advanced artificial intelligence to simulate real visa interview scenarios. We provide:
             </p>
             <ul className="list-disc list-inside text-stone-700 space-y-2 ml-4">
               <li>Personalized interview practice sessions</li>

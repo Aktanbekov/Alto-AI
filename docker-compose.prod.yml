@@ -46,8 +46,16 @@ services:
     expose: ["8080"]
     environment:
       - GIN_MODE=release
-      - FRONTEND_URL=${FRONTEND_URL:-https://altovisas.com}
-      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL:-https://altovisas.com/auth/google/callback}
+      # www is the canonical host; the apex 301s to it (see Caddyfile). These
+      # must NOT point at the apex: an OAuth callback that gets redirected
+      # mid-flow no longer matches the URI registered in Google Cloud Console,
+      # and sign-in fails.
+      - FRONTEND_URL=${FRONTEND_URL:-https://www.altovisas.com}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL:-https://www.altovisas.com/auth/google/callback}
+      # Leading dot, so the session cookie is sent to both the apex and www.
+      # Without it cookies are host-only and everyone signed in via the apex is
+      # silently logged out the first time the redirect sends them to www.
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.altovisas.com}
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER:-altoai}

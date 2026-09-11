@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { sendDetailFeedback } from "../../api";
 import { track } from "../../analytics";
 
-// The options are stored as stable keys, not as the labels — the wording can be
+// The options are stored as stable keys, not as the labels - the wording can be
 // rewritten without orphaning every answer collected under the old phrasing.
 const OPTIONS = [
   { value: "answer_analysis", label: "Answer analysis" },
@@ -18,7 +18,7 @@ const MAX_TEXT = 1000;
  * The card under the second report: which part landed, and what did not.
  *
  * Both questions are optional and the whole card is skippable. What it asks is
- * the same pair the unlock survey asks later, deliberately — someone who stops
+ * the same pair the unlock survey asks later, deliberately - someone who stops
  * here has still told us the two things worth knowing.
  */
 export default function FeedbackCard({ setIndex, onDone }) {
@@ -36,7 +36,7 @@ export default function FeedbackCard({ setIndex, onDone }) {
       await sendDetailFeedback({ set_index: setIndex, ...body });
       track(event, { set_index: setIndex, most_useful: body.most_useful || "" });
       setState("done");
-      // The access screen follows either way — submitted or skipped.
+      // The access screen follows either way - submitted or skipped.
       onDone?.();
     } catch (err) {
       setError(err.message || "Could not save that. Try again.");

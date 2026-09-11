@@ -4,6 +4,7 @@ set -e
 # ===== CONFIG =====
 DOCKERHUB_USER="aktanov"
 IMAGE_NAME="altoai"
+SIDECAR_NAME="altoai-visa-llm"
 TAG="latest"
 PLATFORMS="linux/amd64,linux/arm64"
 
@@ -32,7 +33,11 @@ fi
 docker buildx inspect --bootstrap
 
 # ===== BUILD & PUSH =====
-echo "🚀 Building and pushing multi-arch image..."
+# Two images, because the stack is two services. docker-compose.prod.yml pulls
+# ${DOCKERHUB_USER}/altoai and ${DOCKERHUB_USER}/altoai-visa-llm, and pushing
+# only the first ships a Go backend that calls sidecar routes the deployed
+# sidecar has never heard of. They are versioned together for that reason.
+echo "🚀 Building and pushing the app image..."
 docker buildx build \
   --platform ${PLATFORMS} \
   -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${TAG} \
@@ -40,3 +45,12 @@ docker buildx build \
   .
 
 echo "✅ Successfully pushed ${DOCKERHUB_USER}/${IMAGE_NAME}:${TAG}"
+
+echo "🚀 Building and pushing the visa-llm sidecar image..."
+docker buildx build \
+  --platform ${PLATFORMS} \
+  -t ${DOCKERHUB_USER}/${SIDECAR_NAME}:${TAG} \
+  --push \
+  ./visa-llm
+
+echo "✅ Successfully pushed ${DOCKERHUB_USER}/${SIDECAR_NAME}:${TAG}"

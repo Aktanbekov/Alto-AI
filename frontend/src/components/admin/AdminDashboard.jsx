@@ -22,7 +22,7 @@ export default function AdminDashboard({ load }) {
         <StatTile label="Interviews" value={s.total_sessions} hint={`${s.sessions_last_7_days} in last 7 days`} />
         <StatTile
           label="Avg score"
-          value={avg != null ? avg : "—"}
+          value={avg != null ? avg : "-"}
           hint={avg != null ? `${completionPct}% completed` : "No graded sessions yet"}
         />
       </section>

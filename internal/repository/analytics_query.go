@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Query-side of AnalyticsRepo: the reads the admin panel is built from.
@@ -223,4 +224,60 @@ func pqStrings(in []string) string {
 	}
 	sort.Strings(quoted)
 	return "{" + strings.Join(quoted, ",") + "}"
+}
+
+// SourceStats counts, for every `src` value in the window, how far the people
+// who arrived under it actually got.
+//
+// One grouped pass rather than a query per link: the panel lists every source
+// side by side, and N+1 queries over a growing event table is the shape that
+// stops working first. FILTER is used instead of a join per step for the same
+// reason.
+//
+// Everything except page views is counted per visitor, not per event. "How many
+// people this source sent" is the question being asked, and someone who
+// reloaded the report four times is one person.
+func (r *analyticsRepo) SourceStats(from, to time.Time) ([]SourceStat, error) {
+	q := EventQuery{From: from, To: to}
+	where, args := q.where(1)
+
+	rows, err := r.db.Query(`
+		SELECT COALESCE(src, '') AS s,
+		       COUNT(DISTINCT visitor_id)                                            AS visitors,
+		       COUNT(DISTINCT session_id)                                            AS sessions,
+		       COUNT(*) FILTER (WHERE name = 'page_view')                            AS page_views,
+		       COUNT(DISTINCT visitor_id) FILTER (WHERE name = 'form_start')         AS started,
+		       COUNT(DISTINCT visitor_id) FILTER (WHERE name = 'form_complete')      AS completed,
+		       COUNT(DISTINCT visitor_id) FILTER (WHERE name = 'report_generated')   AS reports,
+		       COUNT(DISTINCT user_id)                                               AS signups,
+		       MIN(ts) AS first_seen,
+		       MAX(ts) AS last_seen
+		FROM analytics_events`+where+`
+		GROUP BY 1
+		ORDER BY visitors DESC`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []SourceStat{}
+	for rows.Next() {
+		var s SourceStat
+		var first, last sql.NullTime
+		if err := rows.Scan(
+			&s.Src, &s.Visitors, &s.Sessions, &s.PageViews,
+			&s.FormStarts, &s.FormCompletes, &s.Reports, &s.Signups,
+			&first, &last,
+		); err != nil {
+			return nil, err
+		}
+		if first.Valid {
+			s.FirstSeen = first.Time
+		}
+		if last.Valid {
+			s.LastSeen = last.Time
+		}
+		out = append(out, s)
+	}
+	return out, rows.Err()
 }

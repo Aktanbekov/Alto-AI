@@ -1,6 +1,10 @@
 package main
 
 import (
+	"altoai_mvp/internal/middleware"
+	"altoai_mvp/internal/router"
+	"altoai_mvp/internal/visallm"
+	"altoai_mvp/interview"
 	"context"
 	"log"
 	"net/http"
@@ -8,9 +12,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"altoai_mvp/internal/middleware"
-	"altoai_mvp/internal/router"
-	"altoai_mvp/interview"
 
 	"github.com/joho/godotenv"
 )
@@ -23,7 +24,7 @@ func init() {
 			// Silently ignore - env vars may be set via environment
 		}
 	}
-	
+
 	// Initialize interview questions
 	if err := interview.InitQuestions(); err != nil {
 		log.Printf("⚠️ Warning: Failed to load interview questions: %v", err)
@@ -41,10 +42,23 @@ func main() {
 
 	handler := middleware.CORSLegacy(r)
 	srv := &http.Server{
-		Addr:         ":8080",
-		Handler:      handler,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 120 * time.Second,
+		Addr:        ":8080",
+		Handler:     handler,
+		ReadTimeout: 10 * time.Second,
+		// Derived from the evaluation timeout rather than written as its own
+		// number, because the ordering between the two is load-bearing.
+		//
+		// WriteTimeout is measured from the moment the request arrives, so it
+		// covers the account lookup and the entitlement queries as well as the
+		// call to the sidecar. When it expires Go closes the connection without
+		// writing anything — the handler never gets to send its error, and Caddy
+		// turns the dropped upstream into a bare 502 with an empty body. That is
+		// what "Evaluation failed (502)" on the results page was: not a scoring
+		// failure, but the server hanging up on a scoring run still in progress.
+		//
+		// Both numbers used to be 120s, which looks safe and is not: the write
+		// deadline starts first, so it always won the race.
+		WriteTimeout: visallm.EvaluateTimeout + 60*time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 

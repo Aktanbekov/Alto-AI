@@ -64,6 +64,14 @@ type StoredEvaluation struct {
 	// Which set of three questions this was, counted from zero. The free-set
 	// allowance is measured in these.
 	SetIndex int `json:"set_index"`
+
+	// Failed marks a submission that was stored without a report, because
+	// scoring did not come back. The answers are the student's work and are
+	// kept regardless; the report is simply absent.
+	//
+	// These rows are excluded from every entitlement count below. A run that
+	// produced nothing must not spend a set.
+	Failed bool `json:"failed,omitempty"`
 }
 
 type evaluationRepo struct{ db *sql.DB }
@@ -100,6 +108,9 @@ func EnsureEvaluationSchema(db *sql.DB) error {
 		// Added after the table shipped, so it arrives as an alter rather than
 		// part of the create above.
 		`ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS set_index SMALLINT NOT NULL DEFAULT 0`,
+		// Every row that existed before this column was added is a successful
+		// evaluation, so the default is the correct backfill.
+		`ALTER TABLE evaluations ADD COLUMN IF NOT EXISTS failed BOOLEAN NOT NULL DEFAULT FALSE`,
 		`CREATE INDEX IF NOT EXISTS idx_evaluations_user ON evaluations (user_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_evaluations_visitor ON evaluations (visitor_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_evaluations_created ON evaluations (created_at DESC)`,
@@ -129,14 +140,14 @@ func (r *evaluationRepo) Save(e StoredEvaluation) (string, error) {
 			(id, user_id, visitor_id, created_at, profile, answers, report,
 			 model, input_tokens, output_tokens, cached_tokens, cost_usd, latency_ms,
 			 consulate, country, degree_level, gpa_band, readiness_band, flag_count,
-			 attempt_number, has_consulate_data, set_index)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+			 attempt_number, has_consulate_data, set_index, failed)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
 		e.ID, nullable(e.UserID), nullable(e.VisitorID), e.CreatedAt,
 		profile, answers, report,
 		nullable(e.Model), e.InputTokens, e.OutputTokens, e.CachedTokens, e.CostUSD, e.LatencyMS,
 		nullable(e.Consulate), nullable(e.Country), nullable(e.DegreeLevel),
 		nullable(e.GPABand), nullable(e.ReadinessBand), e.FlagCount,
-		nullableInt(e.AttemptNumber), e.HasConsulateNs, e.SetIndex)
+		nullableInt(e.AttemptNumber), e.HasConsulateNs, e.SetIndex, e.Failed)
 	return e.ID, err
 }
 
@@ -144,7 +155,7 @@ const evalColumns = `id, COALESCE(user_id,''), COALESCE(visitor_id,''), created_
 	profile, answers, report, COALESCE(model,''), input_tokens, output_tokens,
 	cached_tokens, cost_usd, latency_ms, COALESCE(consulate,''), COALESCE(country,''),
 	COALESCE(degree_level,''), COALESCE(gpa_band,''), COALESCE(readiness_band,''),
-	flag_count, COALESCE(attempt_number,0), has_consulate_data, set_index`
+	flag_count, COALESCE(attempt_number,0), has_consulate_data, set_index, failed`
 
 func scanEvaluation(scan func(...any) error) (StoredEvaluation, error) {
 	var e StoredEvaluation
@@ -152,7 +163,7 @@ func scanEvaluation(scan func(...any) error) (StoredEvaluation, error) {
 	err := scan(&e.ID, &e.UserID, &e.VisitorID, &e.CreatedAt, &profile, &answers, &report,
 		&e.Model, &e.InputTokens, &e.OutputTokens, &e.CachedTokens, &e.CostUSD, &e.LatencyMS,
 		&e.Consulate, &e.Country, &e.DegreeLevel, &e.GPABand, &e.ReadinessBand,
-		&e.FlagCount, &e.AttemptNumber, &e.HasConsulateNs, &e.SetIndex)
+		&e.FlagCount, &e.AttemptNumber, &e.HasConsulateNs, &e.SetIndex, &e.Failed)
 	if err != nil {
 		return e, err
 	}
@@ -201,6 +212,11 @@ func (r *evaluationRepo) DeleteForUser(userID string) (int64, error) {
 	return res.RowsAffected()
 }
 
+// notFailed keeps stored-but-unscored submissions out of the entitlement
+// counts. Those rows exist so a student's answers survive a scoring outage;
+// charging a set for one would take the allowance and give nothing back.
+const notFailed = " AND NOT failed"
+
 // SetsUsed returns how many distinct sets the subject has scored, and how many
 // evaluations they ran in total.
 //
@@ -215,7 +231,7 @@ func (r *evaluationRepo) SetsUsed(s Subject) (int, int, error) {
 	pred, args := s.where(1)
 	var distinct, total int
 	err := r.db.QueryRow(
-		`SELECT COUNT(DISTINCT set_index), COUNT(*) FROM evaluations WHERE `+pred,
+		`SELECT COUNT(DISTINCT set_index), COUNT(*) FROM evaluations WHERE `+pred+notFailed,
 		args...).Scan(&distinct, &total)
 	return distinct, total, err
 }
@@ -230,7 +246,7 @@ func (r *evaluationRepo) UsedSet(s Subject, setIndex int) (bool, error) {
 	args = append(args, setIndex)
 	var exists bool
 	err := r.db.QueryRow(
-		`SELECT EXISTS (SELECT 1 FROM evaluations WHERE `+pred+` AND set_index = $2)`,
+		`SELECT EXISTS (SELECT 1 FROM evaluations WHERE `+pred+notFailed+` AND set_index = $2)`,
 		args...).Scan(&exists)
 	return exists, err
 }

@@ -27,6 +27,7 @@ type AnalyticsRepo interface {
 	CountBy(q EventQuery, dimension string) (map[string]int, error)
 	FunnelCounts(q EventQuery, steps []string) ([]FunnelStep, error)
 	NumericStat(q EventQuery, name, prop string) (NumericSummary, error)
+	SourceStats(from, to time.Time) ([]SourceStat, error)
 }
 
 // Event is one captured event on its way into storage.
@@ -82,6 +83,25 @@ type FunnelStep struct {
 	// someone who went straight to the form) would otherwise make every step
 	// below it read as 0% conversion.
 	PrevName string `json:"prev_name,omitempty"`
+}
+
+// SourceStat is one `src` value's traffic, from arrival to a generated report.
+//
+// Src is "" for people who arrived with no tag at all: direct visits, organic
+// search, and anything whose referrer stripped the query string. That bucket is
+// kept rather than dropped, because it is the baseline every tagged link is
+// worth comparing against.
+type SourceStat struct {
+	Src           string    `json:"src"`
+	Visitors      int       `json:"visitors"`
+	Sessions      int       `json:"sessions"`
+	PageViews     int       `json:"page_views"`
+	FormStarts    int       `json:"form_starts"`
+	FormCompletes int       `json:"form_completes"`
+	Reports       int       `json:"reports"`
+	Signups       int       `json:"signups"`
+	FirstSeen     time.Time `json:"first_seen"`
+	LastSeen      time.Time `json:"last_seen"`
 }
 
 // NumericSummary describes one numeric property across matching events.

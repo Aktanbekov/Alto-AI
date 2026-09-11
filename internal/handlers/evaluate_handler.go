@@ -94,6 +94,12 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	req := body.ProfileRequest
 	setIndex := clampSetIndex(body.SetIndex)
 
+	// Model choice is not the caller's. The field exists for the admin
+	// comparison below; on this path an empty value makes the sidecar use its
+	// production default, and clearing it here is what stops a crafted body
+	// from billing us to a vendor of the sender's choosing.
+	req.Model = ""
+
 	if len(req.PlannedAnswers) == 0 {
 		response.Error(c, http.StatusBadRequest, "add at least one question and answer")
 		return
@@ -127,6 +133,11 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	evaluation, usage, err := h.client.EvaluateWithUsage(c.Request.Context(), req)
 	latency := time.Since(started).Milliseconds()
 	if err != nil {
+		// Store what they wrote before saying scoring is down. The message they
+		// are about to read promises their answers are saved, and until this
+		// call existed that promise was false: persist ran only on the success
+		// path, so a scoring outage threw away the work as well as the report.
+		h.persistFailure(c, req, latency, userID, setIndex)
 		h.failed(c, err)
 		return
 	}
@@ -303,10 +314,7 @@ func (h *EvaluateHandler) persist(
 	var report map[string]any
 	_ = json.Unmarshal(raw, &report)
 
-	answers := make([]any, 0, len(req.PlannedAnswers))
-	for _, a := range req.PlannedAnswers {
-		answers = append(answers, map[string]any{"question": a.Question, "answer": a.Answer})
-	}
+	profileMap, answers := submission(req)
 
 	flagCount := len(ev.RiskFactors)
 	flagIDs := make([]any, 0, flagCount)
@@ -319,10 +327,6 @@ func (h *EvaluateHandler) persist(
 	hasConsulate := corpusCities[strings.TrimSpace(req.ConsulateCity)]
 
 	if h.evals != nil {
-		profile, _ := json.Marshal(req)
-		var profileMap map[string]any
-		_ = json.Unmarshal(profile, &profileMap)
-
 		if _, err := h.evals.Save(repository.StoredEvaluation{
 			UserID:         userID,
 			VisitorID:      c.GetHeader("X-Visitor-Id"),
@@ -383,6 +387,63 @@ func (h *EvaluateHandler) persist(
 				"set_index":          setIndex,
 			},
 		}})
+	}
+}
+
+// submission splits a request into the two things worth keeping: the profile
+// as written, and the question/answer pairs. Both stored evaluations and stored
+// failures need exactly this, which is why it is not inlined in either.
+func submission(req visallm.ProfileRequest) (map[string]any, []any) {
+	profile, _ := json.Marshal(req)
+	var profileMap map[string]any
+	_ = json.Unmarshal(profile, &profileMap)
+
+	answers := make([]any, 0, len(req.PlannedAnswers))
+	for _, a := range req.PlannedAnswers {
+		answers = append(answers, map[string]any{"question": a.Question, "answer": a.Answer})
+	}
+	return profileMap, answers
+}
+
+// persistFailure stores a submission whose scoring never came back.
+//
+// The row carries the profile and the answers and an empty report, flagged so
+// the entitlement counts skip it: a run that produced nothing must not spend a
+// set. It is what makes "your answers are saved" true, and it is what puts the
+// answers in front of an admin — a scoring outage used to leave no trace of the
+// student's side of it at all, only an incident with our error text in it.
+//
+// Like persist, this never fails the request. The student is already being told
+// something went wrong; a second failure underneath does not change what they
+// see, only what the logs say.
+func (h *EvaluateHandler) persistFailure(
+	c *gin.Context,
+	req visallm.ProfileRequest,
+	latencyMS int64,
+	userID string,
+	setIndex int,
+) {
+	if h.evals == nil {
+		return
+	}
+	profileMap, answers := submission(req)
+
+	if _, err := h.evals.Save(repository.StoredEvaluation{
+		UserID:         userID,
+		VisitorID:      c.GetHeader("X-Visitor-Id"),
+		Profile:        profileMap,
+		Answers:        answers,
+		LatencyMS:      latencyMS,
+		Consulate:      req.ConsulateCity,
+		Country:        req.ConsulateCountry,
+		DegreeLevel:    req.DegreeLevel,
+		GPABand:        gpaBandOf(req.GPA, req.GPAScale),
+		AttemptNumber:  req.AttemptNumber,
+		HasConsulateNs: corpusCities[strings.TrimSpace(req.ConsulateCity)],
+		SetIndex:       setIndex,
+		Failed:         true,
+	}); err != nil {
+		log.Printf("evaluate: could not store unscored submission: %v", err)
 	}
 }
 

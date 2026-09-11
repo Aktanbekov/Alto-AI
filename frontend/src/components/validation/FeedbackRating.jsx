@@ -7,7 +7,7 @@ import { track } from "../../analytics";
  *
  * It sits below the feedback, never in front of it. Someone who has just read
  * where their interview breaks is owed that reading whether or not they feel
- * like rating it, so every path here — answer, skip, or a failed save — leaves
+ * like rating it, so every path here - answer, skip, or a failed save - leaves
  * the report exactly where it was.
  */
 export default function FeedbackRating({ setIndex, onDone }) {

@@ -7,7 +7,7 @@
  * stops working, the site behaves exactly as it does now.
  *
  * Events are batched and flushed on an interval, on visibilitychange, and on
- * pagehide — never one request per event.
+ * pagehide - never one request per event.
  */
 
 const API = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? "" : "http://localhost:8080");
@@ -80,16 +80,31 @@ function sessionId() {
 }
 
 /*
- * `?src=friends` separates people who know the author from strangers — friends
- * inflate every number in the funnel. It is captured once and kept, so a
- * visitor who arrives via a tagged link stays tagged on later visits.
+ * `?src=reddit` is how a link knows where it was posted. The admin Links screen
+ * builds these, and every event this visitor fires afterwards carries the tag,
+ * so a channel can be followed all the way to a generated report.
+ *
+ * `utm_source` and `ref` are read as fallbacks, because a link pasted through
+ * another tool often comes back with the tag under one of those names instead.
+ *
+ * First tag wins and is then kept: someone who arrives from Reddit and returns
+ * a week later by typing the domain still counts as Reddit's, which is the
+ * honest attribution for a channel that did the work of introducing them.
  */
+const SRC_PARAMS = ["src", "utm_source", "ref"];
+
 function src() {
   try {
-    const fromUrl = new URLSearchParams(location.search).get("src");
-    if (fromUrl) {
-      writeStore(SRC_KEY, fromUrl.slice(0, 64));
-      return fromUrl.slice(0, 64);
+    const params = new URLSearchParams(location.search);
+    for (const key of SRC_PARAMS) {
+      const found = params.get(key);
+      if (found) {
+        const tag = found.trim().slice(0, 64);
+        if (tag) {
+          writeStore(SRC_KEY, tag);
+          return tag;
+        }
+      }
     }
   } catch { /* no URL access */ }
   return readStore(SRC_KEY) || "";
@@ -144,7 +159,7 @@ function send(events, beacon = false) {
       keepalive: true,
     }).catch(() => {});
   } catch {
-    /* blocked by an extension, offline, whatever — events are dropped */
+    /* blocked by an extension, offline, whatever - events are dropped */
   }
 }
 
@@ -265,7 +280,7 @@ export function trackScrollDepth(label) {
 
 /**
  * Buckets a GPA by percent of its scale, so the event stream never carries the
- * raw number. Returns "" when either value is missing — the server drops
+ * raw number. Returns "" when either value is missing - the server drops
  * anything that is not a band anyway, this just avoids sending it.
  */
 export function gpaBandOf(raw, scale) {

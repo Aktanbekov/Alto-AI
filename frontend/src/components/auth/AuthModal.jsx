@@ -16,9 +16,9 @@ const GoogleMark = () => (
 /*
  * Sign-in / sign-up in a dialog rather than on its own page.
  *
- * The flows are the ones already working on LoginPage and SignupPage — the same
+ * The flows are the ones already working on LoginPage and SignupPage - the same
  * login/register/verifyEmail/resendVerificationCode calls and the same Google
- * redirect — so behaviour, including email verification, is unchanged. Only the
+ * redirect - so behaviour, including email verification, is unchanged. Only the
  * container is different.
  *
  * Google OAuth is the exception: it is a full-page redirect by nature, so that
@@ -38,6 +38,9 @@ export default function AuthModal({ open, mode = "login", onClose, onAuthed }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // Set when the account was created but the verification code never left the
+  // server, so the verify step does not promise mail that will not arrive.
+  const [undelivered, setUndelivered] = useState(false);
 
   const firstFieldRef = useRef(null);
 
@@ -107,9 +110,17 @@ export default function AuthModal({ open, mode = "login", onClose, onAuthed }) {
     }
     setBusy(true);
     try {
-      await register(email, name, password);
+      const result = await register(email, name, password);
       setStep("verify");
-      setNotice("We sent a 6-digit code to your email.");
+      // email_sent is false when the account was created but the code could not
+      // be mailed. Saying "check your email" then would strand the user.
+      if (result?.email_sent === false) {
+        setUndelivered(true);
+        setNotice("");
+      } else {
+        setUndelivered(false);
+        setNotice("We sent a 6-digit code to your email.");
+      }
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {
@@ -137,6 +148,7 @@ export default function AuthModal({ open, mode = "login", onClose, onAuthed }) {
     setBusy(true);
     try {
       await resendVerificationCode(email);
+      setUndelivered(false);
       setNotice("A new code is on its way.");
     } catch (err) {
       setError(err.message || "Could not resend the code");
@@ -170,6 +182,13 @@ export default function AuthModal({ open, mode = "login", onClose, onAuthed }) {
             <p className="auth-sub">
               Enter the 6-digit code sent to <strong>{email || "your address"}</strong>.
             </p>
+            {undelivered && (
+              <p className="auth-warn">
+                Your account was created, but we couldn't send the verification email.
+                Try "Resend code" below, or contact{" "}
+                <a href="mailto:support@altovisas.com">support@altovisas.com</a>.
+              </p>
+            )}
             {notice && <p className="auth-notice">{notice}</p>}
             {error && <p className="auth-error">{error}</p>}
 

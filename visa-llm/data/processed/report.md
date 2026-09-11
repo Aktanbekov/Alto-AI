@@ -2,7 +2,7 @@
 
 Built from **16,204 deduplicated interview reviews** (15,154 with a clear approved/rejected outcome) posted between 2020 and 2026.
 
-> **Read this first.** Self-selected, self-reported Telegram reviews. Approval shares describe who chooses to post, not the true consular base rate. Associations are correlational, not causal.
+> **Read this first.** Self-selected, self-reported reviews posted publicly online. Approval shares describe who chooses to post, not the true consular base rate. Associations are correlational, not causal.
 
 ## Outcomes in the corpus
 

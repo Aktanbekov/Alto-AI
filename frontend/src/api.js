@@ -212,7 +212,11 @@ export async function register(email, name, password) {
       throw new Error(error.error || "Registration failed");
     }
 
-    return res.json();
+    // Unwrap the {"data": {...}} envelope so callers can read email_sent
+    // directly. It is false when the account was created but the verification
+    // code could not be mailed - the signup screen has to say so.
+    const data = await res.json();
+    return data.data || data;
   } catch (err) {
     // Handle network errors
     if (err instanceof TypeError && err.message.includes("fetch")) {
@@ -237,7 +241,7 @@ export async function getCorpusStats() {
 
 // The question bank the test draws its rounds from: every question type with
 // its real phrasings, ordered by how often officers ask it. Public, like the
-// stats above — the first round loads before anyone signs in.
+// stats above - the first round loads before anyone signs in.
 export async function getQuestionBank() {
   const res = await fetch(`${API}/api/v1/questions`);
   if (!res.ok) {
@@ -261,7 +265,7 @@ export async function getEvaluateStatus() {
 }
 
 // One evaluation costs real credits, so this is deliberately only called on
-// explicit submit — never on mount or on keystroke.
+// explicit submit - never on mount or on keystroke.
 //
 // `profile.set_index` tells the server which set of three this is, so scoring
 // the same set again after a refresh is not counted as reaching for a new one.
@@ -292,7 +296,7 @@ export async function evaluateProfile(profile) {
  *
  * Always from the server. The page could track most of this locally and often
  * be right, but "have I already been asked this" and "have I already unlocked"
- * have to survive a refresh, a second tab and a sign-in — so the browser asks
+ * have to survive a refresh, a second tab and a sign-in - so the browser asks
  * rather than remembers.
  */
 export async function getAccess() {
@@ -350,12 +354,30 @@ export async function getAdminMe() {
   }
 }
 
+/*
+ * Score one profile with every comparison model at once. Admin only.
+ *
+ * Three model calls on three vendors per press, so this is never called on
+ * mount or on a keystroke - only on an explicit click. It spends no practice
+ * sets and stores nothing: a comparison is a measurement, not somebody's report.
+ *
+ * Individual models can fail while the request succeeds; each result row
+ * carries either an evaluation or an error, and the caller renders both.
+ */
+export function compareModels(profile) {
+  return adminRequest("/evaluate-compare", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...trackingHeaders() },
+    body: JSON.stringify(profile),
+  });
+}
+
 export function getAdminStats() {
   return adminRequest("/stats");
 }
 
 // Evaluation failures students were shown a neutral message for. The real
-// cause — out of credit, rejected key — is admin-only by design.
+// cause - out of credit, rejected key - is admin-only by design.
 export function getEvaluatorHealth() {
   return adminRequest("/evaluator-health");
 }
@@ -378,6 +400,50 @@ export const getReportQuality = (f) => adminRequest(`/analytics/report-quality${
 export const getCoverageGaps = (f) => adminRequest(`/analytics/coverage${analyticsQuery(f)}`);
 export const getFeedbackInbox = (f) => adminRequest(`/analytics/feedback${analyticsQuery(f)}`);
 export const getCorpusGrowth = () => adminRequest("/analytics/corpus-growth");
+
+// ---------- Tracking links (admin) ----------
+
+// A link is a name for a `?src=` tag, not a redirect: the URL the panel shows
+// points straight at the site, so it works whether or not this API is up.
+// `from`/`to` are optional YYYY-MM-DD bounds; omitted means all time.
+export function listTrackingLinks({ from = "", to = "", archived = false } = {}) {
+  const q = new URLSearchParams();
+  if (from) q.set("from", from);
+  if (to) q.set("to", to);
+  if (archived) q.set("archived", "1");
+  const qs = q.toString();
+  return adminRequest(`/links${qs ? `?${qs}` : ""}`);
+}
+
+export function createTrackingLink({ code, label = "", destination = "/", notes = "" }) {
+  return adminRequest("/links", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, label, destination, notes }),
+  });
+}
+
+// The code is fixed once created - it is already stamped on every event that
+// link brought in - so only the label, destination and notes are editable.
+export function updateTrackingLink(code, { label = "", destination = "/", notes = "" }) {
+  return adminRequest(`/links/${encodeURIComponent(code)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ label, destination, notes }),
+  });
+}
+
+export function archiveTrackingLink(code, archived = true) {
+  return adminRequest(`/links/${encodeURIComponent(code)}/archive`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ archived }),
+  });
+}
+
+export function deleteTrackingLink(code) {
+  return adminRequest(`/links/${encodeURIComponent(code)}`, { method: "DELETE" });
+}
 
 export function listAdminUsers({ search = "", limit = 25, offset = 0 } = {}) {
   const q = new URLSearchParams({ search, limit, offset });

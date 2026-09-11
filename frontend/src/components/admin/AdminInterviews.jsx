@@ -69,7 +69,7 @@ export default function AdminInterviews({ list, get }) {
                     {data.sessions.map((s) => (
                       <tr key={s.id} className="hover:bg-stone-50">
                         <td className="px-4 py-2.5 text-stone-900">{s.user_email || "anonymous"}</td>
-                        <td className="px-4 py-2.5 text-stone-700 capitalize">{s.level || "—"}</td>
+                        <td className="px-4 py-2.5 text-stone-700 capitalize">{s.level || "-"}</td>
                         <td className="px-4 py-2.5 text-stone-700 tabular-nums">
                           {s.answer_count}/{s.question_count}
                         </td>
@@ -77,11 +77,11 @@ export default function AdminInterviews({ list, get }) {
                           {s.overall_grade ? (
                             <Badge tone={gradeTone(s.overall_grade)}>{s.overall_grade}</Badge>
                           ) : (
-                            <span className="text-stone-500">—</span>
+                            <span className="text-stone-500">-</span>
                           )}
                         </td>
                         <td className="px-4 py-2.5 font-semibold text-stone-900 tabular-nums">
-                          {s.overall_score ?? "—"}
+                          {s.overall_score ?? "-"}
                         </td>
                         <td className="px-4 py-2.5 text-stone-600">{formatDate(s.started_at)}</td>
                         <td className="px-4 py-2.5 text-right">
@@ -135,11 +135,11 @@ function SessionDrawer({ id, get, onClose }) {
             <Card className="p-4 bg-stone-50">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <Field label="User" value={data.session.user_email || "anonymous"} />
-                <Field label="Level" value={data.session.level || "—"} />
+                <Field label="Level" value={data.session.level || "-"} />
                 <Field label="Started" value={formatDate(data.session.started_at)} />
                 <Field label="Status" value={data.session.status} />
-                <Field label="Score" value={data.session.overall_score ?? "—"} />
-                <Field label="Grade" value={data.session.overall_grade || "—"} />
+                <Field label="Score" value={data.session.overall_score ?? "-"} />
+                <Field label="Grade" value={data.session.overall_grade || "-"} />
               </div>
               {data.session.verdict && (
                 <p className="text-sm text-stone-700 mt-3 pt-3 border-t border-stone-200">

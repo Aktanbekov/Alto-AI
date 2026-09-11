@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 // Minimal inline SVG icons so you don't need extra deps
@@ -170,7 +171,7 @@ export default function AuthPage() {
 
         {/* Footer */}
         <p className="text-center text-[11px] text-slate-500 mt-6">
-          By signing up or logging in, you consent to Alto's <a className="underline underline-offset-2 hover:text-slate-300" href="#">Terms of Use</a> and <a className="underline underline-offset-2 hover:text-slate-300" href="#">Privacy Policy</a>.
+          By signing up or logging in, you agree to Altovisas' <Link className="underline underline-offset-2 hover:text-slate-300" to="/terms">Terms of Service</Link> and <Link className="underline underline-offset-2 hover:text-slate-300" to="/privacy">Privacy Policy</Link>.
         </p>
       </motion.div>
     </div>

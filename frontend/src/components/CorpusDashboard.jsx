@@ -39,7 +39,7 @@ export default function CorpusDashboard() {
 
   const s = state.stats;
   const counts = s.meta.outcome_counts || {};
-  const years = (s.meta.year_range || []).join("–");
+  const years = (s.meta.year_range || []).join("-");
   const withTranscript = s.meta.n_with_transcript ?? 14589;
 
   const tiles = [
@@ -112,7 +112,7 @@ export default function CorpusDashboard() {
           <h2>By visa attempt</h2>
           <p className="sub">
             A second attempt posts a much lower approval share. Faded bars are small
-            samples (under {SMALL_N} decided) — read them as noise, not signal.
+            samples (under {SMALL_N} decided) - read them as noise, not signal.
           </p>
           <BarChart rows={attempts} />
         </div>
@@ -128,7 +128,7 @@ export default function CorpusDashboard() {
           <strong>The causation runs backwards.</strong> A question does not cause a refusal.
           Officers probe prior refusals <em>because</em> a case already looks
           doubtful, and reach loan paperwork <em>because</em> the interview is going
-          well. You cannot control what you are asked — so treat this as a map of
+          well. You cannot control what you are asked - so treat this as a map of
           where officers dig, not a list of topics to dodge.
         </div>
         <DivergingChart rows={questionTypes} />

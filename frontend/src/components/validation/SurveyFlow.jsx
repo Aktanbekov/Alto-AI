@@ -22,7 +22,7 @@ const STEPS = [
     kind: "single",
     question: "When is your F-1 visa interview?",
     options: [
-      "Within 2 weeks", "Within 1 month", "Within 2–3 months",
+      "Within 2 weeks", "Within 1 month", "Within 2-3 months",
       "More than 3 months away", "Not scheduled yet", "Already completed",
     ],
   },
@@ -32,7 +32,7 @@ const STEPS = [
     question: "How are you currently preparing?",
     hint: "Choose as many as apply.",
     options: [
-      "YouTube", "Social media or Telegram groups", "Practicing with friends or family",
+      "YouTube", "Social media or online groups", "Practicing with friends or family",
       "Professional consultant", "AI tools", "Reviewing sample questions",
       "Not preparing yet", "Other",
     ],
@@ -50,7 +50,7 @@ const STEPS = [
   {
     key: "most_useful",
     kind: "single",
-    question: "Which Alto Visas feedback was most useful?",
+    question: "Which Altovisas feedback was most useful?",
     // Stored as keys so the wording can change without orphaning answers.
     options: [
       { value: "answer_analysis", label: "Answer analysis" },
@@ -87,7 +87,7 @@ const EMPTY = {
   most_useful: "", inaccurate_text: "", price_point: "", blocker_text: "",
 };
 
-// A refresh two questions from the end should not cost someone the survey — and
+// A refresh two questions from the end should not cost someone the survey - and
 // with it the unlock. sessionStorage, like the round resume: one sitting's work,
 // not something a shared browser hands to the next person.
 function readDraft() {
@@ -129,7 +129,7 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
   useEffect(() => { track("validation_survey_started", { resumed: !!draft.current }); }, []);
   useEffect(() => { writeDraft({ step, answers }); }, [step, answers]);
 
-  // Leaving part-way through is the outcome worth knowing about — it is the
+  // Leaving part-way through is the outcome worth knowing about - it is the
   // difference between a survey nobody wants and one that is simply too long.
   //
   // Registered once, reading the step through a ref: with `step` in the
@@ -200,7 +200,7 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
         <div className="vz-card vsv-done" role="status">
           <h2>You unlocked {unlocked} additional interview sets.</h2>
           <p className="sub">
-            That is {unlocked * 3} more questions, drawn from the same corpus — thank you
+            That is {unlocked * 3} more questions, drawn from the same corpus - thank you
             for the answers.
           </p>
           <button type="button" className="ev-submit" onClick={() => onContinue?.()}>

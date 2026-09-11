@@ -17,6 +17,7 @@ from .prompts import (
     format_statistics,
     format_student,
 )
+from .providers import resolve
 from .schema import Evaluation
 
 MODEL = "claude-opus-5"
@@ -68,9 +69,7 @@ def evaluate(
     k: int = DEFAULT_K,
     model: str = MODEL,
 ) -> tuple[Evaluation, dict[str, Any]]:
-    """Retrieve comparables, call Claude, and validate the structured result."""
-    import anthropic
-
+    """Retrieve comparables, call the chosen model, validate the result."""
     stats = json.loads(Path(stats_path).read_text())
     index = InterviewIndex(Path(index_dir))
     retrieved = index.search(profile, k=k)
@@ -81,45 +80,17 @@ def evaluate(
 
     system_blocks, messages = build_messages(profile, stats, retrieved, full_df)
 
-    client = anthropic.Anthropic()
-    # `parse` takes the pydantic model directly: the SDK generates a strict
-    # schema from it and validates the reply, so no hand-built JSON schema and
-    # no manual model_validate_json. `betas`/`fallbacks` are beta-client only.
-    message = client.beta.messages.parse(
-        model=model,
-        max_tokens=MAX_TOKENS,
-        system=system_blocks,
-        messages=messages,
-        output_format=Evaluation,
-        # Medium effort: the analysis is a fixed-shape read of supplied data,
-        # not open-ended reasoning, and thinking tokens bill at the output rate.
-        output_config={"effort": "medium"},
-        # Safety classifiers can decline; fall back rather than failing the run.
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",
-    )
+    # The retrieval and the prompt above are provider-independent on purpose:
+    # every model in the comparison sees the same corpus context and the same
+    # instruction, so a difference in the reports is a difference between the
+    # models rather than between two prompts.
+    provider = resolve(model)
+    evaluation, usage = provider.run(provider, system_blocks, messages, MAX_TOKENS)
 
-    if message.stop_reason == "refusal":
-        raise RuntimeError(
-            "The model declined this request "
-            f"({getattr(message.stop_details, 'category', 'unspecified')}). "
-            "Check the profile text for anything asking for misrepresentation."
-        )
-
-    evaluation = message.parsed_output
-    if evaluation is None:
-        raise RuntimeError(
-            f"No structured output returned (stop_reason={message.stop_reason}). "
-            "If this is max_tokens, raise MAX_TOKENS."
-        )
-
-    usage = message.usage
     meta = {
-        "model": message.model,
-        "input_tokens": usage.input_tokens,
-        "output_tokens": usage.output_tokens,
-        "cache_read_input_tokens": getattr(usage, "cache_read_input_tokens", 0),
-        "cache_creation_input_tokens": getattr(usage, "cache_creation_input_tokens", 0),
+        **usage,
+        "provider": provider.key,
+        "label": provider.label,
         "retrieved": retrieved[["record_id", "outcome", "similarity"]].to_dict("records")
         if "record_id" in retrieved.columns
         else [],

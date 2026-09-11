@@ -1,4 +1,4 @@
-// The guilloche rosette behind the hero panel — the same engine-turned pattern
+// The guilloche rosette behind the hero panel - the same engine-turned pattern
 // used on banknotes and visa foils. Defined once and referenced with <use>.
 export default function GuillocheDefs() {
   const rings = [0, 18, 36, 54, 72, 90, 108, 126, 144, 162];

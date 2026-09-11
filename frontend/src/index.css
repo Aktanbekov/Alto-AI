@@ -168,7 +168,7 @@ button {
   }
 }
 /* ==========================================================================
-   Alto Visas design language — ported from the landing prototype.
+   Alto Visas design language - ported from the landing prototype.
    Scoped under .tf so it cannot leak into the indigo/stone pages
    (auth, chat, admin), which keep their existing look.
    ========================================================================== */
@@ -250,6 +250,15 @@ button {
 }
 .tf .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 0 -2px rgba(22, 35, 59, .25); }
 .tf .btn .arrow { font-family: var(--mono); font-weight: 400; opacity: .65; }
+
+/* Price rides on the button now that the caption beside it is gone. Knocked
+   out of the ink rather than tinted, so it stays legible on the dark fill. */
+.tf .btn .btn-free {
+  font-family: var(--mono); font-size: 11px; font-weight: 400;
+  letter-spacing: .06em; text-transform: uppercase;
+  background: rgba(247, 246, 242, .18); color: var(--paper);
+  padding: 3px 7px; border-radius: 2px; line-height: 1.5;
+}
 .tf .btn-ghost { background: transparent; color: var(--ink); }
 .tf .btn-ghost:hover { background: rgba(22, 35, 59, .05); box-shadow: none; }
 
@@ -408,7 +417,7 @@ button {
 .tf .ledger {position:static}
 
 /* ==========================================================================
-   Dashboard — visa_llm's own visual language, kept as-is so the charts read
+   Dashboard - visa_llm's own visual language, kept as-is so the charts read
    the way they do in that frontend: white cards, blue/red series, sans-serif.
    Deliberately NOT the Alto Visas paper/ink treatment, which is for the hero.
    ========================================================================== */
@@ -485,7 +494,7 @@ button {
 /* Stacked outcome bar */
 .vz .vzprop { display: flex; height: 30px; border-radius: 4px; overflow: hidden; gap: 2px; }
 
-/* Diverging deltas — label gutter keeps bars off the text at any width */
+/* Diverging deltas - label gutter keeps bars off the text at any width */
 .vz .vzdv { position: relative; padding-left: 168px; }
 .vz .vzdv::before {
   content: ""; position: absolute; left: calc(168px + (100% - 168px) / 2);
@@ -530,7 +539,7 @@ button {
 /* ==========================================================================
    App shell + sidebar.
    Layout and metrics adapted from the Sunflower reference the user supplied:
-   220px transparent rail on a near-white page, Inter, 12–16px rounded rows,
+   220px transparent rail on a near-white page, Inter, 12-16px rounded rows,
    a light grey pill for the active item, and 10px uppercase section labels.
    ========================================================================== */
 .app-shell {
@@ -555,7 +564,7 @@ button {
   color: #111827; text-decoration: none;
 }
 
-/* 10px uppercase, wide-tracked, muted grey — the reference's section header. */
+/* 10px uppercase, wide-tracked, muted grey - the reference's section header. */
 .app-side .side-label {
   font-size: 11px; letter-spacing: .5px; text-transform: uppercase;
   color: #61697a; font-weight: 500; margin-bottom: 8px; padding: 0 8px;
@@ -571,7 +580,7 @@ button {
 .app-navitem.is-active { background: #f3f4f6; font-weight: 500; }
 .app-navitem .ic { flex: none; width: 21px; height: 21px; color: #111827; }
 
-/* Sits directly beneath the last nav section, as in the reference — a wrapped
+/* Sits directly beneath the last nav section, as in the reference - a wrapped
    run of small links rather than a block pinned to the bottom of the rail. */
 .app-side .side-foot {
   margin-top: 18px; padding: 14px 12px 4px;
@@ -591,15 +600,40 @@ button {
 }
 .app-side .side-note { margin: 0; font-size: 11px; color: #8a90a0; line-height: 1.45; }
 
+/* Account block - identity plus the rows the avatar menu used to hold. Sits
+   under the last nav section so the drawer reads as one column of rows. */
+.side-account { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e6e7ea; }
+.side-who { padding: 0 8px 10px; min-width: 0; }
+.side-name {
+  margin: 0; font-size: 14px; font-weight: 600; color: #111827;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.side-mail {
+  margin: 2px 0 0; font-size: 12.5px; color: #697586;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Sign-out is a button among links, so it needs the element reset the
+   NavLink rows never asked for. */
+button.app-navitem {
+  width: 100%; border: 0; background: none; font-family: inherit;
+  text-align: left; cursor: pointer;
+}
+.app-navitem.is-danger { color: #b3261e; }
+.app-navitem.is-danger:hover { background: #fef2f2; }
+.app-navitem.is-danger .ic { color: #b3261e; }
+
 .app-main {
   flex: 1; min-width: 0; background: #fff;
   border-left: 1px solid #e6e7ea;
 }
 
 /* Lives inside the header row, so mobile gets one bar rather than a floating
-   button hovering above an empty strip. */
+   button hovering above an empty strip. It renders only for a signed-in user,
+   in the right-hand slot the avatar used to hold - a signed-out visitor gets
+   the sign-in pair there instead, and no drawer. */
 .app-burger {
-  display: none; flex: none; margin-right: 4px;
+  display: none; flex: none;
   background: #fff; border: 1px solid #e6e7ea; border-radius: 10px;
   width: 40px; height: 40px; align-items: center; justify-content: center;
   color: #111827;
@@ -610,10 +644,11 @@ button {
 @media (max-width: 900px) {
   .app-burger { display: flex; }
   .app-side {
-    position: fixed; inset: 0 auto 0 0; z-index: 70; background: #fff;
+    /* Anchored right, so it opens from under the button that opens it. */
+    position: fixed; inset: 0 0 0 auto; z-index: 70; background: #fff;
     /* Never wider than the phone it opens on. */
     width: min(298px, 86vw); max-height: none; height: 100%;
-    transform: translateX(-100%); transition: transform .2s ease;
+    transform: translateX(100%); transition: transform .2s ease;
     box-shadow: 0 0 40px rgba(17, 24, 39, .16);
   }
   .app-side.is-open { transform: none; }
@@ -625,7 +660,7 @@ button {
 }
 
 /* ==========================================================================
-   Auth dialog — sign-in / sign-up without leaving the page.
+   Auth dialog - sign-in / sign-up without leaving the page.
    Neutral Inter styling so it sits over either design language.
    ========================================================================== */
 .auth-scrim {
@@ -717,6 +752,9 @@ button {
 }
 .auth-error  { background: #fef2f2; color: #b3261e; border: 1px solid #fecaca; }
 .auth-notice { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
+/* The account exists but the verification code never left the server - a
+   warning, not the reassuring blue of a code that is genuinely on its way. */
+.auth-warn   { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 
 .auth-foot {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
@@ -744,7 +782,7 @@ button {
 
 /* ==========================================================================
    Page header + shared content width.
-   One row: brand, links, account — so the brand and the auth controls share a
+   One row: brand, links, account - so the brand and the auth controls share a
    baseline, and the rule under them ends exactly where the content does.
    ========================================================================== */
 .app-root { --page-max: 1120px; --page-pad: 28px; }
@@ -771,46 +809,15 @@ button {
 .page-account { display: flex; align-items: center; gap: 8px; flex: none; }
 
 @media (max-width: 900px) {
-  /* Clear the fixed burger button. */
-  .page-head-in { min-height: 56px; gap: 12px; padding-left: 52px; }
+  .page-head-in { min-height: 56px; gap: 12px; }
 }
 
-/* ---- profile menu ---- */
-.pm { position: relative; }
-.pm-avatar {
-  width: 38px; height: 38px; border-radius: 999px; border: 0; padding: 0;
-  overflow: hidden; background: #4f46e5; color: #fff;
-  font-size: 14px; font-weight: 600; font-family: inherit;
-  display: grid; place-items: center;
+/* Signed in on a rail-width screen the row has nothing left to carry - the
+   drawer button is a drawer-width control and the account rows moved into the
+   rail - so collapse it rather than ruling off an empty strip. */
+@media (min-width: 901px) {
+  .page-head.is-quiet { display: none; }
 }
-.pm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pm-avatar:hover { filter: brightness(1.08); }
-.pm-avatar.sm { width: 40px; height: 40px; font-size: 14px; }
-
-.pm-menu {
-  position: absolute; top: calc(100% + 8px); right: 0; z-index: 120;
-  width: 260px; background: #fff; border: 1px solid #e6e7ea;
-  border-radius: 14px; box-shadow: 0 18px 40px -12px rgba(17, 24, 39, .28);
-  overflow: hidden;
-}
-.pm-head {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px; border-bottom: 1px solid #f0f0ee;
-}
-.pm-id { min-width: 0; }
-.pm-name { margin: 0; font-size: 14px; font-weight: 600; color: #111827; }
-.pm-mail {
-  margin: 2px 0 0; font-size: 12.5px; color: #697586;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-.pm-item {
-  display: block; width: 100%; text-align: left; border: 0; background: none;
-  padding: 12px 14px; font-size: 14px; color: #111827; font-family: inherit;
-}
-.pm-item:hover { background: #f9f9fb; }
-.pm-item.danger { color: #b3261e; }
-.pm-item.danger:hover { background: #fef2f2; }
 
 /* The one tinted band: hero plus the three-cell strip. Everything else on
    the page sits on white. */
@@ -847,7 +854,7 @@ button {
   padding: 14px; margin-bottom: 12px;
 }
 .vz .ev-qa textarea { resize: vertical; min-height: 74px; line-height: 1.5; }
-/* The question is the officer's, not the applicant's — it reads as a prompt
+/* The question is the officer's, not the applicant's - it reads as a prompt
    rather than a field they could edit. */
 .vz .ev-q { margin: 0; font-size: 1.05rem; font-weight: 600; line-height: 1.35; }
 .vz .ev-q-share {
@@ -860,6 +867,73 @@ button {
 }
 .vz .ev-submit:hover:not(:disabled) { filter: brightness(1.06); }
 .vz .ev-submit:disabled { opacity: .5; }
+
+/* Admin-only test-fill bar. Dashed and muted on purpose: it is scaffolding
+   that happens to render on a production page, and it should never be mistaken
+   for part of the applicant's flow. */
+.vz .ev-devbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  border: 1px dashed var(--border); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: var(--gap);
+}
+.vz .ev-devbar-tag {
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-muted);
+  border: 1px solid var(--border); border-radius: 5px; padding: 2px 6px;
+}
+.vz .ev-devbar-note { font-size: .82rem; color: var(--ink-muted); }
+.vz .ev-devfill {
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+  color: var(--vz-ink); font: inherit; font-size: .88rem; font-weight: 600;
+  padding: 7px 14px; cursor: pointer;
+}
+.vz .ev-devfill:hover { border-color: var(--pos); color: var(--pos); }
+
+/* ---- admin three-model comparison ---- */
+.vz .mc-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+/* auto-fit rather than three fixed columns: the cards stay readable when a
+   fourth model is added, and stack on a narrow screen without a breakpoint. */
+.vz .mc-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+  gap: 12px; margin-bottom: 16px;
+}
+.vz .mc-card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; background: var(--surface);
+}
+.vz .mc-card.on { border-color: var(--pos); }
+.vz .mc-card.bad { border-left: 3px solid var(--neg); }
+.vz .mc-name { font-weight: 660; font-size: .95rem; margin-bottom: 6px; }
+.vz .mc-verdict {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ink-muted); margin-bottom: 10px;
+}
+.vz .mc-verdict.ok { color: var(--pos); }
+.vz .mc-verdict.bad { color: var(--neg); }
+.vz .mc-err { font-size: .82rem; color: var(--ink-2); margin: 0 0 10px; line-height: 1.45; }
+.vz .mc-stats { margin: 0; font-size: .84rem; }
+.vz .mc-stats > div {
+  display: flex; justify-content: space-between; gap: 10px; padding: 2px 0;
+}
+.vz .mc-stats dt { color: var(--ink-muted); }
+.vz .mc-stats dd { margin: 0; font-variant-numeric: tabular-nums; }
+.vz .mc-rel { margin-top: 8px; font-size: .8rem; color: var(--ink-muted); }
+
+.vz .mc-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.vz .mc-tab {
+  border: 1px solid var(--border); border-bottom: 0;
+  border-radius: 8px 8px 0 0; background: transparent;
+  font: inherit; font-size: .88rem; padding: 8px 14px; cursor: pointer;
+  color: var(--ink-2);
+}
+.vz .mc-tab.on { background: var(--surface); color: var(--vz-ink); font-weight: 600; }
+.vz .mc-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--neg); margin-left: 7px; vertical-align: middle;
+}
 
 .vz .ev-result { margin-top: var(--gap); }
 .vz .ev-fb {
@@ -1006,7 +1080,7 @@ button {
 }
 .app-navitem.is-active .soon { background: #fff; }
 
-/* Coming-soon rows: visibly present but inert — no hover lift, no pointer,
+/* Coming-soon rows: visibly present but inert - no hover lift, no pointer,
    and dimmed so they don't read as available navigation. */
 .app-navitem.is-soon {
   color: #9aa0ad; cursor: default; user-select: none;
@@ -1023,7 +1097,7 @@ button {
 }
 
 @media (max-width: 640px) {
-  /* The diverging chart cannot keep a label gutter this narrow — five labels
+  /* The diverging chart cannot keep a label gutter this narrow - five labels
      were truncating. Put the label on its own line above each bar instead. */
   .vz .vzdv, .vz .vzdv-head { padding-left: 0; }
   .vz .vzdv::before { left: 50%; }

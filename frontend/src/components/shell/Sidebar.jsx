@@ -19,12 +19,12 @@ const LEARN = [
   { to: "/case-builder", label: "How this works", icon: CompassIcon },
 ];
 
-export default function Sidebar({ open, onNavigate }) {
+export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout }) {
   return (
-    <aside className={`app-side${open ? " is-open" : ""}`} aria-label="Sections">
+    <aside id="app-side" className={`app-side${open ? " is-open" : ""}`} aria-label="Sections">
       <NavLink to="/" className="brand" onClick={onNavigate}>
         <img src="/logo.svg" alt="" width="30" height="30" />
-        Alto Visas
+        Altovisas
       </NavLink>
 
       <div className="side-label">Explore</div>
@@ -33,14 +33,14 @@ export default function Sidebar({ open, onNavigate }) {
           const Icon = item.icon;
 
           // Not-yet-built screens render as inert rows rather than links, so
-          // the badge and the behaviour agree — nothing to click, nowhere to go.
+          // the badge and the behaviour agree - nothing to click, nowhere to go.
           if (item.soon) {
             return (
               <span
                 key={item.to}
                 className="app-navitem is-soon"
                 aria-disabled="true"
-                title={`${item.label} — coming soon`}
+                title={`${item.label} - coming soon`}
               >
                 <Icon />
                 <span className="lbl">{item.label}</span>
@@ -89,6 +89,36 @@ export default function Sidebar({ open, onNavigate }) {
         })}
       </nav>
 
+      {user && (
+        <div className="side-account">
+          <div className="side-label">Account</div>
+          <div className="side-who">
+            <p className="side-name">{user.name || "Signed in"}</p>
+            {user.email && <p className="side-mail">{user.email}</p>}
+          </div>
+
+          {isAdmin && (
+            <NavLink
+              to="/lev"
+              onClick={onNavigate}
+              className={({ isActive }) => `app-navitem${isActive ? " is-active" : ""}`}
+            >
+              <ShieldIcon />
+              <span className="lbl">Admin panel</span>
+            </NavLink>
+          )}
+
+          <button
+            type="button"
+            className="app-navitem is-danger"
+            onClick={() => { onNavigate?.(); onLogout?.(); }}
+          >
+            <ExitIcon />
+            <span className="lbl">Log out</span>
+          </button>
+        </div>
+      )}
+
       <div className="side-foot">
         <nav className="side-legal" aria-label="Legal">
           <Link to="/terms" onClick={onNavigate}>Terms</Link>
@@ -102,7 +132,7 @@ export default function Sidebar({ open, onNavigate }) {
   );
 }
 
-/* Inline icons — a handful of strokes each, not worth an icon dependency. */
+/* Inline icons - a handful of strokes each, not worth an icon dependency. */
 function base(children) {
   return (
     <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -141,6 +171,16 @@ function BookIcon() {
 function CompassIcon() {
   return base(<>
     <circle cx="12" cy="12" r="9" /><path d="m15.5 8.5-2 5-5 2 2-5z" />
+  </>);
+}
+function ShieldIcon() {
+  return base(<>
+    <path d="M12 3l7 3v6c0 4-3 7.2-7 9-4-1.8-7-5-7-9V6z" /><path d="m9 12 2 2 4-4" />
+  </>);
+}
+function ExitIcon() {
+  return base(<>
+    <path d="M15 20H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9" /><path d="m17 15 3-3-3-3M20 12H9" />
   </>);
 }
 function ChatIcon() {

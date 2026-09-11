@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1 prep — full design prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7ECE6; --paper-2:#F3F6F1; --ink:#16233B; --ink-soft:#4A5568;
+  --guilloche:#7C6BA8; --ok:#2F6B4F; --bad:#A33556;
+  --rule:rgba(22,35,59,.16); --rule-soft:rgba(22,35,59,.08);
+  --display:'Archivo',system-ui,sans-serif; --body:'Newsreader',Georgia,serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--guilloche);outline-offset:3px}
+
+/* chrome */
+.proto-bar{position:sticky;top:0;z-index:50;background:var(--ink);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.proto-bar-inner{display:flex;min-width:max-content}
+.proto-tab{background:transparent;border:0;border-right:1px solid rgba(231,236,230,.18);font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:rgba(231,236,230,.55);padding:13px 16px;white-space:nowrap}
+.proto-tab:hover{color:#E7ECE6;background:rgba(231,236,230,.07)}
+.proto-tab[aria-selected="true"]{background:var(--paper);color:var(--ink);font-weight:600}
+.proto-tab .num{opacity:.5;margin-right:7px}
+.screen{display:none;animation:fade .25s ease}
+.screen.is-on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen{animation:none}*{transition:none!important}}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.narrow{max-width:700px;margin:0 auto;padding:0 24px}
+.section{padding:56px 0}
+.pt{padding-top:48px}
+.pb{padding-bottom:80px}
+
+h1,h2,h3,h4{font-family:var(--display);margin:0;letter-spacing:-.022em;line-height:1.05;font-weight:700}
+h1{font-size:clamp(36px,6vw,64px);font-weight:800;letter-spacing:-.035em}
+h2{font-size:clamp(23px,3.2vw,32px)}
+h3{font-size:19px;letter-spacing:-.012em}
+h4{font-size:16px}
+p{margin:0 0 1em}
+.lede{font-size:clamp(16px,2vw,19px);color:var(--ink-soft);max-width:54ch;font-weight:300}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.eyebrow::before{content:"";width:24px;height:1px;background:var(--ink);opacity:.4;flex:none}
+.tiny{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink-soft);line-height:1.55}
+.mono{font-family:var(--mono)}
+
+.btn{display:inline-flex;align-items:center;gap:12px;font-family:var(--display);font-weight:700;font-size:15px;background:var(--ink);color:var(--paper);border:1px solid var(--ink);padding:14px 22px;border-radius:2px;text-decoration:none;transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 0 -2px rgba(22,35,59,.25)}
+.btn .arrow{font-family:var(--mono);font-weight:400;opacity:.65}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn-ghost:hover{background:rgba(22,35,59,.05);box-shadow:none}
+.btn-wide{width:100%;justify-content:center}
+.btn-sm{padding:10px 15px;font-size:13px}
+
+.nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--rule);gap:16px;flex-wrap:wrap}
+.logo{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:18px}
+.logo span{color:var(--guilloche)}
+.navlinks{display:flex;gap:20px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.navlinks b{color:var(--ink);font-weight:500}
+.lang{font-family:var(--mono);font-size:11px;display:flex;gap:2px}
+.lang button{background:none;border:1px solid var(--rule);padding:5px 9px}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* banner */
+.banner{border-left:3px solid var(--guilloche);background:var(--paper-2);padding:18px 20px;margin:0 0 30px;font-size:15.5px;color:var(--ink-soft);font-weight:300}
+.banner b{color:var(--ink);font-family:var(--display);font-weight:700;font-size:15px}
+.banner-bad{border-left-color:var(--bad)}
+
+/* foil */
+.foil{position:relative;overflow:hidden;background:linear-gradient(152deg,#DCE7E0 0%,#E8E2EE 46%,#DDE6EC 100%);border:1px solid rgba(22,35,59,.28);border-radius:3px;padding:24px 24px 0;box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 14px 34px -22px rgba(22,35,59,.55)}
+.foil-g{position:absolute;inset:-30% -10%;opacity:.38;pointer-events:none}
+.foil-in{position:relative}
+.foil-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.foil-head .t{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.foil-score{display:flex;align-items:flex-end;gap:13px}
+.foil-score .big{font-family:var(--display);font-weight:800;font-size:64px;line-height:.82;letter-spacing:-.05em;color:var(--bad)}
+.foil-score .cap{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);padding-bottom:8px;max-width:19ch;line-height:1.45}
+.foil-note{font-size:14px;color:var(--ink-soft);margin:16px 0 18px;max-width:46ch;font-weight:300}
+.foil-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;padding:15px 0;border-top:1px solid rgba(22,35,59,.18)}
+.foil-meta div{font-family:var(--mono);font-size:11px}
+.foil-meta span{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+.mrz{margin:0 -24px;padding:10px 24px;background:rgba(255,255,255,.62);border-top:1px solid rgba(22,35,59,.22);font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;color:rgba(22,35,59,.72);white-space:nowrap;overflow:hidden}
+.stamp{position:absolute;top:16px;right:16px;transform:rotate(-9deg);border:2px solid var(--bad);color:var(--bad);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;padding:7px 11px;opacity:.85;text-align:center;line-height:1.3;border-radius:2px}
+.stamp b{display:block;font-size:14px;letter-spacing:.1em;font-weight:600}
+.stamp-mid{border-color:#8A6D2F;color:#8A6D2F}
+
+/* generic doc */
+.doc{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:30px}
+.card{border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);padding:22px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.gcell{background:var(--paper);padding:24px}
+.gcell .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:9px}
+.gcell .v{font-family:var(--display);font-size:15px;font-weight:600;line-height:1.35}
+.gcell p{font-size:15px;color:var(--ink-soft);margin:8px 0 0;font-weight:300}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:34px}
+.stat{background:var(--paper-2);padding:18px 16px}
+.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.stat .n{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.035em;line-height:1}
+.stat .s{font-size:13.5px;color:var(--ink-soft);margin-top:6px;font-weight:300;line-height:1.4}
+
+/* bars */
+.chart{margin:18px 0 4px}
+.brow{display:grid;grid-template-columns:104px 1fr 52px;gap:12px;align-items:center;margin-bottom:7px;font-family:var(--mono);font-size:11.5px}
+.brow .lab{text-align:right;color:var(--ink-soft);letter-spacing:.02em}
+.brow .track{height:16px;background:rgba(22,35,59,.07)}
+.brow .fill{height:100%;background:var(--ink)}
+.brow .fill.lite{background:rgba(22,35,59,.32)}
+.brow .val{font-size:11.5px}
+.dv{position:relative;padding-left:50%}
+.dv::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--rule)}
+.drow{display:flex;align-items:center;height:20px;margin-bottom:4px;font-family:var(--mono);font-size:11px;position:relative}
+.drow .dl{position:absolute;right:calc(50% + 8px);white-space:nowrap;color:var(--ink-soft)}
+.drow .db{height:13px;position:absolute}
+.drow.neg .db{background:var(--bad);right:50%}
+.drow.pos .db{background:var(--ok);left:50%}
+.drow .dn{position:absolute;font-size:10.5px}
+.drow.neg .dn{right:50%;padding-right:6px;color:#fff;line-height:13px}
+.drow.pos .dn{left:50%;padding-left:6px}
+.dvhead{display:flex;justify-content:center;gap:60px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px}
+
+/* forms */
+.progress{display:flex;align-items:center;gap:9px;margin-bottom:26px}
+.progress .seg{height:3px;flex:1;background:var(--rule)}
+.progress .seg.done{background:var(--ink)}
+.progress .seg.now{background:var(--guilloche)}
+.progress .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);flex:none}
+.field{margin-bottom:22px}
+.field label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.in,select,textarea{width:100%;font-family:var(--body);font-size:16.5px;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:2px;padding:12px 13px}
+textarea{min-height:110px;resize:vertical;line-height:1.6}
+.in:focus,select:focus,textarea:focus{border-color:var(--guilloche);outline:none;box-shadow:0 0 0 3px rgba(124,107,168,.15)}
+.help{font-size:14px;color:var(--ink-soft);margin:8px 0 0;font-weight:300}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.key{border-left:2px solid var(--guilloche);padding-left:16px;margin-left:-18px}
+.key .help{color:var(--guilloche)}
+.chip-row{display:flex;gap:7px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:12px;padding:8px 13px;border:1px solid var(--rule);background:#fff;border-radius:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* test / drill */
+.timer{font-family:var(--mono);font-size:13px;letter-spacing:.14em;display:flex;align-items:center;gap:9px;color:var(--bad)}
+.timer .dot{width:7px;height:7px;border-radius:50%;background:var(--bad);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:14px;flex-wrap:wrap}
+.q{font-family:var(--display);font-weight:700;font-size:clamp(24px,4.2vw,36px);letter-spacing:-.028em;line-height:1.13;margin-bottom:10px}
+.q-src{font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:26px}
+.mic{display:flex;align-items:center;gap:15px;width:100%;justify-content:center;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:20px;font-family:var(--display);font-weight:600;font-size:15px}
+.mic:hover{border-color:var(--ink)}
+.ring{width:32px;height:32px;border-radius:50%;border:2px solid var(--bad);display:grid;place-items:center;flex:none}
+.ring i{width:11px;height:11px;background:var(--bad);border-radius:2px;display:block}
+.wave{display:flex;align-items:center;gap:3px;height:32px}
+.wave i{width:3px;background:var(--guilloche);border-radius:2px;animation:w 1s ease-in-out infinite}
+@keyframes w{0%,100%{height:7px}50%{height:24px}}
+.readout{border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);margin-top:26px}
+.rrow{display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--rule-soft);align-items:baseline}
+.rrow:last-child{border-bottom:0}
+.rrow .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);width:128px;flex:none}
+.rrow .v{font-size:15.5px}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.probe{background:var(--ink);color:var(--paper);padding:20px 18px}
+.probe .k{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(231,236,230,.5);margin-bottom:8px}
+.probe .v{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:-.015em}
+
+/* report */
+.flag{border-top:1px solid var(--rule);padding:24px 0}
+.flag-head{display:flex;align-items:baseline;gap:13px;margin-bottom:12px}
+.flag-idx{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-soft);flex:none;padding-top:3px}
+.sev{display:flex;gap:3px;margin-left:auto;flex:none;padding-top:6px}
+.sev i{width:15px;height:5px;background:var(--rule);display:block}
+.sev i.on{background:var(--bad)}
+.quote{border-left:2px solid var(--bad);padding:3px 0 3px 15px;margin:0 0 14px;font-size:16px;font-style:italic}
+.quote cite{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;font-style:normal;color:var(--ink-soft);margin-top:8px;text-transform:uppercase}
+.why{font-size:15.5px;color:var(--ink-soft);font-weight:300;margin:0}
+.why em{color:var(--ink);font-style:normal;font-family:var(--mono);font-size:13px}
+.redact .bar{background:var(--ink);height:14px;margin:10px 0;border-radius:1px}
+.w1{width:94%}.w2{width:78%}.w3{width:88%}.w4{width:41%}
+.paywall{background:var(--ink);color:var(--paper);border-radius:3px;padding:28px;margin-top:30px}
+.paywall h3{color:var(--paper);margin-bottom:10px;font-size:21px}
+.paywall p{color:rgba(231,236,230,.68);font-size:15px;font-weight:300;margin-bottom:20px}
+.paywall .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.paywall .price{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:rgba(231,236,230,.55);margin-top:14px;text-transform:uppercase}
+.verdict{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+.v-weak{color:var(--bad)}.v-adq{color:#8A6D2F}.v-strong{color:var(--ok)}
+.blist{list-style:none;padding:0;margin:0 0 14px}
+.blist li{padding:6px 0 6px 18px;position:relative;font-size:15.5px;color:var(--ink-soft);font-weight:300}
+.blist li::before{content:"—";position:absolute;left:0;color:var(--rule)}
+.blist li.neg{color:var(--bad)}
+.blist li.neg::before{content:"!";font-family:var(--mono);font-size:12px;color:var(--bad)}
+.blist li.pos::before{content:"+";font-family:var(--mono);font-size:12px;color:var(--ok)}
+
+/* case builder */
+.turn{margin-bottom:22px}
+.turn .who{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.turn .said{font-size:16px;line-height:1.6}
+.turn.sys .said{border-left:2px solid var(--ink);padding-left:15px}
+.turn.you .said{background:#fff;border:1px solid var(--rule);padding:14px 16px;border-radius:2px}
+.turn.refuse .said{border-left:2px solid var(--bad);padding-left:15px;color:var(--bad)}
+.ba{border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:#fff;margin-top:6px}
+.ba>div{padding:15px 17px}
+.ba .before{border-bottom:1px dashed var(--rule);background:rgba(163,53,86,.05)}
+.ba .after{background:rgba(47,107,79,.06)}
+.ba .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px;color:var(--ink-soft)}
+.ba .before .tag{color:var(--bad)}
+.ba .after .tag{color:var(--ok)}
+.ledger{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:20px;position:sticky;top:66px}
+.ledger h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--ink-soft);margin-bottom:14px}
+.fact{border-bottom:1px solid var(--rule-soft);padding:10px 0;font-size:14.5px;display:flex;gap:9px;align-items:flex-start}
+.fact .m{font-family:var(--mono);font-size:10px;color:var(--ok);padding-top:5px;flex:none}
+.ledger .note{font-size:13px;color:var(--ink-soft);margin:14px 0 0;font-weight:300;line-height:1.5}
+
+/* library */
+.lib{border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);margin-bottom:12px;overflow:hidden}
+.lib-h{display:flex;gap:12px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.pill{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border-radius:2px;flex:none}
+.pill.a{background:rgba(47,107,79,.14);color:var(--ok)}
+.pill.r{background:rgba(163,53,86,.12);color:var(--bad)}
+.lib-b{padding:16px 18px;font-size:16px;font-style:italic}
+.lib-f{padding:0 18px 16px;font-size:14.5px;color:var(--ink-soft);font-weight:300}
+
+/* pricing */
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+.tier{border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);padding:26px;display:flex;flex-direction:column}
+.tier.hi{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tier .nm{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:14px}
+.tier.hi .nm{color:rgba(231,236,230,.55)}
+.tier .amt{font-family:var(--display);font-weight:800;font-size:42px;letter-spacing:-.04em;line-height:1}
+.tier .sub{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:8px;letter-spacing:.05em}
+.tier.hi .sub{color:rgba(231,236,230,.55)}
+.tier ul{list-style:none;padding:0;margin:20px 0 24px;flex:1}
+.tier li{padding:8px 0 8px 20px;position:relative;font-size:15.5px;font-weight:300;border-bottom:1px solid var(--rule-soft)}
+.tier.hi li{border-bottom-color:rgba(231,236,230,.12)}
+.tier li::before{content:"·";position:absolute;left:6px;font-family:var(--mono)}
+.tier.hi .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+
+/* readiness */
+.meter{display:flex;gap:4px;margin:14px 0 6px}
+.meter i{height:8px;flex:1;background:var(--rule)}
+.meter i.on{background:var(--ok)}
+.task{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule-soft)}
+.task .st{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;width:74px;flex:none}
+.task .st.done{color:var(--ok)}
+.task .st.open{color:var(--bad)}
+.task .nm{font-size:16px;flex:1}
+.counter{font-family:var(--display);font-weight:800;font-size:52px;letter-spacing:-.04em;line-height:.9}
+
+/* stakes band */
+.stakes{background:var(--ink);color:var(--paper);padding:72px 0}
+.stakes h2{color:var(--paper);font-size:clamp(27px,4.8vw,46px);letter-spacing:-.035em;max-width:17ch;margin-bottom:26px}
+.stakes p{color:rgba(231,236,230,.7);font-weight:300;font-size:clamp(16px,1.9vw,18px);max-width:58ch}
+.stakes p+p{margin-top:0}
+.stakes .eyebrow{color:rgba(231,236,230,.5)}
+.stakes .eyebrow::before{background:var(--paper);opacity:.5}
+.stakes b{color:var(--paper);font-weight:400}
+.pull{font-family:var(--display);font-weight:700;font-size:clamp(22px,3.4vw,32px);letter-spacing:-.028em;line-height:1.18;max-width:24ch;margin:0 0 24px;border-left:3px solid var(--guilloche);padding-left:22px}
+.foot{border-top:1px solid var(--rule);padding:28px 0 56px;margin-top:18px}
+.no-list{list-style:none;padding:0;margin:20px 0 0;max-width:58ch}
+.no-list li{padding:13px 0 13px 28px;border-bottom:1px solid var(--rule-soft);font-size:15.5px;position:relative;color:var(--ink-soft);font-weight:300}
+.no-list li::before{content:"×";position:absolute;left:3px;top:12px;font-family:var(--mono);color:var(--bad);font-size:15px}
+.no-list strong{color:var(--ink);font-weight:500;font-family:var(--body)}
+
+@media(max-width:900px){
+  .grid2,.price-grid{grid-template-columns:1fr;gap:26px}
+  .grid3,.stats{grid-template-columns:1fr}
+  .pair{grid-template-columns:1fr}
+  .ledger{position:static}
+  .doc{padding:22px}
+  .key{margin-left:0}
+  .brow{grid-template-columns:84px 1fr 46px;gap:9px;font-size:10.5px}
+  .dv{padding-left:44%}
+  .dv::before{left:44%}
+  .drow.neg .db,.drow.neg .dn{right:56%}
+  .drow.pos .db,.drow.pos .dn{left:44%}
+  .drow .dl{right:calc(56% + 8px)}
+}
+</style>
+</head>
+<body>
+
+<div class="proto-bar" role="tablist" aria-label="Screens">
+  <div class="proto-bar-inner">
+    <button class="proto-tab" role="tab" aria-selected="true" data-t="s1"><span class="num">01</span>Landing</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s2"><span class="num">02</span>The data</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s3"><span class="num">03</span>Profile</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s4"><span class="num">04</span>Free test</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s5"><span class="num">05</span>Report</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s6"><span class="num">06</span>Pricing</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s7"><span class="num">07</span>Case builder</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s8"><span class="num">08</span>Drill room</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s9"><span class="num">09</span>Answer library</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s10"><span class="num">10</span>Readiness</button>
+    <button class="proto-tab" role="tab" aria-selected="false" data-t="s11"><span class="num">11</span>Report back</button>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="guil">
+<g fill="none" stroke="#7C6BA8" stroke-width=".6">
+<ellipse cx="200" cy="120" rx="190" ry="52"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(18 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(36 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(54 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(72 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(90 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(108 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(126 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(144 200 120)"/><ellipse cx="200" cy="120" rx="190" ry="52" transform="rotate(162 200 120)"/></g>
+<g fill="none" stroke="#5F8FA8" stroke-width=".5" opacity=".8"><ellipse cx="200" cy="120" rx="120" ry="120"/><ellipse cx="200" cy="120" rx="96" ry="120" transform="rotate(30 200 120)"/><ellipse cx="200" cy="120" rx="96" ry="120" transform="rotate(60 200 120)"/><ellipse cx="200" cy="120" rx="96" ry="120" transform="rotate(90 200 120)"/></g>
+</g></defs></svg>
+
+<!-- 01 LANDING -->
+<section class="screen is-on" id="s1">
+  <div class="wrap">
+    <div class="nav">
+      <div class="logo">Two<span>·</span>Four</div>
+      <nav class="navlinks"><b>The data</b><span>Answer library</span><span>How this works</span></nav>
+      <div class="lang"><button aria-pressed="true">EN</button><button aria-pressed="false">RU</button><button aria-pressed="false">KG</button></div>
+    </div>
+
+    <div class="grid2" style="padding:64px 0 56px;align-items:center">
+      <div>
+        <p class="eyebrow">16,204 interviews · 14,589 full transcripts · 2020–2026</p>
+        <h1>Find out where your interview breaks.</h1>
+        <p class="lede">Tell us your profile and answer three questions. We read them against 16,204 real interview write-ups, name the exact points where officers push back on files like yours, and show you what to fix.</p>
+        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:28px">
+          <a class="btn" href="#" data-go="s3">Check my profile <span class="arrow">→</span></a>
+          <span class="tiny">Free · no account · 4 minutes</span>
+        </div>
+        <p class="tiny" style="margin-top:24px;max-width:44ch">Or read the <a href="#" data-go="s2" style="color:var(--ink)">whole dataset</a> first. It's public, it's free, and the caveats are printed at the top.</p>
+      </div>
+
+      <div class="foil">
+        <svg class="foil-g" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#guil"/></svg>
+        <div class="foil-in">
+          <div class="foil-head"><div class="t">Profile check · sample</div><div class="t">CHENNAI</div></div>
+          <div class="foil-score"><div class="big">34.7<span style="font-size:26px">%</span></div><div class="cap">of comparable posts reported a refusal</div></div>
+          <div class="foil-meta">
+            <div><span>Comparable posts</span>528</div>
+            <div><span>Weak points found</span>3</div>
+          </div>
+        </div>
+        <div class="mrz">Harvard&lt;CS&lt;&lt;BACH&lt;&lt;Mumbai&lt;&lt;F1&lt;&lt;</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="gcell"><div class="k">Free</div><div class="v">Your weak points, named</div><p>The full diagnosis: which of your answers an officer will push on, what they'll ask next, and the numbers behind it.</p></div>
+    <div class="gcell"><div class="k">Paid · one payment</div><div class="v">Your case, rebuilt</div><p>We work through each weak point and rebuild the answer out of facts you give us. Then we drill you by voice with the follow-ups.</p></div>
+    <div class="gcell"><div class="k">Where the data comes from</div><div class="v">Students, after the window</div><p>Self-reported write-ups posted publicly by students online, deduplicated and parsed question by question. Roughly 200 more each month.</p></div>
+  </div>
+
+  <div class="stakes">
+    <div class="wrap">
+      <p class="eyebrow">The interview</p>
+      <h2>It is over in about three minutes.</h2>
+      <p>You will have spent a year on applications, paid the SEVIS and MRV fees, taken a day off and stood in a queue. Then someone behind glass asks four or five questions and decides. There is no appeal, no second look at your file, and no moment where you get to explain what you meant.</p>
+      <p style="margin-top:20px">And it turns on small things. Saying a university is <b>ranked second in the world</b> instead of naming a course you want to take. Listing three of your father's businesses without a single number attached to any of them. Saying you would like to stay. None of those mean your case is weak — they mean it was <b>stated badly</b>. From the other side of the glass, in three minutes, badly stated and weak look exactly the same.</p>
+    </div>
+  </div>
+
+  <div class="wrap section">
+    <p class="pull">Most students who get refused don't have a bad case. They have a good case they can't explain yet.</p>
+    <p class="lede">The officer is not looking for a perfect applicant. They are looking for a plan that holds together and money that is accounted for. Plenty of students have both and still walk out without a visa, because they were answering a question they had never once said out loud.</p>
+    <p class="lede" style="margin-top:18px">That part is fixable, and it is the only part of this you control. You can't change your GPA in three weeks, or which consulate you were assigned, or how many refusals came before you in the queue. You can change whether you know what is coming and whether your answers survive the second question.</p>
+    <p class="lede" style="margin-top:18px">That is all this tool does. It reads your file against 16,204 real interview write-ups, tells you where officers pushed on people like you, and helps you say the true things about yourself clearly enough that they land in the time you have.</p>
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:28px">
+      <a class="btn" href="#" data-go="s3">Check my profile <span class="arrow">→</span></a>
+      <span class="tiny">Free · takes 4 minutes · nothing to install</span>
+    </div>
+  </div>
+
+  <div class="wrap section" style="padding-top:0">
+    <h2>What this tool will not do</h2>
+    <ul class="no-list">
+      <li><strong>Write you a script.</strong> Rehearsed answers are one of the clearest refusal signals an officer sees. We build answers from what you tell us, in your words.</li>
+      <li><strong>Invent facts for you.</strong> A false statement at the window is a permanent bar, not a refusal you can reapply from. If you ask us to make something up, we say no and explain why.</li>
+      <li><strong>Promise you a visa.</strong> Our numbers describe who chose to post about their interview. They are not consular approval rates and they predict nothing about you.</li>
+      <li><strong>Give legal advice.</strong> This is interview preparation. We are not lawyers and have no affiliation with any consulate or with the US government.</li>
+    </ul>
+  </div>
+
+  <div class="wrap foot"><p class="tiny">Prototype · Terms · Privacy · How this works · Answer library</p></div>
+</section>
+
+<!-- 02 DATA -->
+<section class="screen" id="s2">
+  <div class="wrap pt pb">
+    <p class="eyebrow">Public · free · updated monthly</p>
+    <h2 style="margin-bottom:20px">What 16,204 interview write-ups show</h2>
+
+    <div class="banner"><b>Read this first.</b> These are self-selected, self-reported posts. The approval share describes <em>who chose to post</em>, not the true consular approval rate. Nothing here predicts an individual outcome.</div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Interviews</div><div class="n">16,204</div><div class="s">deduplicated posts</div></div>
+      <div class="stat"><div class="k">With an outcome</div><div class="n">15,154</div><div class="s">94% of corpus</div></div>
+      <div class="stat"><div class="k">Approved share</div><div class="n">87.2%</div><div class="s">among posters, not the true rate</div></div>
+      <div class="stat"><div class="k">Full transcripts</div><div class="n">14,589</div><div class="s">readable question by question</div></div>
+      <div class="stat"><div class="k">Years covered</div><div class="n">2020–26</div><div class="s">earliest to latest post</div></div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h3>Approval share by consulate</h3>
+        <p class="tiny" style="margin:6px 0 0">Faded bars are small samples. Read them as noise, not signal.</p>
+        <div class="chart">
+          <div class="brow"><span class="lab">New Delhi</span><span class="track"><span class="fill" style="width:92.1%"></span></span><span class="val">92.1</span></div>
+          <div class="brow"><span class="lab">Hyderabad</span><span class="track"><span class="fill" style="width:93.5%"></span></span><span class="val">93.5</span></div>
+          <div class="brow"><span class="lab">Kolkata</span><span class="track"><span class="fill" style="width:91.1%"></span></span><span class="val">91.1</span></div>
+          <div class="brow"><span class="lab">Mumbai</span><span class="track"><span class="fill" style="width:86.9%"></span></span><span class="val">86.9</span></div>
+          <div class="brow"><span class="lab">Chennai</span><span class="track"><span class="fill" style="width:81.6%"></span></span><span class="val">81.6</span></div>
+          <div class="brow"><span class="lab">Abu Dhabi</span><span class="track"><span class="fill lite" style="width:59.4%"></span></span><span class="val">59.4</span></div>
+          <div class="brow"><span class="lab">Tashkent</span><span class="track"><span class="fill lite" style="width:48.1%"></span></span><span class="val">48.1</span></div>
+        </div>
+      </div>
+      <div>
+        <h3>By degree level</h3>
+        <p class="tiny" style="margin:6px 0 0">Bachelor's applicants post markedly worse outcomes than Masters.</p>
+        <div class="chart">
+          <div class="brow"><span class="lab">PhD</span><span class="track"><span class="fill" style="width:96%"></span></span><span class="val">96.0</span></div>
+          <div class="brow"><span class="lab">Masters</span><span class="track"><span class="fill" style="width:92.8%"></span></span><span class="val">92.8</span></div>
+          <div class="brow"><span class="lab">MBA</span><span class="track"><span class="fill" style="width:75.3%"></span></span><span class="val">75.3</span></div>
+          <div class="brow"><span class="lab">Bachelors</span><span class="track"><span class="fill" style="width:65.3%"></span></span><span class="val">65.3</span></div>
+        </div>
+        <h3 style="margin-top:30px">By attempt</h3>
+        <div class="chart">
+          <div class="brow"><span class="lab">Attempt 1</span><span class="track"><span class="fill" style="width:84.6%"></span></span><span class="val">84.6</span></div>
+          <div class="brow"><span class="lab">Attempt 2</span><span class="track"><span class="fill" style="width:65.6%"></span></span><span class="val">65.6</span></div>
+          <div class="brow"><span class="lab">Attempt 3</span><span class="track"><span class="fill" style="width:72.5%"></span></span><span class="val">72.5</span></div>
+          <div class="brow"><span class="lab">Attempt 4</span><span class="track"><span class="fill lite" style="width:75.7%"></span></span><span class="val">75.7</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:52px">
+      <h3>Which questions track with which outcomes</h3>
+      <p class="tiny" style="margin:6px 0 18px">Percentage-point difference from the corpus-wide approval share when a question type appears.</p>
+      <div class="banner banner-bad"><b>The causation runs backwards.</b> A question does not cause a refusal. Officers probe prior refusals <em>because</em> a case already looks doubtful, and reach loan paperwork <em>because</em> the interview is going well. Treat this as a map of where officers dig, not a list of topics to dodge.</div>
+      <div class="dvhead"><span>lower approval</span><span>higher approval</span></div>
+      <div class="dv">
+        <div class="drow neg"><span class="dl">prior visa history</span><span class="db" style="width:36%"></span><span class="dn">−14.4</span></div>
+        <div class="drow neg"><span class="dl">why usa</span><span class="db" style="width:22%"></span><span class="dn">−8.6</span></div>
+        <div class="drow neg"><span class="dl">relatives in us</span><span class="db" style="width:21%"></span><span class="dn">−8.4</span></div>
+        <div class="drow neg"><span class="dl">why university</span><span class="db" style="width:19%"></span><span class="dn">−7.5</span></div>
+        <div class="drow neg"><span class="dl">universities applied</span><span class="db" style="width:16%"></span><span class="dn">−6.5</span></div>
+        <div class="drow neg"><span class="dl">academics scores</span><span class="db" style="width:13%"></span><span class="dn">−5.0</span></div>
+        <div class="drow neg"><span class="dl">university knowledge</span><span class="db" style="width:12%"></span><span class="dn">−4.8</span></div>
+        <div class="drow neg"><span class="dl">return intent</span><span class="db" style="width:12%"></span><span class="dn">−4.7</span></div>
+        <div class="drow pos"><span class="dl">post grad plans</span><span class="db" style="width:7%"></span><span class="dn">+2.7</span></div>
+        <div class="drow pos"><span class="dl">sponsor occupation</span><span class="db" style="width:7%"></span><span class="dn">+2.8</span></div>
+        <div class="drow pos"><span class="dl">course value</span><span class="db" style="width:10%"></span><span class="dn">+4.0</span></div>
+        <div class="drow pos"><span class="dl">ties to home</span><span class="db" style="width:12%"></span><span class="dn">+4.8</span></div>
+        <div class="drow pos"><span class="dl">funding general</span><span class="db" style="width:14%"></span><span class="dn">+5.4</span></div>
+        <div class="drow pos"><span class="dl">funding loan</span><span class="db" style="width:18%"></span><span class="dn">+7.1</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:44px">
+      <h4 style="margin-bottom:10px">Where we have nothing</h4>
+      <p class="why">The corpus covers New Delhi, Mumbai, Hyderabad, Chennai, Kolkata, Tashkent and Abu Dhabi, and the countries India, Uzbekistan and the UAE. Bishkek and Kyrgyzstan appear nowhere. If your post isn't listed, we will say so on your report rather than substitute a neighbouring post as a proxy.</p>
+    </div>
+
+    <div style="margin-top:34px"><a class="btn" href="#" data-go="s3">Check my own profile <span class="arrow">→</span></a></div>
+  </div>
+</section>
+
+<!-- 03 PROFILE -->
+<section class="screen" id="s3">
+  <div class="narrow pt pb">
+    <div class="doc">
+      <div class="progress"><span class="lbl">Step 3 / 4</span><i class="seg done"></i><i class="seg done"></i><i class="seg now"></i><i class="seg"></i></div>
+      <h2 style="margin-bottom:8px">Money and ties</h2>
+      <p class="lede" style="font-size:16px;margin-bottom:28px">Funding is the most-asked topic in the whole corpus — sponsor, occupation and cost together appear in roughly a third of interviews. Answer plainly; use your real details.</p>
+
+      <div class="pair">
+        <div class="field"><label for="a1">Who is funding you</label>
+          <select id="a1"><option>Parent or family</option><option>Self-funded</option><option>Full scholarship</option><option>Partial scholarship + family</option><option>Education loan</option></select></div>
+        <div class="field"><label for="a2">Sponsor's occupation</label><input class="in" id="a2" value="Owns real estate, farming and a bank stake"></div>
+      </div>
+      <div class="pair">
+        <div class="field"><label for="a3">Amount secured (USD)</label><input class="in" id="a3" value="300,000"></div>
+        <div class="field"><label for="a4">Is it documented?</label><select id="a4"><option>Yes — bank statements in hand</option><option>Partly</option><option>Not yet</option></select></div>
+      </div>
+
+      <div class="field">
+        <label>Do any of these apply to you</label>
+        <div class="chip-row">
+          <button class="chip" aria-pressed="false">Gap year</button>
+          <button class="chip" aria-pressed="false">Previous refusal</button>
+          <button class="chip" aria-pressed="true">Relative in the US</button>
+          <button class="chip" aria-pressed="false">Changed field of study</button>
+          <button class="chip" aria-pressed="false">No work experience</button>
+          <button class="chip" aria-pressed="false">None of these</button>
+        </div>
+        <p class="help">None of these sinks you on its own. They change which questions you get — "relatives in us" appears in the data with a −8.4 point gap, which mostly means officers ask it when a file already looks like migration.</p>
+      </div>
+
+      <div class="field key">
+        <label for="a5">What will you actually do after you graduate</label>
+        <textarea id="a5" placeholder="Write it the way you'd say it out loud. A country, a job, a company, a plan you already have."></textarea>
+        <p class="help">This is the most important box on the site. Every answer we rebuild for you later is assembled from what you write here — so write what's true, not what sounds good.</p>
+      </div>
+
+      <button class="btn btn-wide" data-go="s4">Continue to the questions <span class="arrow">→</span></button>
+    </div>
+    <p class="tiny" style="text-align:center;margin-top:16px">Your details are used to generate your report. We don't share them.</p>
+  </div>
+</section>
+
+<!-- 04 TEST -->
+<section class="screen" id="s4">
+  <div class="narrow pt pb">
+    <div class="topbar"><span class="tiny">QUESTION 2 OF 3</span><span class="timer"><i class="dot"></i>00:47</span></div>
+    <p class="q">Who is sponsoring your education?</p>
+    <p class="q-src">funding_sponsor · appears in 29.5% of interviews (n=4,474) · median spoken answer 14 seconds</p>
+
+    <button class="mic">
+      <span class="ring"><i></i></span><span>Recording — tap to finish</span>
+      <span class="wave" aria-hidden="true"><i style="animation-delay:0s"></i><i style="animation-delay:.12s"></i><i style="animation-delay:.24s"></i><i style="animation-delay:.36s"></i><i style="animation-delay:.48s"></i><i style="animation-delay:.6s"></i><i style="animation-delay:.72s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.3s"></i></span>
+    </button>
+    <p class="tiny" style="margin-top:16px;text-align:center">Prefer to type? <a href="#" style="color:var(--ink)">Switch to text</a> — but the real thing is spoken, and speaking is the part people freeze on.</p>
+
+    <div style="margin-top:40px;border-top:1px solid var(--rule);padding-top:20px">
+      <p class="tiny">No feedback yet. All three answers are scored together against comparable posts, so the report reads your file as a whole rather than one answer at a time.</p>
+      <button class="btn btn-ghost btn-sm" style="margin-top:12px" data-go="s5">See the report <span class="arrow">→</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- 05 REPORT -->
+<section class="screen" id="s5">
+  <div class="wrap pt pb">
+    <div class="grid2">
+      <div>
+        <p class="eyebrow">Report · 25 Aug 2026 · Bachelor's · Chennai</p>
+        <div class="foil">
+          <svg class="foil-g" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><use href="#guil"/></svg>
+          <div class="stamp stamp-mid">Readiness<b>Moderate</b></div>
+          <div class="foil-in">
+            <div class="foil-head"><div class="t">Comparable posts</div><div class="t">CHENNAI · IN</div></div>
+            <div class="foil-score"><div class="big">34.7<span style="font-size:24px">%</span></div><div class="cap">reported a refusal</div></div>
+            <p class="foil-note">Bachelor's applicants in this corpus: 528 posts with a stated decision, 65.3% approved against 92.8% for Masters. This describes the posting population, not you.</p>
+            <div class="foil-meta">
+              <div><span>Program</span>BSc Computer Science</div>
+              <div><span>Attempt</span>First</div>
+              <div><span>Funding</span>Father · $300,000</div>
+              <div><span>Weak points</span>3 of 3 answers flagged</div>
+            </div>
+          </div>
+          <div class="mrz">BSC&lt;CS&lt;&lt;BACH&lt;&lt;FATHER&lt;&lt;300K&lt;&lt;CHENNAI&lt;&lt;A1&lt;&lt;MOD&lt;&lt;</div>
+        </div>
+        <p class="tiny" style="margin-top:12px">Not affiliated with any consulate or with the US government. Preparation material, not legal advice.</p>
+
+        <div class="card" style="margin-top:22px">
+          <h4 style="margin-bottom:8px">Likely questions for your file</h4>
+          <p class="tiny" style="margin-bottom:12px">Ranked by how often they appear for profiles like yours.</p>
+          <div class="blist"><ul style="list-style:none;padding:0;margin:0">
+            <li class="tiny" style="padding:7px 0;border-bottom:1px solid var(--rule-soft)">SPONSOR OCCUPATION · 29.7% — "What does your father do?"</li>
+            <li class="tiny" style="padding:7px 0;border-bottom:1px solid var(--rule-soft)">FUNDING GENERAL · 28.8% — "How will you cover tuition and living?"</li>
+            <li class="tiny" style="padding:7px 0;border-bottom:1px solid var(--rule-soft)">UNIVERSITIES APPLIED · 19.6% — "How many did you apply to?"</li>
+            <li class="tiny" style="padding:7px 0">WHICH COURSE · 17.6% — "What subjects will you study?"</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <div>
+        <h2 style="margin-bottom:4px">Three things will hurt you</h2>
+        <p class="tiny" style="margin-bottom:6px">Ranked by how much they moved outcomes in comparable posts.</p>
+
+        <div class="flag">
+          <div class="flag-head"><span class="flag-idx">01</span><h3>Your university answer is a ranking, not a reason</h3><span class="sev"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+          <blockquote class="quote">I choose Stanford because it's a number 2 university in the whole world… professors who was top of their tech industries.<cite>Your answer · question 1</cite></blockquote>
+          <ul class="blist">
+            <li class="pos">You do connect the choice to your own field rather than giving a generic answer.</li>
+            <li class="neg">"Number 2 in the world" distinguishes Stanford from nothing. It invites the exact follow-up seen in a refused Chennai transcript: <em>"So why not other uni?"</em></li>
+            <li class="neg">You name no professor, lab or course. <em>university_knowledge</em> is asked in 2.2% of interviews, so this probe does happen.</li>
+            <li class="neg"><em>why_university</em> carries a −7.5 point gap (n=2,339). A thin answer here is answering a question that already tends to accompany harder interviews.</li>
+          </ul>
+          <p class="why">The fix is the cheapest preparation available: open the CS catalogue this week and find two courses you actually want. Then the answer is true and it survives the follow-up.</p>
+        </div>
+
+        <div class="flag redact">
+          <div class="flag-head"><span class="flag-idx">02</span><h3>Three businesses, no numbers</h3><span class="sev"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div>
+          <div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div>
+        </div>
+
+        <div class="flag redact">
+          <div class="flag-head"><span class="flag-idx">03</span><h3>Your post-graduation answer never says where</h3><span class="sev"><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+          <div class="bar w2"></div><div class="bar w1"></div><div class="bar w4"></div>
+        </div>
+
+        <div class="paywall">
+          <h3>Fix these three</h3>
+          <p>We work through each weak point with you, rebuild the answer out of facts you supply, and drill you by voice with the follow-ups officers actually asked in these transcripts.</p>
+          <a class="btn" href="#" data-go="s6">See what's included <span class="arrow">→</span></a>
+          <p class="price">From 1,200 KGS ≈ $14 · one payment · no subscription</p>
+        </div>
+
+        <div class="card" style="margin-top:26px">
+          <h4 style="margin-bottom:8px">Send this report to yourself</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><input class="in" style="flex:1;min-width:180px" placeholder="you@email.com"><button class="btn btn-sm">Send</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 PRICING -->
+<section class="screen" id="s6">
+  <div class="narrow pt pb">
+    <p class="eyebrow">One payment · no subscription · no auto-renewal</p>
+    <h2 style="margin-bottom:14px">You'll use this for two weeks. Pay once.</h2>
+    <p class="lede" style="margin-bottom:32px">Your interview has a date. A monthly subscription for a two-week need is a trap, so we don't sell one.</p>
+
+    <div class="price-grid">
+      <div class="tier">
+        <div class="nm">Case report</div>
+        <div class="amt">1,200<span style="font-size:18px;letter-spacing:0"> KGS</span></div>
+        <div class="sub">≈ $14 · one payment</div>
+        <ul>
+          <li>Full risk report, all weak points unlocked</li>
+          <li>Case builder — every answer rebuilt from your own facts</li>
+          <li>Your one-page case summary to read the morning of</li>
+          <li>Likely-questions list for your exact profile</li>
+          <li>Full answer library access</li>
+        </ul>
+        <button class="btn btn-wide">Get the report <span class="arrow">→</span></button>
+      </div>
+      <div class="tier hi">
+        <div class="nm">Case report + drills</div>
+        <div class="amt">2,600<span style="font-size:18px;letter-spacing:0"> KGS</span></div>
+        <div class="sub">≈ $30 · one payment</div>
+        <ul>
+          <li>Everything in Case report</li>
+          <li>Unlimited voice drills with live follow-ups</li>
+          <li>Unexpected-question mode</li>
+          <li>Answer-length and hedging analysis after each drill</li>
+          <li>Readiness tracker up to your interview date</li>
+        </ul>
+        <button class="btn btn-wide">Get report + drills <span class="arrow">→</span></button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:26px">
+      <h4 style="margin-bottom:8px">Refunds</h4>
+      <p class="why">If you read the case report and it tells you nothing you didn't already know, write to us within seven days and we refund it. We'd rather have the feedback than the money.</p>
+    </div>
+    <p class="tiny" style="margin-top:18px">Email and a link is all we need. No account, no card stored.</p>
+  </div>
+</section>
+
+<!-- 07 CASE BUILDER -->
+<section class="screen" id="s7">
+  <div class="wrap pt pb">
+    <div class="grid2" style="grid-template-columns:1.5fr .9fr">
+      <div>
+        <p class="eyebrow">Weak point 03 of 03 · post-graduation plan</p>
+        <h2 style="margin-bottom:22px">Let's find your real answer</h2>
+
+        <div class="turn sys"><div class="who">Two·Four</div><p class="said">Your answer says you'll help your father's businesses, but it never says where you'll be. As written, an officer can read it as remote work from the US — and <em>return_intent</em> only gets asked when they're already unsure. I'm not going to hand you a replacement sentence. Where will you physically be, and what is the first thing you'd actually build?</p></div>
+
+        <div class="turn you"><div class="who">You</div><p class="said">In Bishkek. The farm has no yield tracking at all, everything is in notebooks. That's the first thing I'd build.</p></div>
+
+        <div class="turn sys"><div class="who">Two·Four</div><p class="said">That's the answer. It names a country, a business and a concrete first project, which is what separates a real tie from a slogan. Here it is against what you had.</p>
+          <div class="ba">
+            <div class="before"><div class="tag">What you wrote</div>After graduation I want to help my father in his businesses by digitalizing and optimizing them, integrating the AI in the business aspects.</div>
+            <div class="after"><div class="tag">Assembled from your facts</div>I'll return to Kyrgyzstan and work in my father's companies. The farm still runs on paper — no yield tracking at all — and that's the first system I want to build. That's the job my degree is for, and it's waiting for me.</div>
+          </div>
+          <p class="tiny" style="margin-top:10px">Say this only if it is your actual intention.</p>
+        </div>
+
+        <div class="turn refuse"><div class="who">If you ask us to invent something</div><p class="said">"I can't help you say something that isn't true. A false statement to a consular officer is material misrepresentation, and the bar it carries is permanent — much worse than a refusal you can reapply from. Tell me what is true and we'll work with that. Files that look weak to you are usually stronger than you think."</p></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:24px">
+          <button class="btn" data-go="s8">Drill this answer <span class="arrow">→</span></button>
+          <button class="btn btn-ghost">Download case summary</button>
+        </div>
+      </div>
+
+      <aside class="ledger">
+        <h4>Your facts · everything is built from this</h4>
+        <div class="fact"><span class="m">✓</span><span>Father: real estate, farming, stake in a bank</span></div>
+        <div class="fact"><span class="m">✓</span><span>$300,000 set aside, documented in bank statements</span></div>
+        <div class="fact"><span class="m">✓</span><span>Farm runs on paper — no yield tracking</span></div>
+        <div class="fact"><span class="m">✓</span><span>Returning to Bishkek after the degree</span></div>
+        <div class="fact"><span class="m">✓</span><span>BSc Computer Science, Stanford, first attempt</span></div>
+        <div class="fact"><span class="m">✓</span><span>School score 4.9 out of 5</span></div>
+        <p class="note">Nothing we write for you comes from anywhere but this list. Edit or delete anything inaccurate — if it's wrong here, it's wrong at the window.</p>
+        <button class="btn btn-ghost btn-wide btn-sm" style="margin-top:14px">Edit my facts</button>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- 08 DRILL -->
+<section class="screen" id="s8">
+  <div class="narrow pt pb">
+    <div class="topbar"><span class="tiny">DRILL 4 · TARGETING WEAK POINT 03</span><span class="timer"><i class="dot"></i>02:12</span></div>
+    <p class="q">So you'll just stay in America after your OPT, won't you?</p>
+    <p class="q-src">Follow-up · generated from your weak point, not from a fixed list</p>
+    <button class="mic"><span class="ring"><i></i></span><span>Answer now</span></button>
+
+    <div class="readout">
+      <div class="rrow"><span class="k">Length</span><span class="v">31 seconds <span class="tiny">· median in the corpus is 14</span></span></div>
+      <div class="rrow"><span class="k">Answered it</span><span class="v ok">Yes — clear no, with a reason</span></div>
+      <div class="rrow"><span class="k">Matched your file</span><span class="v bad">No — you mentioned a job offer that isn't in your facts</span></div>
+      <div class="rrow"><span class="k">Hedging</span><span class="v">7 hedges: "maybe", "I think", "probably"</span></div>
+      <div class="probe"><div class="k">An officer would go here next</div><div class="v">"Which company offered you that job?"</div></div>
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <h4 style="margin-bottom:8px">Unexpected-question mode</h4>
+      <p class="why">Pulls a question you haven't prepared, straight from the transcripts. Freezing is what students fear most and it's the one thing practice reliably fixes.</p>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px">Start a cold session</button>
+    </div>
+    <p class="tiny" style="margin-top:18px">Sessions are three minutes on purpose. Short and often beats one long rehearsal — and a long rehearsal is what makes you sound rehearsed.</p>
+  </div>
+</section>
+
+<!-- 09 LIBRARY -->
+<section class="screen" id="s9">
+  <div class="wrap pt pb">
+    <p class="eyebrow">Free · public · one page per question</p>
+    <h2 style="margin-bottom:10px">"Why this university?" — real answers</h2>
+    <p class="lede" style="margin-bottom:26px">2,339 posts recorded this question. Approval when it was asked: 79.7%, which is 7.5 points below the corpus-wide share. Here are answers as they were reported, with the outcome the poster stated.</p>
+
+    <div class="lib">
+      <div class="lib-h"><span class="pill r">Refused</span><span class="tiny">Chennai · Bachelor's · 2024 · id 4eb21ba584ce</span></div>
+      <div class="lib-b">It is ranked number two in the world and has the best professors in my field.</div>
+      <div class="lib-f">The officer's next question was "So why not other uni?" — a ranking answer has no defence against that, because every top school shares the same claim.</div>
+    </div>
+
+    <div class="lib">
+      <div class="lib-h"><span class="pill a">Approved</span><span class="tiny">New Delhi · Masters · 2025 · id b2448163604f</span></div>
+      <div class="lib-b">Their data-systems track has a distributed databases sequence I want, and two of the faculty publish in the area I worked in at my last job.</div>
+      <div class="lib-f">Names a course sequence and a link to the applicant's own history. Nothing here is transferable to another school, which is exactly why it reads as true.</div>
+    </div>
+
+    <div class="lib">
+      <div class="lib-h"><span class="pill r">Refused</span><span class="tiny">Mumbai · Bachelor's · 2023 · id 49519e252487</span></div>
+      <div class="lib-b">My consultant recommended it and the fees were affordable compared to others.</div>
+      <div class="lib-f">Two problems in one sentence: the decision belongs to somebody else, and cost as the reason invites the funding probe immediately.</div>
+    </div>
+
+    <div class="card" style="margin-top:26px">
+      <h4 style="margin-bottom:8px">What separates the two groups</h4>
+      <p class="why">Approved answers in this set almost always name something that exists only at that university — a named course, a lab, a professor's work. Refused answers name something true of any good university — rank, reputation, facilities. That's the whole difference, and it costs you an hour with the course catalogue.</p>
+    </div>
+
+    <p class="tiny" style="margin-top:22px">More: Who is funding you · What will you do after graduation · How many universities did you apply to · Why the USA · Have you taken a loan</p>
+  </div>
+</section>
+
+<!-- 10 READINESS -->
+<section class="screen" id="s10">
+  <div class="wrap pt pb">
+    <div class="grid2">
+      <div>
+        <p class="eyebrow">Your interview · 11 September, Chennai</p>
+        <div class="counter">17</div>
+        <p class="tiny" style="margin-top:8px">DAYS TO GO</p>
+        <div style="margin-top:26px">
+          <p class="tiny">READINESS</p>
+          <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <p class="why" style="margin-top:8px">Moderate. Two weak points closed, one open. Your funding answer is now your strongest; your university answer is still the weakest of the three.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:6px">What's left</h3>
+        <div class="task"><span class="st done">Closed</span><span class="nm">Post-graduation plan — location and first project named</span></div>
+        <div class="task"><span class="st done">Closed</span><span class="nm">Sponsor answer — income figure and one number per business</span></div>
+        <div class="task"><span class="st open">Open</span><span class="nm">University answer — still resting on the ranking</span></div>
+        <div class="task"><span class="st open">Open</span><span class="nm">Name three first-year CS courses from the catalogue</span></div>
+        <div class="task"><span class="st done">Closed</span><span class="nm">6 voice drills completed · last one 2 days ago</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">
+          <button class="btn" data-go="s7">Close the last weak point <span class="arrow">→</span></button>
+          <button class="btn btn-ghost" data-go="s8">Drill</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 REPORT BACK -->
+<section class="screen" id="s11">
+  <div class="narrow pt pb">
+    <p class="eyebrow">Sent by email the day after your interview</p>
+    <h2 style="margin-bottom:12px">How did it go?</h2>
+    <p class="lede" style="margin-bottom:26px">Two minutes. Every answer here goes into the dataset the next student reads — which is the only reason this tool knows anything at all.</p>
+
+    <div class="doc">
+      <div class="field"><label>Outcome</label>
+        <div class="chip-row">
+          <button class="chip" aria-pressed="true">Approved</button>
+          <button class="chip" aria-pressed="false">Refused (214b)</button>
+          <button class="chip" aria-pressed="false">221(g) — pending</button>
+          <button class="chip" aria-pressed="false">Not stated yet</button>
+        </div>
+      </div>
+      <div class="field"><label for="c1">What were you asked? As close to word for word as you remember</label><textarea id="c1" placeholder="Officer: Who is funding you?&#10;Me: …&#10;Officer: …"></textarea></div>
+      <div class="pair">
+        <div class="field"><label for="c2">How long did it last</label><input class="in" id="c2" placeholder="e.g. 3 minutes"></div>
+        <div class="field"><label for="c3">Anything you weren't ready for</label><input class="in" id="c3" placeholder="One line is fine"></div>
+      </div>
+      <button class="btn btn-wide">Submit — and take a free retest</button>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h4 style="margin-bottom:8px">What we do with it</h4>
+      <p class="why">Your write-up is anonymised, parsed question by question, and added to the corpus. It's what lets us tell the next Bachelor's applicant at your consulate where officers actually pushed. You can ask us to delete it at any time.</p>
+    </div>
+    <p class="tiny" style="margin-top:16px">Corpus today: 16,204 · added this month: 214</p>
+  </div>
+</section>
+
+<script>
+(function(){
+  var tabs=[].slice.call(document.querySelectorAll('.proto-tab'));
+  function show(id){
+    document.querySelectorAll('.screen').forEach(function(s){s.classList.toggle('is-on',s.id===id)});
+    tabs.forEach(function(t){t.setAttribute('aria-selected',String(t.dataset.t===id))});
+    window.scrollTo(0,0);
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.dataset.t)})});
+  document.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();show(b.dataset.go)})});
+  document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){c.setAttribute('aria-pressed',c.getAttribute('aria-pressed')==='false')})});
+  document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('.lang button').forEach(function(x){x.setAttribute('aria-pressed','false')});b.setAttribute('aria-pressed','true');})});
+})();
+</script>
+</body>
+</html>

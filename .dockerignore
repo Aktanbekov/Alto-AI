@@ -63,3 +63,8 @@ frontend/ios/
 **/*.xcworkspace
 **/Podfile
 **/*.plist
+
+# Raw corpus dumps (76MB). Input to the visa-llm pipeline, never read at
+# runtime by either service - it only slows every build context down.
+raw_data/
+visa-llm/raw_data/

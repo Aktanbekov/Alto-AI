@@ -9,9 +9,56 @@ import (
 	"altoai_mvp/internal/visallm"
 	"fmt"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+// Extensions the SPA never serves a page for. A request for one of these that
+// reached the fallback is a genuine miss - a stale asset hash, a bad link, a
+// scanner - and deserves a 404 rather than a 200 that says "this page exists".
+var assetExtensions = map[string]bool{
+	".js": true, ".mjs": true, ".css": true, ".map": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".svg": true,
+	".webp": true, ".avif": true, ".ico": true,
+	".woff": true, ".woff2": true, ".ttf": true, ".otf": true, ".eot": true,
+	".json": true, ".txt": true, ".xml": true, ".webmanifest": true,
+	".pdf": true, ".zip": true, ".gz": true, ".mp4": true, ".webm": true,
+}
+
+func looksLikeAsset(p string) bool {
+	return assetExtensions[strings.ToLower(path.Ext(p))]
+}
+
+// routeShell returns the pre-rendered HTML file for a route, or "" when there
+// isn't one and the generic shell should be served instead.
+//
+// The path is cleaned and confined to dist before it touches the filesystem:
+// it arrives from the request line, so ".." in it must not be able to walk out
+// of the served directory.
+func routeShell(urlPath string) string {
+	const dist = "./frontend/dist"
+	clean := path.Clean("/" + strings.Trim(urlPath, "/"))
+	if clean == "/" || strings.Contains(clean, "..") {
+		return ""
+	}
+	candidate := filepath.Join(dist, filepath.FromSlash(clean), "index.html")
+	root, err := filepath.Abs(dist)
+	if err != nil {
+		return ""
+	}
+	abs, err := filepath.Abs(candidate)
+	if err != nil || !strings.HasPrefix(abs, root+string(os.PathSeparator)) {
+		return ""
+	}
+	if info, err := os.Stat(abs); err != nil || info.IsDir() {
+		return ""
+	}
+	return candidate
+}
 
 func New() (*gin.Engine, error) {
 	gin.SetMode(gin.ReleaseMode)
@@ -54,6 +101,13 @@ func New() (*gin.Engine, error) {
 	}
 	validationRepo := repository.NewValidationRepo(dbProvider.DB())
 
+	// Named tracking links for the admin panel. Only the label and destination
+	// live here; the traffic itself is read back out of the event stream by src.
+	if err := repository.EnsureReferralSchema(dbProvider.DB()); err != nil {
+		return nil, fmt.Errorf("failed to initialize referral link storage: %v", err)
+	}
+	referralRepo := repository.NewReferralRepo(dbProvider.DB())
+
 	userSvc := services.NewUserService(userRepo)
 	authSvc := services.NewAuthService(userRepo)
 	userH := handlers.NewUserHandler(userSvc)
@@ -68,6 +122,7 @@ func New() (*gin.Engine, error) {
 	accessH := handlers.NewAccessHandler(evalRepo, validationRepo, userSvc, analyticsRepo)
 	analyticsH := handlers.NewAnalyticsHandler(analyticsRepo, userSvc)
 	adminAnalyticsH := handlers.NewAdminAnalyticsHandler(analyticsRepo, evalRepo)
+	adminLinksH := handlers.NewAdminLinksHandler(referralRepo, analyticsRepo)
 	statsH := handlers.NewStatsHandler()
 	questionsH := handlers.NewQuestionsHandler()
 
@@ -84,19 +139,48 @@ func New() (*gin.Engine, error) {
 	r.StaticFile("/logo.svg", "./frontend/dist/logo.svg")
 	r.StaticFile("/logo.png", "./frontend/dist/logo.png")
 
+	// Crawler files, registered as real routes.
+	//
+	// Without these the SPA fallback below answers /robots.txt with index.html
+	// and a text/html content type, which is not a robots file at all: there is
+	// then nowhere to declare the sitemap or to state a policy for the answer
+	// engines that students actually ask.
+	r.StaticFile("/robots.txt", "./frontend/dist/robots.txt")
+	r.StaticFile("/sitemap.xml", "./frontend/dist/sitemap.xml")
+	// The link-preview card. Registered explicitly so a scraper never receives
+	// HTML where it asked for an image.
+	r.StaticFile("/og-image.png", "./frontend/dist/og-image.png")
+
 	// AUTH - Google (must be registered before NoRoute so /auth/google is never caught by SPA fallback)
 	r.GET("/auth/google", auth.HandleGoogleLogin)
 	r.GET("/auth/google/callback", auth.HandleGoogleCallback)
 
-	// Serve index.html for all non-API routes (React Router)
+	// Serve index.html for all non-API routes (React Router).
+	//
+	// The SPA owns its own routing, so an unknown page path has to reach the
+	// browser as index.html rather than a 404. A path that looks like a *file*
+	// is different: nothing in the app routes to one, and answering those with
+	// HTML makes every mistyped asset URL look like a real page.
 	r.NoRoute(func(c *gin.Context) {
 		path := c.Request.URL.Path
-		if len(path) >= 4 && path[:4] == "/api" {
-			c.JSON(404, gin.H{"error": "Not found"})
+		// strings.HasPrefix, because the old length-indexed comparison could
+		// never match: it sliced "/.well-known" to 11 bytes and compared it
+		// against the full 12-byte literal.
+		if strings.HasPrefix(path, "/api") || strings.HasPrefix(path, "/.well-known") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
 			return
 		}
-		if len(path) >= 11 && path[:11] == "/.well-known" {
-			c.JSON(404, gin.H{"error": "Not found"})
+		if looksLikeAsset(path) {
+			c.String(http.StatusNotFound, "Not found")
+			return
+		}
+		// The SEO build emits one static HTML file per public route, each with
+		// its own title, description, canonical and Open Graph tags. Serve that
+		// when it exists: a crawler or a link scraper that does not run
+		// JavaScript would otherwise get the homepage's tags on every URL,
+		// which is the whole reason those files are generated.
+		if page := routeShell(path); page != "" {
+			c.File(page)
 			return
 		}
 		c.File("./frontend/dist/index.html")
@@ -200,12 +284,23 @@ func New() (*gin.Engine, error) {
 			admin.GET("/analytics/coverage", adminAnalyticsH.CoverageGaps)
 			admin.GET("/analytics/feedback", adminAnalyticsH.Feedback)
 			admin.GET("/analytics/corpus-growth", adminAnalyticsH.CorpusGrowth)
+
+			// Tracking links. GET carries the numbers as well as the rows, so
+			// the screen is one request rather than a list plus a stats call.
+			admin.GET("/links", adminLinksH.List)
+			admin.POST("/links", adminLinksH.Create)
+			admin.PUT("/links/:code", adminLinksH.Update)
+			admin.POST("/links/:code/archive", adminLinksH.Archive)
+			admin.DELETE("/links/:code", adminLinksH.Delete)
 			admin.GET("/users", adminH.ListUsers)
 			admin.GET("/users/:id", adminH.GetUser)
 			admin.DELETE("/users/:id", adminH.DeleteUser)
 			admin.POST("/users/:id/verify", adminH.VerifyUser)
 			admin.GET("/interviews", adminH.ListSessions)
 			admin.GET("/interviews/:id", adminH.GetSession)
+			// Scores one profile with every comparison model at once. Admin
+			// only: it spends three model calls on three vendors per press.
+			admin.POST("/evaluate-compare", evaluateH.Compare)
 			admin.GET("/questions", adminH.ListQuestions)
 			admin.PUT("/questions", adminH.UpdateQuestions)
 		}

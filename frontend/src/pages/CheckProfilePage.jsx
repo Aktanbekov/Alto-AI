@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { getEvaluateStatus, evaluateProfile, getMe, getQuestionBank, getAccess } from "../api";
+import {
+  getEvaluateStatus, evaluateProfile, getMe, getQuestionBank, getAccess,
+  getAdminMe, compareModels,
+} from "../api";
+import { TEST_PROFILE, testAnswerFor } from "../data/testProfile";
+import ModelCompare from "../components/admin/ModelCompare";
 import { track, trackScrollDepth, gpaBandOf } from "../analytics";
 import FeedbackRating from "../components/validation/FeedbackRating";
 import FeedbackCard from "../components/validation/FeedbackCard";
@@ -10,17 +15,17 @@ import SurveyFlow from "../components/validation/SurveyFlow";
  * The profile evaluator, ported from visa-llm's own Evaluate view.
  *
  * It posts to /api/v1/evaluate, which proxies the visa-llm sidecar, so the
- * scoring is the same grounded evaluator — every claim comes from retrieved
+ * scoring is the same grounded evaluator - every claim comes from retrieved
  * interviews and precomputed corpus statistics, not model priors.
  */
 
 // Questions come three at a time from the corpus bank, walked in order of how
-// often officers ask each type. The applicant does not choose them — the point
+// often officers ask each type. The applicant does not choose them - the point
 // of the test is to face what actually gets asked, not what you have an answer
 // for ready.
 const PER_ROUND = 3;
 
-// Used when the corpus bank cannot be fetched — an old server without the
+// Used when the corpus bank cannot be fetched - an old server without the
 // /questions route, a missing data file, a network blip. Four rounds of the
 // questions that come up most often, so the test still works end to end
 // instead of dead-ending after one round with no way forward. Typed like bank
@@ -44,7 +49,7 @@ const FALLBACK_QUESTIONS = [
  * The corpus splits questions finer than an applicant hears them. "Who is
  * sponsoring you?" and "How are you going to fund the education?" are two
  * types by frequency and one question by ear, and they sit next to each other
- * at the top of the bank — so a round taken straight off the top asks the same
+ * at the top of the bank - so a round taken straight off the top asks the same
  * thing twice and wastes a third of the test.
  *
  * Grouping the types into topics lets a round hold three topics rather than
@@ -89,7 +94,7 @@ const topicOf = (entry) => {
 // otherwise keeping the frequency order the bank arrives in: at every slot,
 // take the most-asked question whose topic this round has not used yet. The
 // skipped ones are not dropped, they fall to the next round that has room for
-// their topic. When only one topic is left, order stands — a late repeat beats
+// their topic. When only one topic is left, order stands - a late repeat beats
 // losing the question.
 function spreadTopics(entries, size) {
   const remaining = [...entries];
@@ -150,7 +155,7 @@ const EMPTY = {
 
 /*
  * The gate falls in the middle of the flow. A guest finishes their free round,
- * asks for the next three questions, and is sent to sign up — so coming back
+ * asks for the next three questions, and is sent to sign up - so coming back
  * has to hand them the round they asked for, with the eleven profile fields
  * they already typed still filled in. Without this the round-trip drops them
  * on question one of a blank form, which reads as the sign-up having eaten
@@ -169,7 +174,7 @@ function readResume() {
     if (!Number.isInteger(round) || round < 0) return null;
     return { round, profile: { ...EMPTY, ...(saved.profile || {}) } };
   } catch {
-    // Private browsing, a disabled store, a half-written value — none of it is
+    // Private browsing, a disabled store, a half-written value - none of it is
     // worth failing the page over. Start fresh.
     return null;
   }
@@ -201,7 +206,7 @@ export default function CheckProfilePage() {
 
   /*
    * How many sets are left, which short prompt is due, and whether the survey
-   * and waitlist are behind them — all from the server, never inferred here.
+   * and waitlist are behind them - all from the server, never inferred here.
    *
    * The page could guess most of it from `round`, and would be wrong the moment
    * someone opens a second tab, signs in, or comes back tomorrow. "Have I
@@ -216,13 +221,21 @@ export default function CheckProfilePage() {
    * The prompt currently on screen, latched.
    *
    * The server stops naming a prompt the moment it is answered, which is right
-   * for deciding whether to ask — but the card has a thank-you to show, and
+   * for deciding whether to ask - but the card has a thank-you to show, and
    * rendering straight off the server state swapped it away in the same frame
    * it appeared. So the page holds on to the prompt it is showing until the
    * next round, and lets the card run its own course.
    */
   const [activePrompt, setActivePrompt] = useState("");
   const [promptDone, setPromptDone] = useState(false);
+
+  // Admins get a button that fills the form with a sample applicant, because
+  // testing a scoring change means retyping eleven fields and three answers
+  // otherwise. Everyone else never learns it exists.
+  const [isAdmin, setIsAdmin] = useState(false);
+  // Set while a three-model run is in flight, then holds its rows.
+  const [comparing, setComparing] = useState(false);
+  const [comparison, setComparison] = useState(null);
 
   useEffect(() => {
     getEvaluateStatus()
@@ -234,7 +247,7 @@ export default function CheckProfilePage() {
   }, []);
 
   // The bank is a static corpus file, so one fetch covers every round. On
-  // failure the fallback pool already in state stands in — the rounds keep
+  // failure the fallback pool already in state stands in - the rounds keep
   // working, they are just shorter and carry no asked-in percentages.
   useEffect(() => {
     let cancelled = false;
@@ -244,7 +257,7 @@ export default function CheckProfilePage() {
         const spread = spreadTopics(entries, PER_ROUND);
         setPool(spread);
         // A resumed round is only meaningful against the real bank, and the
-        // fallback pool is shorter — so the round is settled here, once the
+        // fallback pool is shorter - so the round is settled here, once the
         // real one has arrived, and clamped if it points past the end.
         const start = (resume.current?.round || 0) * PER_ROUND;
         const from = start < spread.length ? start : 0;
@@ -255,15 +268,15 @@ export default function CheckProfilePage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Keep the sitting's progress current, so a gate at any point — this round
-  // or the next — comes back to where the person actually was.
+  // Keep the sitting's progress current, so a gate at any point - this round
+  // or the next - comes back to where the person actually was.
   useEffect(() => { saveResume({ round, profile }); }, [round, profile]);
 
   /*
    * Start where the server says they left off.
    *
    * The round counter is local and starts at zero, but someone coming back
-   * tomorrow — or after unlocking — has sets behind them that this page knows
+   * tomorrow - or after unlocking - has sets behind them that this page knows
    * nothing about. Without this they are handed questions they have already
    * answered, and the sets they paid a survey for go on the same three.
    *
@@ -283,6 +296,16 @@ export default function CheckProfilePage() {
     setRound(start);
     setAnswers(roundQuestions(pool, start));
   }, [access, pool, result]);
+
+  // getAdminMe answers {is_admin:false} rather than throwing for everyone else,
+  // so this is safe to call on every visit, signed in or not.
+  useEffect(() => {
+    let cancelled = false;
+    getAdminMe()
+      .then((res) => { if (!cancelled) setIsAdmin(!!res?.is_admin); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Prefill from the signed-in account so people do not retype what we know.
   useEffect(() => {
@@ -316,6 +339,29 @@ export default function CheckProfilePage() {
   const setAnswer = (i) => (e) => {
     markStarted();
     setAnswers((a) => a.map((row, idx) => (idx === i ? { ...row, answer: e.target.value } : row)));
+  };
+
+  /*
+   * Admin only: fill the whole form with a sample applicant.
+   *
+   * Answers are looked up by the corpus question_type rather than by position,
+   * so this still produces sensible text on round four - the three questions on
+   * screen change every round. Unknown types get the generic answer instead of
+   * being left blank, which would fail the "answer at least one" check in a
+   * confusing way.
+   *
+   * markStarted() is called deliberately. The fill is not a real form start,
+   * but submitting afterwards fires form_complete regardless, and a funnel with
+   * more completions than starts is harder to read than one extra test row.
+   *
+   * It fills only - it does not submit. Scoring costs a set and a model call,
+   * and that stays an explicit click.
+   */
+  const fillWithTestData = () => {
+    markStarted();
+    setProfile({ ...EMPTY, ...TEST_PROFILE });
+    setAnswers((a) => a.map((row) => ({ ...row, answer: testAnswerFor(row.question_type) })));
+    setError("");
   };
 
   const roundStartedAt = useRef(Date.now());
@@ -354,6 +400,42 @@ export default function CheckProfilePage() {
 
   const showPrior = POSTGRAD.has(profile.degree_level);
 
+  /*
+   * Admin only: score this round with all three models at once.
+   *
+   * Separate from submit() rather than a flag on it, because almost none of
+   * what submit does applies here - no analytics funnel (this is not someone
+   * taking the test), no set accounting (the server spends none), no resume
+   * state. What it shares is the payload, built the same way so the comparison
+   * measures the request students actually send.
+   */
+  const runComparison = async () => {
+    const planned = answers
+      .map((a) => ({ question: a.question.trim(), answer: a.answer.trim() }))
+      .filter((a) => a.question && a.answer);
+    if (!planned.length) {
+      setError("Fill in at least one answer before comparing models.");
+      return;
+    }
+    setError("");
+    setComparing(true);
+    try {
+      const res = await compareModels({
+        ...profile,
+        major: showPrior ? profile.major.trim() : "",
+        attempt_number: Number(profile.attempt_number) || 1,
+        planned_answers: planned,
+      });
+      setComparison(res.results || []);
+      scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setComparing(false);
+    }
+  };
+
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
@@ -374,14 +456,14 @@ export default function CheckProfilePage() {
     // A bare number is unusable: 3.5 is strong out of 4 and weak out of 10.
     if (profile.gpa.trim() && !profile.gpa_scale) {
       setError(
-        "Pick your grading scale. A GPA on its own is ambiguous — 3.5 out of 4 is strong, " +
+        "Pick your grading scale. A GPA on its own is ambiguous - 3.5 out of 4 is strong, " +
         "3.5 out of 10 is not. Choose the scale your institution uses, or clear the GPA field."
       );
       return;
     }
 
     // One question_answered per answer, with how long and how much they wrote.
-    // char_count is a length, not the text — the answer itself never leaves for
+    // char_count is a length, not the text - the answer itself never leaves for
     // analytics; it goes to the evaluations table with the report.
     const elapsed = Math.round((Date.now() - roundStartedAt.current) / 1000);
     answers.forEach((a, i) => {
@@ -422,7 +504,7 @@ export default function CheckProfilePage() {
       refreshAccess();
     } catch (err) {
       if (err.code === "sets_exhausted") {
-        // Not an error to apologise for — it is the access screen's cue.
+        // Not an error to apologise for - it is the access screen's cue.
         refreshAccess();
         return;
       }
@@ -445,7 +527,7 @@ export default function CheckProfilePage() {
   const thinComparables = country && country !== "india";
 
   // Out of sets, by the server's count. Until the first access call lands we
-  // assume they have sets — the form is the right thing to show while we do not
+  // assume they have sets - the form is the right thing to show while we do not
   // know, and the submit itself is still enforced server-side.
   const outOfSets = !!access && access.sets_remaining <= 0;
   const prompt = access?.next_prompt || "";
@@ -532,7 +614,7 @@ export default function CheckProfilePage() {
             <strong>Limited comparables for your country.</strong> Most interviews in this
             dataset are from Indian consulates, and their GPAs are on a 10-point scale.
             Your answers are still evaluated, but the statistics and retrieved examples
-            come mainly from Indian applicants — weigh them accordingly.
+            come mainly from Indian applicants - weigh them accordingly.
           </div>
         )}
 
@@ -541,6 +623,12 @@ export default function CheckProfilePage() {
             onUnlocked={(next) => { if (next) setAccess(next); else refreshAccess(); }}
             onContinue={() => { setShowSurvey(false); setResult(null); nextRound(); }}
             onCancel={() => setShowSurvey(false)}
+          />
+        ) : comparison ? (
+          <ModelCompare
+            results={comparison}
+            renderReport={(ev) => <Evaluation ev={ev} round={round} />}
+            onBack={() => setComparison(null)}
           />
         ) : result ? (
           <Evaluation ev={result} round={round} footer={afterReport} />
@@ -552,10 +640,33 @@ export default function CheckProfilePage() {
           />
         ) : (
         <form onSubmit={submit}>
+          {/* type="button" matters: inside a form, a bare button submits. */}
+          {isAdmin && (
+            <div className="ev-devbar">
+              <span className="ev-devbar-tag">Admin</span>
+              <button type="button" className="ev-devfill" onClick={fillWithTestData}>
+                Fill with test data
+              </button>
+              <button
+                type="button"
+                className="ev-devfill"
+                onClick={runComparison}
+                disabled={comparing}
+              >
+                {comparing ? "Scoring with all three…" : "Compare 3 models"}
+              </button>
+              <span className="ev-devbar-note">
+                Fill drops in a sample applicant. Compare scores this round with
+                Opus, DeepSeek and o3-mini at once &mdash; three model calls, no
+                practice set spent, nothing stored.
+              </span>
+            </div>
+          )}
+
           <div className="vz-card">
             <h2>Your profile</h2>
             <p className="sub">
-              Use your real details — the tool is built to help you say true things clearly.
+              Use your real details - the tool is built to help you say true things clearly.
               <em> Course</em> is the program you are going to study.
             </p>
 
@@ -603,7 +714,7 @@ export default function CheckProfilePage() {
           <div className="vz-card">
             <h2>Your answers</h2>
             <p className="sub">
-              Round {round + 1} · questions {round * PER_ROUND + 1}–
+              Round {round + 1} · questions {round * PER_ROUND + 1}-
               {round * PER_ROUND + answers.length} of {pool.length}. These are the
               questions officers ask most often, most-asked first, with each round
               spread across different topics. Say what you would really say.
@@ -648,7 +759,7 @@ const tone = (v) => (v === "strong" ? "ok" : v === "weak" || v === "needs_work" 
 
 /*
  * The evaluator cites its sources the way the corpus stores them: opaque
- * interview ids and raw sample counts. Both are bookkeeping — a reader cannot
+ * interview ids and raw sample counts. Both are bookkeeping - a reader cannot
  * look up "b2448163604f", and "n=4,499" says nothing the percentage beside it
  * does not. Strip them on the way to the page and keep every percentage.
  *
@@ -686,13 +797,20 @@ function scrub(text) {
   // "In record <id>" leaves a stray "record" once the id is a phrase.
   t = t.replace(rx("\\b(?:record|post|interview)s?\\s+(one|two|three) comparable"), "$1 comparable");
 
-  // The tag the model attaches to a cited interview — "(Mumbai, bachelor's,
+  // The tag the model attaches to a cited interview - "(Mumbai, bachelor's,
   // second attempt, approved)". It is filing metadata, not something a reader
   // needs, and it is the densest part of the sentence.
   t = t.replace(rx("(comparable interviews?)\\s*\\([^()]*\\)"), "$1");
 
   // Internal question-type keys read as code. "why_university" -> "why university".
   t = t.replace(rx("\\b[a-z]{2,}(?:_[a-z]{2,}){1,3}\\b"), (m) => m.replace(/_/g, " "));
+
+  // The corpus's source platform. The site names the data as public student
+  // write-ups; the model sometimes names the platform instead.
+  t = t.replace(/\bposted (?:to|on|in) Telegram\b/gi, "posted publicly online");
+  t = t.replace(/\bTelegram (channels?|groups?|chats?|posts?|reviews?)\b/gi, "online $1");
+  t = t.replace(/\bfrom Telegram\b/gi, "from public posts");
+  t = t.replace(/\bTelegram\b/gi, "online");
 
   t = t.replace(rx("\\(\\s*\\)"), "");
   t = t.replace(rx("\\s+([,.;:%)])"), "$1");
@@ -763,7 +881,7 @@ function Evaluation({ ev, round, footer }) {
 
       <div className="caveat">{scrub(ev.caveat)}</div>
 
-      {/* Whatever comes next — a feedback prompt, the access screen, or the
+      {/* Whatever comes next - a feedback prompt, the access screen, or the
           button for the next three questions. The report above is rendered and
           complete before any of it, which is the one rule this flow has. */}
       {footer}

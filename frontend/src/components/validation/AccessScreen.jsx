@@ -8,7 +8,7 @@ import WaitlistCard from "./WaitlistCard";
  * Two ways forward, and the survey is not a purchase: it buys three more sets
  * with two minutes of answers, and the copy says so plainly rather than dressing
  * it as a subscription. Once the survey is behind them the primary slot becomes
- * a receipt and the waitlist is all that is left — the screen never offers a
+ * a receipt and the waitlist is all that is left - the screen never offers a
  * second unlock it cannot grant.
  */
 export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }) {
@@ -24,7 +24,7 @@ export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }
   return (
     <div className="ev-result">
       <div className="vz-card vac">
-        <h2>Continue practicing with Alto Visas</h2>
+        <h2>Continue practicing with Altovisas</h2>
         <p className="sub">
           {done
             ? "You have used all of your interview sets."
@@ -33,7 +33,7 @@ export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }
 
         {done ? (
           <p className="vac-receipt" role="status">
-            ✓ Survey completed — thank you. Those three extra sets have been used.
+            ✓ Survey completed - thank you. Those three extra sets have been used.
           </p>
         ) : (
           <div className="vac-primary">

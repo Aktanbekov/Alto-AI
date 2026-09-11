@@ -16,7 +16,11 @@ import (
 
 type AuthService interface {
 	Login(ctx context.Context, dto models.LoginDTO) (string, string, *models.User, error) // accessToken, refreshToken, user, error
-	Register(ctx context.Context, dto models.CreateUserDTO) error
+	// Register reports whether the verification email actually went out. A
+	// false with a nil error means the account exists but no code was
+	// delivered, and the caller has to say so rather than sending the user to
+	// a code screen that will never be satisfied.
+	Register(ctx context.Context, dto models.CreateUserDTO) (bool, error)
 	VerifyEmail(ctx context.Context, dto models.VerifyEmailDTO) (string, string, *models.User, error) // accessToken, refreshToken, user, error
 	ResendVerificationCode(ctx context.Context, dto models.ResendVerificationDTO) error
 	ForgotPassword(ctx context.Context, dto models.ForgotPasswordDTO) error
@@ -59,7 +63,7 @@ func (s *authService) generateAccessToken(user models.User) (string, error) {
 	if expiryStr == "" {
 		expiryStr = "30m"
 	}
-	
+
 	var expiry time.Duration
 	if expiryStr[len(expiryStr)-1] == 'm' {
 		minutes := 30
@@ -96,7 +100,7 @@ func (s *authService) generateRefreshToken(user models.User) (string, error) {
 	if expiryStr == "" {
 		expiryStr = "720h" // 30 days
 	}
-	
+
 	var expiry time.Duration
 	if expiryStr[len(expiryStr)-1] == 'h' {
 		hours := 720
@@ -160,55 +164,68 @@ func (s *authService) Login(ctx context.Context, dto models.LoginDTO) (string, s
 	return accessToken, refreshToken, &user, nil
 }
 
-func (s *authService) Register(ctx context.Context, dto models.CreateUserDTO) error {
+func (s *authService) Register(ctx context.Context, dto models.CreateUserDTO) (bool, error) {
 	// Password is required for registration
 	if dto.Password == "" {
-		return errors.New("password is required")
-	}
-
-	// Check if user already exists
-	_, err := s.userRepo.GetByEmail(dto.Email)
-	if err == nil {
-		return errors.New("user with this email already exists")
-	}
-	if err != repository.ErrNotFound {
-		return err
+		return false, errors.New("password is required")
 	}
 
 	// Hash password
 	passwordHash, err := s.hashPassword(dto.Password)
 	if err != nil {
-		return err
+		return false, err
+	}
+
+	existing, err := s.userRepo.GetByEmail(dto.Email)
+	switch {
+	case err == nil && existing.EmailVerified:
+		// A finished account, whether it was created here or through Google.
+		// Overwriting its password from an unauthenticated request would be an
+		// account takeover, so this stays a hard failure.
+		return false, errors.New("user with this email already exists")
+	case err == nil:
+		// The account exists but was never verified, so nobody has proven they
+		// own the address yet. Signing up again is how people retry after a
+		// code that never arrived; refusing here strands them permanently.
+		if err := s.userRepo.SetPassword(existing.Email, passwordHash); err != nil {
+			return false, err
+		}
+		return s.issueVerificationCode(existing.Email, dto.Name)
+	case err != repository.ErrNotFound:
+		return false, err
 	}
 
 	// Create user
 	user, err := s.userRepo.Create(dto.Email, dto.Name, passwordHash)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	// Generate verification code
+	return s.issueVerificationCode(user.Email, user.Name)
+}
+
+// issueVerificationCode stores a fresh code and tries to mail it. A delivery
+// failure is not fatal - the account is usable once the code reaches the user
+// some other way - but it is reported, so the UI can say what happened.
+func (s *authService) issueVerificationCode(email, name string) (bool, error) {
 	code, err := s.emailSvc.GenerateCode()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Set verification code (expires in 15 minutes) - use UTC
 	expiresAt := time.Now().UTC().Add(15 * time.Minute)
-	if err := s.userRepo.SetVerificationCode(user.Email, code, expiresAt); err != nil {
-		return err
+	if err := s.userRepo.SetVerificationCode(email, code, expiresAt); err != nil {
+		return false, err
 	}
 
-	// Send verification email (non-blocking - don't fail registration if email fails)
-	// User is created successfully and can verify using resend verification code later
-	if err := s.emailSvc.SendVerificationCode(user.Email, user.Name, code); err != nil {
-		// Log the error but don't fail registration
-		// The user is created and can verify their email later using resend verification
-		fmt.Printf("[WARNING] Failed to send verification email to %s: %v\n", user.Email, err)
-		fmt.Printf("[INFO] Verification code for %s: %s (expires in 15 minutes)\n", user.Email, code)
+	if err := s.emailSvc.SendVerificationCode(email, name, code); err != nil {
+		fmt.Printf("[WARNING] Failed to send verification email to %s: %v\n", email, err)
+		fmt.Printf("[INFO] Verification code for %s: %s (expires in 15 minutes)\n", email, code)
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }
 
 func (s *authService) VerifyEmail(ctx context.Context, dto models.VerifyEmailDTO) (string, string, *models.User, error) {
@@ -267,6 +284,9 @@ func (s *authService) ResendVerificationCode(ctx context.Context, dto models.Res
 
 	// Send verification email
 	if err := s.emailSvc.SendVerificationCode(user.Email, user.Name, code); err != nil {
+		if errors.Is(err, ErrEmailNotConfigured) {
+			return ErrEmailNotConfigured
+		}
 		return errors.New("failed to send verification email")
 	}
 
@@ -298,6 +318,9 @@ func (s *authService) ForgotPassword(ctx context.Context, dto models.ForgotPassw
 
 	// Send reset email
 	if err := s.emailSvc.SendPasswordResetCode(user.Email, user.Name, code); err != nil {
+		if errors.Is(err, ErrEmailNotConfigured) {
+			return ErrEmailNotConfigured
+		}
 		return errors.New("failed to send reset email")
 	}
 

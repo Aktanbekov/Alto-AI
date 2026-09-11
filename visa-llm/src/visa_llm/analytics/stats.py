@@ -264,7 +264,7 @@ def compute(df: pd.DataFrame) -> dict[str, Any]:
                 int(prepared.year.max()) if prepared.year.notna().any() else None,
             ],
             "caveat": (
-                "Self-selected, self-reported Telegram reviews. Approval shares "
+                "Self-selected, self-reported reviews posted publicly online. Approval shares "
                 "describe who chooses to post, not the true consular base rate. "
                 "Associations are correlational, not causal."
             ),

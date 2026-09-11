@@ -9,6 +9,11 @@ dependencies = [
     "duckdb>=1.1",
     "pydantic>=2.9",
     "anthropic>=1.0",
+    # The comparison providers (DeepSeek, OpenAI) both speak the OpenAI wire
+    # protocol, so one SDK covers both. A core dependency rather than an extra:
+    # evaluator.providers is imported on every evaluation path, and an image
+    # built without this crashes the moment a non-Anthropic model is selected.
+    "openai>=1.40",
     "typer>=0.15",
     "rich>=13",
     "pyyaml>=6",

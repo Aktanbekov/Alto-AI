@@ -13,6 +13,7 @@ import AdminInterviews from "../components/admin/AdminInterviews";
 import AdminQuestions from "../components/admin/AdminQuestions";
 import AdminEvaluator from "../components/admin/AdminEvaluator";
 import AdminAnalytics from "../components/admin/AdminAnalytics";
+import AdminLinks from "../components/admin/AdminLinks";
 
 const TABS = [
   { id: "dashboard", label: "Dashboard" },
@@ -21,6 +22,7 @@ const TABS = [
   { id: "questions", label: "Questions" },
   { id: "evaluator", label: "Evaluator" },
   { id: "analytics", label: "Analytics" },
+  { id: "links", label: "Links" },
 ];
 
 export default function AdminPage() {
@@ -108,6 +110,7 @@ export default function AdminPage() {
         )}
         {tab === "evaluator" && <AdminEvaluator load={getEvaluatorHealth} />}
         {tab === "analytics" && <AdminAnalytics />}
+        {tab === "links" && <AdminLinks />}
         {tab === "questions" && (
           <AdminQuestions load={getAdminQuestions} save={saveAdminQuestions} />
         )}

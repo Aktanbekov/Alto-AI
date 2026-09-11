@@ -26,7 +26,7 @@ export default function BarChart({ rows }) {
               {...bind(r.label, [
                 `Approval share: ${(value * 100).toFixed(1)}%`,
                 `${r.n_decided?.toLocaleString() ?? "?"} decided interviews`,
-                small ? "Small sample — read with caution" : "",
+                small ? "Small sample - read with caution" : "",
               ])}
             >
               <span

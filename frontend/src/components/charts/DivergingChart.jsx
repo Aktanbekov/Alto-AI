@@ -5,8 +5,8 @@ import Tooltip from "./Tooltip";
  * Percentage-point difference from the corpus-wide approval share when a
  * question type appears. Red left of the centre rule, blue right of it.
  *
- * The causation runs the other way round — officers probe because a case
- * already looks doubtful — which is why the page prints a warning above this.
+ * The causation runs the other way round - officers probe because a case
+ * already looks doubtful - which is why the page prints a warning above this.
  */
 export default function DivergingChart({ rows }) {
   const { tip, bind } = useTooltip();

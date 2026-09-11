@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
                         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                             <span className="text-3xl sm:text-4xl">🤖</span>
                             <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-                                AI Interviewer
+                                Altovisas
                             </span>
                         </div>
 
@@ -210,7 +210,7 @@ export default function ForgotPasswordPage() {
                     <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                         <span className="text-3xl sm:text-4xl">🤖</span>
                         <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-                            AI Interviewer
+                            Altovisas
                         </span>
                     </div>
 

@@ -863,9 +863,9 @@ export default function Chat() {
               onClick={() => navigate("/")}
               className="flex items-center gap-2 sm:gap-3 cursor-pointer bg-transparent border-none outline-none p-0"
             >
-              <img src="/logo.svg" alt="Alto Visas Logo" className="h-8 sm:h-10 w-auto" />
+              <img src="/logo.svg" alt="Altovisas Logo" className="h-8 sm:h-10 w-auto" />
               <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-                AI Interviewer
+                Altovisas
               </span>
             </button>
           </div>
@@ -902,7 +902,7 @@ export default function Chat() {
             </div>
 
             {/* AI Info */}
-            <h2 className="text-2xl sm:text-3xl font-bold text-stone-800 mb-2">AI Interviewer</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-stone-800 mb-2">Altovisas</h2>
             <p className="text-stone-600 text-center text-xs sm:text-sm mb-4 sm:mb-6">
               I'm here to chat with you and learn about your experiences!
             </p>
@@ -1022,7 +1022,7 @@ export default function Chat() {
                         {message.sender === "ai" && (
                           <div className="flex items-center gap-2 mb-1 sm:mb-2">
                             <span className="text-lg sm:text-xl">🤖</span>
-                            <span className="text-sm font-semibold text-indigo-600">AI Interviewer</span>
+                            <span className="text-sm font-semibold text-indigo-600">Altovisas</span>
                           </div>
                         )}
                         <p className="text-sm sm:text-base leading-relaxed break-words">
@@ -1062,7 +1062,7 @@ export default function Chat() {
                           : "bg-rose-100 text-rose-800 border border-rose-300"
                     }`}>
                       {sessionEvaluation.verdict === "Likely Approved" ? "✅" : sessionEvaluation.verdict === "Needs Work" ? "⚠️" : "🚩"}{" "}
-                      Verdict: {sessionEvaluation.verdict} — Score: {sessionEvaluation.overall_score}/100
+                      Verdict: {sessionEvaluation.verdict} - Score: {sessionEvaluation.overall_score}/100
                     </div>
                   )}
 

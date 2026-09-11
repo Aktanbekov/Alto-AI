@@ -101,7 +101,7 @@ export default function LoginPage() {
                     <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                         <span className="text-3xl sm:text-4xl">🤖</span>
                         <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-                            AI Interviewer
+                            Altovisas
                         </span>
                     </div>
 
@@ -213,7 +213,7 @@ export default function LoginPage() {
 
                 {/* Footer */}
                 <p className="text-center text-[11px] text-stone-600 mt-6">
-                    By signing up or logging in, you consent to AI Interviewer's <a className="underline underline-offset-2 hover:text-indigo-600" href="#">Terms of Use</a> and <a className="underline underline-offset-2 hover:text-indigo-600" href="#">Privacy Policy</a>.
+                    By signing up or logging in, you agree to Altovisas' <Link className="underline underline-offset-2 hover:text-indigo-600" to="/terms">Terms of Service</Link> and <Link className="underline underline-offset-2 hover:text-indigo-600" to="/privacy">Privacy Policy</Link>.
                 </p>
             </div>
         </div>

@@ -56,6 +56,9 @@ export default function SignupPage() {
     const [resending, setResending] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    // Set when the account was created but the verification code never left the
+    // server. Without this the verify step asks for a code that will not arrive.
+    const [emailUndelivered, setEmailUndelivered] = useState(false);
 
     const handleSignup = async (e) => {
         e.preventDefault();
@@ -73,10 +76,11 @@ export default function SignupPage() {
 
         setLoading(true);
         try {
-            await register(email, name, password);
-            // The email itself never enters the event stream — this records
+            const result = await register(email, name, password);
+            // The email itself never enters the event stream - this records
             // only that a signup happened, at this point in the funnel.
             track("email_submit");
+            setEmailUndelivered(result?.email_sent === false);
             setStep("verify");
         } catch (err) {
             console.error("Registration error:", err);
@@ -108,6 +112,7 @@ export default function SignupPage() {
         setResending(true);
         try {
             await resendVerificationCode(email);
+            setEmailUndelivered(false);
             setSuccess("A new verification code has been sent to your email.");
         } catch (err) {
             setError(err.message || "Failed to resend verification code");
@@ -124,13 +129,28 @@ export default function SignupPage() {
                         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                             <span className="text-3xl sm:text-4xl">🤖</span>
                             <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-                                AI Interviewer
+                                Altovisas
                             </span>
                         </div>
 
                         <p className="text-xs sm:text-sm text-stone-700 mb-4 sm:mb-6 text-center">
-                            We've sent a verification code to <strong>{email}</strong>
+                            {emailUndelivered ? (
+                                <>Almost there - we still need to reach <strong>{email}</strong></>
+                            ) : (
+                                <>We've sent a verification code to <strong>{email}</strong></>
+                            )}
                         </p>
+
+                        {emailUndelivered && (
+                            <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                                Your account was created, but we couldn't send the verification
+                                email. Try "Resend Code" below, or contact{" "}
+                                <a href="mailto:support@altovisas.com" className="underline font-medium">
+                                    support@altovisas.com
+                                </a>{" "}
+                                to finish activating it.
+                            </div>
+                        )}
 
                         {success && (
                             <div className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
@@ -198,7 +218,7 @@ export default function SignupPage() {
                     <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 select-none">
                         <span className="text-3xl sm:text-4xl">🤖</span>
                         <span className="text-xl sm:text-2xl font-bold text-indigo-700">
-                            AI Interviewer
+                            Altovisas
                         </span>
                     </div>
 

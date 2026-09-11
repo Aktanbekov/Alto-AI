@@ -41,3 +41,9 @@ visa-llm/__pycache__/
 visa-llm/**/__pycache__/
 visa-llm/*.egg-info/
 visa-llm/.pytest_cache/
+
+# ---- Raw corpus dumps ----
+# Pipeline input, not source. 54MB in one file; committing it would bloat the
+# repository permanently and it is reproducible from the source exports.
+raw_data/
+visa-llm/raw_data/

@@ -3,7 +3,7 @@ import PreviewChip from "../components/shell/PreviewChip";
 const FACTS = [
   "Father: real estate, farming, stake in a bank",
   "$300,000 set aside, documented in bank statements",
-  "Farm runs on paper — no yield tracking",
+  "Farm runs on paper - no yield tracking",
   "Returning to Bishkek after the degree",
   "BSc Computer Science, Stanford, first attempt",
   "School score 4.9 out of 5",
@@ -20,11 +20,11 @@ export default function CaseBuilderPage() {
           <h2 style={{ marginBottom: 22 }}>Let&rsquo;s find your real answer</h2>
 
           <div className="turn sys">
-            <div className="who">Alto Visas</div>
+            <div className="who">Altovisas</div>
             <p className="said">
               Your answer says you&rsquo;ll help your father&rsquo;s businesses, but it
               never says where you&rsquo;ll be. As written, an officer can read it as
-              remote work from the US — and <em>return_intent</em> only gets asked when
+              remote work from the US - and <em>return_intent</em> only gets asked when
               they&rsquo;re already unsure. I&rsquo;m not going to hand you a replacement
               sentence. Where will you physically be, and what is the first thing
               you&rsquo;d actually build?
@@ -40,7 +40,7 @@ export default function CaseBuilderPage() {
           </div>
 
           <div className="turn sys">
-            <div className="who">Alto Visas</div>
+            <div className="who">Altovisas</div>
             <p className="said">
               That&rsquo;s the answer. It names a country, a business and a concrete
               first project, which is what separates a real tie from a slogan. Here it
@@ -55,7 +55,7 @@ export default function CaseBuilderPage() {
               <div className="after">
                 <div className="tag">Assembled from your facts</div>
                 I&rsquo;ll return to Kyrgyzstan and work in my father&rsquo;s companies.
-                The farm still runs on paper — no yield tracking at all — and
+                The farm still runs on paper - no yield tracking at all - and
                 that&rsquo;s the first system I want to build. That&rsquo;s the job my
                 degree is for, and it&rsquo;s waiting for me.
               </div>
@@ -70,7 +70,7 @@ export default function CaseBuilderPage() {
             <p className="said">
               &ldquo;I can&rsquo;t help you say something that isn&rsquo;t true. A false
               statement to a consular officer is material misrepresentation, and the bar
-              it carries is permanent — much worse than a refusal you can reapply from.
+              it carries is permanent - much worse than a refusal you can reapply from.
               Tell me what is true and we&rsquo;ll work with that. Files that look weak
               to you are usually stronger than you think.&rdquo;
             </p>
@@ -84,7 +84,7 @@ export default function CaseBuilderPage() {
           ))}
           <p className="note">
             Nothing we write for you comes from anywhere but this list. Edit or delete
-            anything inaccurate — if it&rsquo;s wrong here, it&rsquo;s wrong at the window.
+            anything inaccurate - if it&rsquo;s wrong here, it&rsquo;s wrong at the window.
           </p>
         </aside>
       </div>

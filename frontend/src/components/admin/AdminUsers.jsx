@@ -63,9 +63,9 @@ export default function AdminUsers({ list, get, remove, verify }) {
                   <tbody className="divide-y divide-stone-100">
                     {data.users.map((u) => (
                       <tr key={u.id} className="hover:bg-stone-50">
-                        <td className="px-4 py-2.5 text-stone-900 font-medium">{u.name || "—"}</td>
+                        <td className="px-4 py-2.5 text-stone-900 font-medium">{u.name || "-"}</td>
                         <td className="px-4 py-2.5 text-stone-700">{u.email}</td>
-                        <td className="px-4 py-2.5 text-stone-700">{u.college || "—"}</td>
+                        <td className="px-4 py-2.5 text-stone-700">{u.college || "-"}</td>
                         <td className="px-4 py-2.5">
                           <Badge tone={u.email_verified ? "emerald" : "amber"}>
                             {u.email_verified ? "Verified" : "Unverified"}
@@ -176,7 +176,7 @@ function UserDrawer({ id, get, remove, verify, onClose, onChanged }) {
                       <div className="flex items-center gap-2 shrink-0">
                         {s.overall_grade && <Badge tone={gradeTone(s.overall_grade)}>{s.overall_grade}</Badge>}
                         <span className="text-sm font-semibold text-stone-900 tabular-nums">
-                          {s.overall_score ?? "—"}
+                          {s.overall_score ?? "-"}
                         </span>
                       </div>
                     </li>
@@ -241,7 +241,7 @@ function Row({ label, value }) {
   return (
     <div className="flex justify-between gap-4">
       <dt className="text-stone-600">{label}</dt>
-      <dd className="text-stone-900 text-right break-all">{value || "—"}</dd>
+      <dd className="text-stone-900 text-right break-all">{value || "-"}</dd>
     </div>
   );
 }

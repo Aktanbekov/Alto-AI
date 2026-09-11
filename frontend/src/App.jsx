@@ -35,7 +35,7 @@ export default function App() {
   return (
     <Suspense fallback={<LoadingFallback />}>
     <Routes>
-        {/* Alto Visas shell: sidebar + the new design. Auth, chat and admin
+        {/* Altovisas shell: sidebar + the new design. Auth, chat and admin
             stay outside it and keep the existing indigo/stone layout. */}
         <Route path="/" element={<AppShell><HomePage /></AppShell>} />
         <Route path="/take-a-test" element={<AppShell><TakeATestPage /></AppShell>} />
@@ -69,7 +69,7 @@ export default function App() {
       {/* AdminPage checks admin status itself and redirects non-admins home;
           ProtectedRoute only guarantees the user is logged in. */}
       <Route
-        path="/admin"
+        path="/lev"
         element={
           <ProtectedRoute>
             <AdminPage />

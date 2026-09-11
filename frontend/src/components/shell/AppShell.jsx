@@ -2,15 +2,19 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import GuillocheDefs from "./GuillocheDefs";
-import ProfileMenu from "./ProfileMenu";
 import AuthModal from "../auth/AuthModal";
 import { getMe, logout, getAdminMe } from "../../api";
 import { track } from "../../analytics";
 
-// Wraps the Alto Visas routes: sidebar, one header row, and the auth controls.
+// Wraps the Altovisas routes: sidebar, one header row, and the auth controls.
 //
 // Navigation and the brand both live in the sidebar; the header carries only
 // the account controls, so the name is never shown twice on one screen.
+//
+// Signed out, the header is the sign-in pair alone - there is no account menu
+// to open, and the drawer holds nothing a visitor can act on. Signing in swaps
+// that pair for the drawer button in the same right-hand slot, and the account
+// rows (identity, admin, sign out) live at the foot of the drawer itself.
 export default function AppShell({ children }) {
   const [open, setOpen] = useState(false);
   const [auth, setAuth] = useState({ open: false, mode: "login" });
@@ -97,34 +101,35 @@ export default function AppShell({ children }) {
       {open && <div className="app-scrim" onClick={() => setOpen(false)} />}
 
       <div className="app-shell">
-        <Sidebar open={open} onNavigate={() => setOpen(false)} />
+        <Sidebar
+          open={open}
+          onNavigate={() => setOpen(false)}
+          user={user}
+          isAdmin={isAdmin}
+          onLogout={signOut}
+        />
 
         <main className="app-main">
-          <header className="page-head">
+          <header className={`page-head${user ? " is-quiet" : ""}`}>
             <div className="page-w page-head-in">
-              <button
-                className="app-burger"
-                aria-label={open ? "Close menu" : "Open menu"}
-                aria-expanded={open}
-                onClick={() => setOpen((v) => !v)}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="1.8">
-                  {open
-                    ? <path d="M6 6l12 12M18 6L6 18" />
-                    : <path d="M4 7h16M4 12h16M4 17h16" />}
-                </svg>
-              </button>
-
               <div className="page-spacer" />
 
               <div className="page-account">
                 {user ? (
-                  <ProfileMenu
-                    user={user}
-                    onLogout={signOut}
-                    isAdmin={isAdmin}
-                  />
+                  <button
+                    className="app-burger"
+                    aria-label={open ? "Close menu" : "Open menu"}
+                    aria-expanded={open}
+                    aria-controls="app-side"
+                    onClick={() => setOpen((v) => !v)}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="1.8">
+                      {open
+                        ? <path d="M6 6l12 12M18 6L6 18" />
+                        : <path d="M4 7h16M4 12h16M4 17h16" />}
+                    </svg>
+                  </button>
                 ) : (
                   <>
                     <button

@@ -47,24 +47,16 @@ export default function HomePage() {
       <div className="wrap">
         <div className="grid2" style={{ padding: "64px 0 56px", alignItems: "center" }}>
           <div>
-            <p className="eyebrow">16,204 interviews · 14,589 full transcripts · 2020–2026</p>
+            <p className="eyebrow">16,204 interviews · 14,589 full transcripts · 2020-2026</p>
             <h1>Find out where your interview breaks.</h1>
             <p className="lede">
-              Tell us your profile and answer three questions. We read them against
-              16,204 real interview write-ups, name the exact points where officers
-              push back on files like yours, and show you what to fix.
+              Interview duration is in average 3 minutes which can completely change your future, and it’s important to be prepared. 
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap", marginTop: 28 }}>
               <button className="btn" onClick={() => start("hero")}>
-                Check my profile <span className="arrow">→</span>
+                Simulate Interview <span className="btn-free">Free</span> <span className="arrow">→</span>
               </button>
-              <span className="tiny">Free · no account · 4 minutes</span>
             </div>
-            <p className="tiny" style={{ marginTop: 24, maxWidth: "44ch" }}>
-              Or read the{" "}
-              <a href="#the-data" style={{ color: "var(--ink)" }}>whole dataset</a>{" "}
-              first. It&rsquo;s public, it&rsquo;s free, and the caveats are printed at the top.
-            </p>
           </div>
 
           <div className="foil">
@@ -104,7 +96,7 @@ export default function HomePage() {
         <div className="gcell">
           <div className="k">Where the data comes from</div>
           <div className="v">Students, after the window</div>
-          <p>Self-reported write-ups posted publicly to Telegram, deduplicated and parsed question by question. Roughly 200 more each month.</p>
+          <p>Self-reported write-ups posted publicly by students online, deduplicated and parsed question by question. Roughly 200 more each month.</p>
         </div>
       </div></div>
       </div>{/* /.hero-band */}
@@ -125,7 +117,7 @@ export default function HomePage() {
             <b>ranked second in the world</b> instead of naming a course you want to
             take. Listing three of your father&rsquo;s businesses without a single
             number attached to any of them. Saying you would like to stay. None of
-            those mean your case is weak — they mean it was <b>stated badly</b>. From
+            those mean your case is weak - they mean it was <b>stated badly</b>. From
             the other side of the glass, in three minutes, badly stated and weak look
             exactly the same.
           </p>
@@ -152,17 +144,16 @@ export default function HomePage() {
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap", marginTop: 28 }}>
           <button className="btn" onClick={() => start("stakes")}>
-            Check my profile <span className="arrow">→</span>
+            Simulate Interview <span className="btn-free">Free</span> <span className="arrow">→</span>
           </button>
-          <span className="tiny">Free · takes 4 minutes · nothing to install</span>
         </div>
       </div>
 
       </div>{/* /.tf */}
 
       {/* ---------------------------------------------------------- data --
-          The dashboard keeps visa_llm's own look — white cards, blue/red
-          series, sans-serif — rather than the Alto Visas paper/ink treatment. */}
+          The dashboard keeps visa_llm's own look - white cards, blue/red
+          series, sans-serif - rather than the Altovisas paper/ink treatment. */}
       <div className="vz" id="the-data">
         <div className="page-w">
           <h1>What 16,204 interview write-ups show</h1>

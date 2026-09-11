@@ -24,12 +24,24 @@ type Client struct {
 	HTTP    *http.Client
 }
 
-// New reads VISA_LLM_URL. Evaluation calls an LLM behind the scenes and can
-// take a while, hence the generous timeout.
+// EvaluateTimeout is how long one evaluation may take before the client gives
+// up on the sidecar.
+//
+// It is generous because the work behind it is: the sidecar runs a 16k-token
+// structured generation with thinking enabled, and two minutes was not enough
+// for it. Requests were being cut off mid-generation.
+//
+// This is also the number the HTTP server's write deadline is derived from —
+// see cmd/api/main.go. The server must always outlive this timeout, or it
+// closes the connection before the handler can explain what went wrong, and the
+// proxy in front turns that into a bare 502.
+const EvaluateTimeout = 240 * time.Second
+
+// New reads VISA_LLM_URL.
 func New() *Client {
 	return &Client{
 		BaseURL: strings.TrimRight(os.Getenv("VISA_LLM_URL"), "/"),
-		HTTP:    &http.Client{Timeout: 120 * time.Second},
+		HTTP:    &http.Client{Timeout: EvaluateTimeout},
 	}
 }
 
@@ -58,6 +70,15 @@ type ProfileRequest struct {
 	AttemptNumber    int               `json:"attempt_number,omitempty"`
 	TestScores       map[string]string `json:"test_scores,omitempty"`
 	PlannedAnswers   []PlannedAnswer   `json:"planned_answers"`
+
+	// Which model scores this run. Omitted on the public path, where the
+	// sidecar applies its production default; set only by the admin
+	// comparison, which runs the same profile through several models.
+	//
+	// The public handler clears whatever a caller sent here - see
+	// EvaluateHandler.Evaluate. Left settable by a student, this field would
+	// let anyone pick which vendor we pay for.
+	Model string `json:"model,omitempty"`
 }
 
 type AnswerFeedback struct {
@@ -190,12 +211,22 @@ type Usage struct {
 	CachedTokens int     `json:"cached_tokens"`
 	OutputTokens int     `json:"output_tokens"`
 	CostUSD      float64 `json:"cost_usd"`
+
+	// Whether CostUSD is a real figure. We have no published rate for every
+	// model in the comparison, and a zero that means "unpriced" sitting next to
+	// two real costs reads as "free" - which is the one reading that would
+	// change a decision.
+	CostKnown bool `json:"cost_known"`
 }
 
 func usageFromHeaders(h http.Header) Usage {
 	atoi := func(s string) int { n, _ := strconv.Atoi(s); return n }
 	cost, _ := strconv.ParseFloat(h.Get("X-Eval-Cost-Usd"), 64)
+	// Absent header means an older sidecar, which only ever served priced
+	// models - so treat a missing value as known rather than unknown.
+	costKnown := h.Get("X-Eval-Cost-Known") != "false"
 	return Usage{
+		CostKnown:    costKnown,
 		Model:        h.Get("X-Eval-Model"),
 		InputTokens:  atoi(h.Get("X-Eval-Input-Tokens")),
 		CachedTokens: atoi(h.Get("X-Eval-Cached-Tokens")),

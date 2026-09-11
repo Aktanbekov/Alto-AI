@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+
 	"altoai_mvp/internal/models"
 	"altoai_mvp/internal/services"
 	errs "altoai_mvp/pkg/errors"
@@ -57,14 +59,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	err := h.authSvc.Register(c.Request.Context(), dto)
+	emailSent, err := h.authSvc.Register(c.Request.Context(), dto)
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
+	// The account exists either way. When the code could not be mailed, say so
+	// instead of sending the user to a verification screen that will never be
+	// satisfied.
+	message := "Registration successful. Please check your email for verification code."
+	if !emailSent {
+		message = "Account created, but we could not send the verification email. Please contact support to finish activating your account."
+	}
+
 	response.OK(c, gin.H{
-		"message": "Registration successful. Please check your email for verification code.",
+		"message":    message,
+		"email_sent": emailSent,
 	})
 }
 
@@ -108,6 +119,11 @@ func (h *AuthHandler) ResendVerificationCode(c *gin.Context) {
 
 	err := h.authSvc.ResendVerificationCode(c.Request.Context(), dto)
 	if err != nil {
+		// Unconfigured mail is a server-side gap, not bad input from the user.
+		if errors.Is(err, services.ErrEmailNotConfigured) {
+			response.Error(c, http.StatusServiceUnavailable, err.Error())
+			return
+		}
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -127,6 +143,10 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 
 	err := h.authSvc.ForgotPassword(c.Request.Context(), dto)
 	if err != nil {
+		if errors.Is(err, services.ErrEmailNotConfigured) {
+			response.Error(c, http.StatusServiceUnavailable, err.Error())
+			return
+		}
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}

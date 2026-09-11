@@ -21,6 +21,7 @@ type UserRepo interface {
 	UpdateCollegeMajor(id string, college, major *string) (models.User, error)
 	Delete(id string) error
 	SetVerificationCode(email, code string, expiresAt time.Time) error
+	SetPassword(email, passwordHash string) error
 	VerifyEmail(email, code string) error
 	MarkEmailVerified(email string) error
 	SetResetCode(email, code string, expiresAt time.Time) error
@@ -138,6 +139,23 @@ func (r *userMemoryRepo) SetVerificationCode(email, code string, expiresAt time.
 		if u.Email == email {
 			u.VerificationCode = code
 			u.VerificationCodeExpires = expiresAt
+			u.UpdatedAt = time.Now().UTC()
+			r.store[id] = u
+			return nil
+		}
+	}
+	return ErrNotFound
+}
+
+// SetPassword overwrites the stored hash without requiring a reset code.
+// Register uses it when someone signs up again on an account that never got
+// verified; every other caller must go through ResetPassword.
+func (r *userMemoryRepo) SetPassword(email, passwordHash string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for id, u := range r.store {
+		if u.Email == email {
+			u.Password = passwordHash
 			u.UpdatedAt = time.Now().UTC()
 			r.store[id] = u
 			return nil

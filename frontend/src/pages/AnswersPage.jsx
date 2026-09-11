@@ -5,7 +5,7 @@ const ENTRIES = [
     outcome: "Refused", tone: "r",
     meta: "Chennai · Bachelor's · 2024 · id 4eb21ba584ce",
     body: "It is ranked number two in the world and has the best professors in my field.",
-    note: 'The officer’s next question was "So why not other uni?" — a ranking answer has no defence against that, because every top school shares the same claim.',
+    note: 'The officer’s next question was "So why not other uni?" - a ranking answer has no defence against that, because every top school shares the same claim.',
   },
   {
     outcome: "Approved", tone: "a",
@@ -27,7 +27,7 @@ export default function AnswersPage() {
     <div className="wrap pt pb">
       <PreviewChip />
       <p className="eyebrow">Free · public · one page per question</p>
-      <h2 style={{ marginBottom: 10 }}>&ldquo;Why this university?&rdquo; — real answers</h2>
+      <h2 style={{ marginBottom: 10 }}>&ldquo;Why this university?&rdquo; - real answers</h2>
       <p className="lede" style={{ marginBottom: 26 }}>
         2,339 posts recorded this question. Approval when it was asked: 79.7%, which is
         7.5 points below the corpus-wide share. Here are answers as they were reported,
@@ -49,8 +49,8 @@ export default function AnswersPage() {
         <h4 style={{ marginBottom: 8 }}>What separates the two groups</h4>
         <p className="why">
           Approved answers in this set almost always name something that exists only at
-          that university — a named course, a lab, a professor&rsquo;s work. Refused
-          answers name something true of any good university — rank, reputation,
+          that university - a named course, a lab, a professor&rsquo;s work. Refused
+          answers name something true of any good university - rank, reputation,
           facilities. That&rsquo;s the whole difference, and it costs you an hour with
           the course catalogue.
         </p>

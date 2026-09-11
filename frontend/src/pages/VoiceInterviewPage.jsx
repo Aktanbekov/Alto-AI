@@ -3,8 +3,8 @@ import PreviewChip from "../components/shell/PreviewChip";
 export default function VoiceInterviewPage() {
   const readout = [
     { k: "Length", v: <>31 seconds <span className="tiny">· median in the corpus is 14</span></> },
-    { k: "Answered it", v: "Yes — clear no, with a reason", tone: "ok" },
-    { k: "Matched your file", v: "No — you mentioned a job offer that isn't in your facts", tone: "bad" },
+    { k: "Answered it", v: "Yes - clear no, with a reason", tone: "ok" },
+    { k: "Matched your file", v: "No - you mentioned a job offer that isn't in your facts", tone: "bad" },
     { k: "Hedging", v: '7 hedges: "maybe", "I think", "probably"' },
   ];
 
@@ -48,7 +48,7 @@ export default function VoiceInterviewPage() {
 
       <p className="tiny" style={{ marginTop: 18 }}>
         Sessions are three minutes on purpose. Short and often beats one long
-        rehearsal — and a long rehearsal is what makes you sound rehearsed.
+        rehearsal - and a long rehearsal is what makes you sound rehearsed.
       </p>
     </div>
     </div>

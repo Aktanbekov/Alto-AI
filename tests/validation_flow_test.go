@@ -66,14 +66,21 @@ type flow struct {
 // that always succeeds, so the tests measure entitlement rather than scoring.
 func newFlow(t *testing.T) *flow {
 	t.Helper()
-	db := openValidationDB(t)
-
-	sidecar := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return newFlowWith(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(visallm.Evaluation{
 			Readiness: "moderate", Summary: "ok", Caveat: "test",
 		})
-	}))
+	})
+}
+
+// newFlowWith is newFlow with the sidecar's behaviour left to the caller, so a
+// test can drive the same real handlers through a scoring outage.
+func newFlowWith(t *testing.T, sidecarFn http.HandlerFunc) *flow {
+	t.Helper()
+	db := openValidationDB(t)
+
+	sidecar := httptest.NewServer(sidecarFn)
 	t.Cleanup(sidecar.Close)
 
 	evals := repository.NewEvaluationRepo(db)

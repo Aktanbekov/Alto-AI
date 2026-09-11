@@ -1,0 +1,90 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Altovisas OG image generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+ body{margin:0;background:#333;font:14px/1.5 system-ui;color:#ddd;padding:24px}
+ canvas{width:900px;max-width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+ a{display:inline-block;margin-top:16px;background:#fff;color:#111;padding:8px 16px;
+   border-radius:6px;text-decoration:none;font-weight:600}
+</style>
+</head><body>
+<!--
+  Source for public/og-image.png (1200x630).
+
+  Kept in the repo so the card can be regenerated when the claim or the wording
+  changes, rather than being an undocumented binary nobody can reproduce.
+
+  To regenerate:  npm run dev   ->   open /scripts/og-image.html is NOT served
+  (public/ is the served root), so instead open this file directly:
+      open frontend/scripts/og-image.html
+  then click Download and save over frontend/public/og-image.png.
+
+  The corpus figure below must match CORPUS in src/seo/site.js, which the SEO
+  build verifies against the dataset.
+-->
+<canvas id="c" width="1200" height="630"></canvas><br>
+<a id="dl" download="og-image.png">Download og-image.png</a>
+<script>
+const PAPER='#E7ECE6', PAPER2='#F3F6F1', INK='#16233B', SOFT='#4A5568', GUI='#7C6BA8';
+// Logo path data, lifted verbatim from public/logo.svg (180x180 viewBox).
+const LOGO=[
+ "M106.652 136.131L129.547 156.03H71.8628L106.652 136.131Z",
+ "M105.859 0H154.229L52.3348 180H0L105.859 0Z"
+];
+const LOGO_RECT=[135.595,0,44.4053,180];
+
+async function draw(){
+  await document.fonts.load('700 64px Inter');
+  await document.fonts.load('500 27px Inter');
+  await document.fonts.ready;
+  const ctx=document.getElementById('c').getContext('2d');
+
+  ctx.fillStyle=PAPER; ctx.fillRect(0,0,1200,630);
+  // Lighter plate behind the identity block, echoing the site's paper layering.
+  ctx.fillStyle=PAPER2; ctx.fillRect(0,0,1200,248);
+
+  ctx.strokeStyle='rgba(22,35,59,.16)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(80,248.5); ctx.lineTo(1120,248.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(80,506.5); ctx.lineTo(1120,506.5); ctx.stroke();
+
+  ctx.save();
+  ctx.translate(80,68); ctx.scale(60/180,60/180);
+  ctx.fillStyle=INK;
+  for(const d of LOGO) ctx.fill(new Path2D(d));
+  ctx.fillRect(...LOGO_RECT);
+  ctx.restore();
+
+  ctx.fillStyle=INK; ctx.font='700 38px Inter, sans-serif';
+  ctx.fillText('Altovisas',158,113);
+
+  ctx.fillStyle=SOFT; ctx.font='600 19px Inter, sans-serif';
+  ctx.letterSpacing='2.6px';
+  ctx.fillText('F-1 STUDENT VISA INTERVIEW PRACTICE',80,190);
+  ctx.letterSpacing='0px';
+
+  ctx.fillStyle=INK; ctx.font='700 64px Inter, sans-serif';
+  ctx.fillText('Find out where your',80,352);
+  ctx.fillText('interview breaks.',80,428);
+
+  // The verifiable claim, which is the point of the card.
+  ctx.fillStyle=SOFT; ctx.font='500 27px Inter, sans-serif';
+  ctx.fillText('Built on 16,204 real interview reports, 2020-2026.',80,478);
+
+  ctx.fillStyle=INK; ctx.font='600 26px Inter, sans-serif';
+  ctx.fillText('Free · no account · 4 minutes',80,566);
+
+  ctx.fillStyle=SOFT; ctx.font='500 24px Inter, sans-serif';
+  ctx.textAlign='right'; ctx.fillText('altovisas.com',1120,566); ctx.textAlign='left';
+
+  // Engraved accent, tying the card to the guilloche motif on the site.
+  for(let i=0;i<3;i++){
+    ctx.fillStyle = i===1 ? GUI : INK;
+    ctx.fillRect(1058+i*22, 190, 6, 34);
+  }
+
+  document.getElementById('dl').href=document.getElementById('c').toDataURL('image/png');
+}
+draw();
+</script></body></html>

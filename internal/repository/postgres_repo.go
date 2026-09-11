@@ -351,6 +351,27 @@ func (r *postgresRepo) SetVerificationCode(email, code string, expiresAt time.Ti
 	return nil
 }
 
+// SetPassword overwrites the stored hash without requiring a reset code.
+// Register uses it when someone signs up again on an account that never got
+// verified; every other caller must go through ResetPassword.
+func (r *postgresRepo) SetPassword(email, passwordHash string) error {
+	res, err := r.db.Exec(
+		"UPDATE users SET password_hash = $1, updated_at = $2 WHERE email = $3",
+		passwordHash, time.Now().UTC(), email,
+	)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (r *postgresRepo) VerifyEmail(email, code string) error {
 	var storedCode sql.NullString
 	var expiresAt sql.NullTime

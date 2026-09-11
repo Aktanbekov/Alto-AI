@@ -12,7 +12,7 @@
       2020,
       2026
     ],
-    "caveat": "Self-selected, self-reported Telegram reviews. Approval shares describe who chooses to post, not the true consular base rate. Associations are correlational, not causal.",
+    "caveat": "Self-selected, self-reported reviews posted publicly online. Approval shares describe who chooses to post, not the true consular base rate. Associations are correlational, not causal.",
     "min_cell_size": 25
   },
   "overall": {
