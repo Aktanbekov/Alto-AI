@@ -1,0 +1,1 @@
+import{j as e}from"./index-lU4D_d5l.js";function i({children:r="Preview · not wired up yet"}){return e.jsx("span",{className:"tiny",style:{display:"inline-block",border:"1px solid var(--rule)",background:"var(--paper-2)",padding:"5px 10px",borderRadius:2,letterSpacing:".12em",textTransform:"uppercase",marginBottom:22},children:r})}export{i as P};

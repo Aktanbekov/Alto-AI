@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"altoai_mvp/internal/models"
@@ -26,14 +27,10 @@ type DBProvider interface {
 func (r *postgresRepo) DB() *sql.DB { return r.db }
 
 func NewPostgresRepo() (UserRepo, error) {
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB"),
-	)
+	connStr, err := postgresConnectionString()
+	if err != nil {
+		return nil, err
+	}
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -86,7 +83,7 @@ func NewPostgresRepo() (UserRepo, error) {
 			WHERE table_name = 'users' AND column_name = 'password'
 		)
 	`).Scan(&passwordColExists)
-	
+
 	if err == nil && passwordColExists {
 		// Check if password_hash doesn't exist
 		var passwordHashExists bool
@@ -96,7 +93,7 @@ func NewPostgresRepo() (UserRepo, error) {
 				WHERE table_name = 'users' AND column_name = 'password_hash'
 			)
 		`).Scan(&passwordHashExists)
-		
+
 		if err == nil && !passwordHashExists {
 			// Rename password to password_hash
 			_, err = db.Exec(`ALTER TABLE users RENAME COLUMN password TO password_hash`)
@@ -115,6 +112,46 @@ func NewPostgresRepo() (UserRepo, error) {
 	}
 
 	return &postgresRepo{db: db}, nil
+}
+
+// postgresConnectionString supports both local Docker development and the
+// connection URLs injected by Vercel database integrations. URL-based values
+// retain provider-required TLS and pooling parameters.
+func postgresConnectionString() (string, error) {
+	for _, key := range []string{
+		"DATABASE_URL",
+		"POSTGRES_URL",
+		"POSTGRES_URL_NON_POOLING",
+		"POSTGRES_PRISMA_URL",
+	} {
+		if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+			return value, nil
+		}
+	}
+
+	required := []string{
+		"POSTGRES_HOST",
+		"POSTGRES_PORT",
+		"POSTGRES_USER",
+		"POSTGRES_PASSWORD",
+		"POSTGRES_DB",
+	}
+	for _, key := range required {
+		if strings.TrimSpace(os.Getenv(key)) == "" {
+			return "", fmt.Errorf(
+				"missing PostgreSQL configuration: set DATABASE_URL or all POSTGRES_* connection fields",
+			)
+		}
+	}
+
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"),
+	), nil
 }
 
 func (r *postgresRepo) List() ([]models.User, error) {

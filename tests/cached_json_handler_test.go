@@ -81,16 +81,18 @@ func TestQuestionBankServesTheCorpusFile(t *testing.T) {
 	}
 }
 
-func TestMissingFileIsAReadable503(t *testing.T) {
+func TestMissingFileUsesEmbeddedFallback(t *testing.T) {
 	t.Setenv("QUESTIONS_PATH", filepath.Join(t.TempDir(), "absent.json"))
 
 	w := serve(handlers.NewQuestionsHandler(), "", "")
-	if w.Code != http.StatusServiceUnavailable {
-		t.Fatalf("expected 503, got %d", w.Code)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
 	}
-	// The frontend falls back to its seed questions on any failure; the message
-	// exists for whoever reads the logs.
-	if body := w.Body.String(); body == "" {
-		t.Error("expected an error message in the body")
+	var entries []map[string]any
+	if err := json.Unmarshal(w.Body.Bytes(), &entries); err != nil {
+		t.Fatalf("embedded fallback is not valid JSON: %v", err)
+	}
+	if len(entries) == 0 {
+		t.Fatal("embedded fallback contains no questions")
 	}
 }

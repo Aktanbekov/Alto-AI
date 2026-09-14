@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"altoai_mvp/pkg/response"
+	corpusdata "altoai_mvp/visa-llm/web/data"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,8 +20,9 @@ import (
 // and change only when the corpus is rebuilt, so each is read once, held in
 // memory and served with an ETag.
 type CachedJSONHandler struct {
-	path string
-	what string
+	path     string
+	what     string
+	fallback []byte
 
 	once sync.Once
 	body []byte
@@ -28,29 +30,37 @@ type CachedJSONHandler struct {
 	err  error
 }
 
-func NewCachedJSONHandler(envVar, defaultPath, what string) *CachedJSONHandler {
+func NewCachedJSONHandler(envVar, defaultPath, what string, fallback []byte) *CachedJSONHandler {
 	path := os.Getenv(envVar)
 	if path == "" {
 		path = defaultPath
 	}
-	return &CachedJSONHandler{path: path, what: what}
+	return &CachedJSONHandler{path: path, what: what, fallback: fallback}
 }
 
 // NewStatsHandler serves the statistics behind the public dashboard.
 func NewStatsHandler() *CachedJSONHandler {
 	return NewCachedJSONHandler(
-		"STATS_PATH", "./visa-llm/web/data/stats.json", "corpus statistics")
+		"STATS_PATH", "./visa-llm/web/data/stats.json", "corpus statistics",
+		corpusdata.StatsJSON,
+	)
 }
 
 // NewQuestionsHandler serves the question bank the test draws its rounds from:
 // every question type with its real phrasings, ordered by how often it is asked.
 func NewQuestionsHandler() *CachedJSONHandler {
 	return NewCachedJSONHandler(
-		"QUESTIONS_PATH", "./visa-llm/web/data/questions.json", "question bank")
+		"QUESTIONS_PATH", "./visa-llm/web/data/questions.json", "question bank",
+		corpusdata.QuestionsJSON,
+	)
 }
 
 func (h *CachedJSONHandler) load() {
 	h.body, h.err = os.ReadFile(h.path)
+	if h.err != nil && len(h.fallback) > 0 {
+		h.body = append([]byte(nil), h.fallback...)
+		h.err = nil
+	}
 	if h.err == nil {
 		sum := sha256.Sum256(h.body)
 		h.etag = `"` + hex.EncodeToString(sum[:16]) + `"`

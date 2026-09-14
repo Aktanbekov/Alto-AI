@@ -1,6 +1,7 @@
 package router
 
 import (
+	frontendassets "altoai_mvp/frontend"
 	"altoai_mvp/internal/auth"
 	"altoai_mvp/internal/handlers"
 	"altoai_mvp/internal/middleware"
@@ -8,7 +9,10 @@ import (
 	"altoai_mvp/internal/services"
 	"altoai_mvp/internal/visallm"
 	"fmt"
+	"io/fs"
+	"mime"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +21,19 @@ func New() (*gin.Engine, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery(), middleware.RequestLogger())
+
+	webFS, err := frontendassets.DistFS()
+	if err != nil {
+		return nil, fmt.Errorf("initialize embedded frontend: %w", err)
+	}
+	assetsFS, err := fs.Sub(webFS, "assets")
+	if err != nil {
+		return nil, fmt.Errorf("initialize embedded frontend assets: %w", err)
+	}
+	indexHTML, err := fs.ReadFile(webFS, "index.html")
+	if err != nil {
+		return nil, fmt.Errorf("load embedded frontend index: %w", err)
+	}
 
 	// wiring (DI) - Use PostgreSQL repository
 	userRepo, err := repository.NewPostgresRepo()
@@ -70,11 +87,24 @@ func New() (*gin.Engine, error) {
 	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"ok": true}) })
 	r.HEAD("/health", func(c *gin.Context) { c.Status(200) })
 
-	// Serve static files from frontend/dist
-	r.Static("/assets", "./frontend/dist/assets")
-	r.StaticFile("/vite.svg", "./frontend/dist/vite.svg")
-	r.StaticFile("/logo.svg", "./frontend/dist/logo.svg")
-	r.StaticFile("/logo.png", "./frontend/dist/logo.png")
+	// Serve the frontend from the binary. Vercel deploys a self-contained Go
+	// executable and does not copy arbitrary repository files into /var/task.
+	r.StaticFS("/assets", http.FS(assetsFS))
+	for _, name := range []string{"vite.svg", "logo.svg", "logo.png"} {
+		name := name
+		r.GET("/"+name, func(c *gin.Context) {
+			body, readErr := fs.ReadFile(webFS, name)
+			if readErr != nil {
+				c.Status(http.StatusNotFound)
+				return
+			}
+			contentType := mime.TypeByExtension(filepath.Ext(name))
+			if contentType == "" {
+				contentType = "application/octet-stream"
+			}
+			c.Data(http.StatusOK, contentType, body)
+		})
+	}
 
 	// AUTH - Google (must be registered before NoRoute so /auth/google is never caught by SPA fallback)
 	r.GET("/auth/google", auth.HandleGoogleLogin)
@@ -91,7 +121,7 @@ func New() (*gin.Engine, error) {
 			c.JSON(404, gin.H{"error": "Not found"})
 			return
 		}
-		c.File("./frontend/dist/index.html")
+		c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
 	})
 
 	// User info endpoint (requires auth)
