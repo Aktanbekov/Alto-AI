@@ -2,6 +2,23 @@
 
 This guide covers deploying AltoAI MVP to production using Docker and Docker Compose.
 
+## Vercel
+
+The repository is deployed as two private Vercel Services from one project:
+
+- `app` builds the React frontend and the Go API into one container and serves
+  the public site.
+- `evaluator` runs the Python `visa-llm` container. It has no public route; the
+  Go service receives its private URL through the `VISA_LLM_URL` binding.
+
+Set the Vercel project Framework Preset to **Services** and leave Root Directory
+at the repository root. The public application reads Vercel's dynamic `PORT`;
+Docker Compose and local runs continue to default to port 8080.
+
+Because the frontend and API share one origin, do not set `VITE_API_BASE` in
+Vercel. Production configuration belongs in Vercel Project Settings and takes
+effect after a redeploy.
+
 ## Prerequisites
 
 - Docker Engine 20.10 or later
@@ -350,6 +367,5 @@ For issues or questions:
 - Check logs: `docker-compose logs -f`
 - Review health endpoints: `curl http://localhost:8080/health`
 - Verify all environment variables are set correctly
-
 
 

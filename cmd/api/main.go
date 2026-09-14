@@ -1,6 +1,9 @@
 package main
 
 import (
+	"altoai_mvp/internal/middleware"
+	"altoai_mvp/internal/router"
+	"altoai_mvp/interview"
 	"context"
 	"log"
 	"net/http"
@@ -8,9 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"altoai_mvp/internal/middleware"
-	"altoai_mvp/internal/router"
-	"altoai_mvp/interview"
 
 	"github.com/joho/godotenv"
 )
@@ -23,7 +23,7 @@ func init() {
 			// Silently ignore - env vars may be set via environment
 		}
 	}
-	
+
 	// Initialize interview questions
 	if err := interview.InitQuestions(); err != nil {
 		log.Printf("⚠️ Warning: Failed to load interview questions: %v", err)
@@ -40,8 +40,9 @@ func main() {
 	}
 
 	handler := middleware.CORSLegacy(r)
+	addr := listenAddress()
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         addr,
 		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 120 * time.Second,
@@ -49,7 +50,7 @@ func main() {
 	}
 
 	go func() {
-		log.Println("HTTP server listening on :8080")
+		log.Printf("HTTP server listening on %s", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %v", err)
 		}
@@ -67,4 +68,15 @@ func main() {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 	log.Println("Server exited")
+}
+
+// listenAddress honours the dynamic port assigned by platforms such as
+// Vercel. Local and Docker deployments keep their established port when the
+// platform does not provide one.
+func listenAddress() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	return ":" + port
 }

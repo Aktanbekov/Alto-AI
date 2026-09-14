@@ -1,0 +1,35 @@
+# Build the React application that the Go binary embeds.
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /src/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# Build a self-contained Go server for Vercel's container runtime.
+FROM golang:1.24-alpine AS backend-builder
+
+WORKDIR /src
+RUN apk add --no-cache ca-certificates git
+COPY go.mod go.sum ./
+ENV GOTOOLCHAIN=local
+RUN go mod download
+COPY . .
+# Always embed the frontend produced in this build, rather than a previously
+# committed dist directory.
+COPY --from=frontend-builder /src/frontend/dist ./frontend/dist
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /alto ./cmd/api
+
+FROM alpine:3.22
+
+RUN apk add --no-cache ca-certificates tzdata \
+    && addgroup -S alto \
+    && adduser -S -G alto alto
+WORKDIR /app
+COPY --from=backend-builder /alto ./alto
+USER alto
+
+# Vercel injects PORT at runtime; cmd/api reads it and falls back to 8080 for
+# Docker Compose and local development.
+CMD ["./alto"]
