@@ -1,6 +1,7 @@
 package interview
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -8,6 +9,9 @@ import (
 	"path/filepath"
 	"time"
 )
+
+//go:embed questions.json
+var embeddedQuestions []byte
 
 // QuestionDef is the on-disk representation of a question in questions.json.
 type QuestionDef struct {
@@ -30,7 +34,7 @@ func QuestionsPath() string { return loadedPath }
 // It tries multiple possible paths to find the file
 func InitQuestions() error {
 	var possiblePaths []string
-	
+
 	// Try relative to working directory first
 	if wd, err := os.Getwd(); err == nil {
 		possiblePaths = append(possiblePaths,
@@ -38,7 +42,7 @@ func InitQuestions() error {
 			filepath.Join(wd, "questions.json"),
 		)
 	}
-	
+
 	// Try relative paths (for development)
 	possiblePaths = append(possiblePaths,
 		"interview/questions.json",
@@ -46,7 +50,7 @@ func InitQuestions() error {
 		"questions.json",
 		"./questions.json",
 	)
-	
+
 	// Try relative to executable (for production/Docker)
 	if execPath, err := os.Executable(); err == nil {
 		execDir := filepath.Dir(execPath)
@@ -55,7 +59,7 @@ func InitQuestions() error {
 			filepath.Join(execDir, "questions.json"),
 		)
 	}
-	
+
 	// Try each path until one works
 	var lastErr error
 	for _, path := range possiblePaths {
@@ -65,20 +69,29 @@ func InitQuestions() error {
 			lastErr = err
 		}
 	}
-	
-	// Return the last error if all paths failed
-	return fmt.Errorf("could not load questions.json from any of the tried paths: %w", lastErr)
+
+	// Vercel functions do not include arbitrary runtime files unless they are
+	// explicitly bundled. Keep a read-only copy in the binary so interview
+	// startup remains reliable in serverless deployments.
+	if err := loadQuestionsData(embeddedQuestions, ""); err != nil {
+		return fmt.Errorf(
+			"could not load questions.json from disk (%v) or embedded fallback: %w",
+			lastErr,
+			err,
+		)
+	}
+	return nil
 }
 
 // QuestionSelectionRules defines how many questions to ask from each category
 // For hard level, we use 1 question per category (6 total)
 var QuestionSelectionRules = map[string]int{
-	"Purpose of Study":       1,
-	"Academic Background":    1,
-	"University Choice":      1,
-	"Financial Capability":   1,
-	"Post-Graduation Plans":  1,
-	"Immigration Intent":     1,
+	"Purpose of Study":      1,
+	"Academic Background":   1,
+	"University Choice":     1,
+	"Financial Capability":  1,
+	"Post-Graduation Plans": 1,
+	"Immigration Intent":    1,
 }
 
 // CategoryOrder defines the order in which categories should be asked
@@ -96,7 +109,10 @@ func LoadQuestions(path string) error {
 	if err != nil {
 		return fmt.Errorf("read questions file: %w", err)
 	}
+	return loadQuestionsData(data, path)
+}
 
+func loadQuestionsData(data []byte, path string) error {
 	var categories map[string][]QuestionDef
 	if err := json.Unmarshal(data, &categories); err != nil {
 		return fmt.Errorf("unmarshal questions: %w", err)
@@ -142,7 +158,7 @@ func SelectQuestionsForSession(level string) []Question {
 
 			available := make([]QuestionDef, len(questions))
 			copy(available, questions)
-			
+
 			rand.Shuffle(len(available), func(i, j int) {
 				available[i], available[j] = available[j], available[i]
 			})
@@ -180,7 +196,7 @@ func SelectQuestionsForSession(level string) []Question {
 
 			available := make([]QuestionDef, len(questions))
 			copy(available, questions)
-			
+
 			rand.Shuffle(len(available), func(i, j int) {
 				available[i], available[j] = available[j], available[i]
 			})
@@ -201,7 +217,7 @@ func SelectQuestionsForSession(level string) []Question {
 		if len(allCategories) > 0 {
 			randomCategory := allCategories[rand.Intn(len(allCategories))]
 			questions, ok := QuestionsByCategory[randomCategory]
-			
+
 			if ok && len(questions) > 0 {
 				var available []QuestionDef
 				for _, q := range questions {

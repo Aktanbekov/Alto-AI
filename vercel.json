@@ -21,6 +21,11 @@
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": { "service": "app" } }
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
   ]
 }

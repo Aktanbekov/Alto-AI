@@ -6,7 +6,9 @@ This guide covers deploying AltoAI MVP to production using Docker and Docker Com
 
 The `alto-labs/alto-ai` Vercel project deploys production automatically from the
 GitHub repository's `main` branch. The root `vercel.json` defines two container
-services, built with `Dockerfile.vercel` in their respective roots:
+services, built with `Dockerfile.vercel` in their respective roots. Keep the
+Vercel Framework Preset set to **Services** and Root Directory at the repository
+root:
 
 - `app`: the Go API and its built React frontend, served from the same origin.
 - `evaluator`: the Python `visa-llm` service, corpus, and embedding model.

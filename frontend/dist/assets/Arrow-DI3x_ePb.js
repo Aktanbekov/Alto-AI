@@ -1,0 +1,1 @@
+import{j as r}from"./index-DNviO348.js";function e(){return r.jsx("svg",{className:"arrow",width:"16",height:"16",viewBox:"0 0 16 16","aria-hidden":"true",children:r.jsx("path",{d:"M3 8h10M9 4l4 4-4 4",fill:"none",stroke:"currentColor",strokeWidth:"1.6",strokeLinecap:"round",strokeLinejoin:"round"})})}export{e as A};

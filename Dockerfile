@@ -42,6 +42,7 @@ RUN for i in 1 2 3; do       go mod download && break;       echo "go mod downlo
 
 # Copy source code
 COPY . .
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 # Build the Go application with optimizations.
 #

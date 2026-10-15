@@ -21,6 +21,10 @@ go-build/
 # ---- Node / Frontend ----
 frontend/node_modules/
 frontend/dist/
+# The Go production binary embeds the built Vite application. Keep the
+# production bundle versioned so Vercel's Go-only builder can compile it.
+!frontend/dist/
+!frontend/dist/**
 frontend/.env
 frontend/.DS_Store
 frontend/.vite/
