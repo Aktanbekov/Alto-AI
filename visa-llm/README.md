@@ -71,8 +71,10 @@ and survives closing the tab (a bare `export` does not):
 cp .env.example .env
 ```
 
-Then edit `.env` and set `ANTHROPIC_API_KEY=...`. Every command loads it
-automatically. `.env` is gitignored; never commit a real key.
+Then edit `.env` and set `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and
+`DEEPSEEK_API_KEY`. Every command loads it automatically. `.env` is gitignored;
+never commit a real key. The public profile check uses all three; the CLI still
+uses Claude Opus unless `--model` selects another registered provider.
 
 A key exported in your shell takes precedence over the file, which is what you want
 for a one-off override or for CI.
@@ -83,8 +85,14 @@ Verify it is being picked up:
 curl -s localhost:8000/api/health
 ```
 
-Uses `claude-opus-5` with structured outputs and a cached system + statistics prefix,
-so repeat runs for the same student are cheap.
+Each profile check runs the same grounded prompt concurrently through
+`claude-opus-5`, `gpt-5.6-terra`, and `deepseek-v4-pro`, returning the available
+reports independently. All three cache the same prefix, the system prompt plus
+corpus statistics, which is identical for every student: Claude through an
+explicit 1-hour breakpoint, GPT-5.6 Terra through an explicit breakpoint with
+implicit caching off, and DeepSeek through its automatic prefix cache. The
+per-student material (consulate question mix, retrieved interviews, profile,
+answers) comes after it and is never cached.
 
 ## Web frontend
 

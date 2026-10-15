@@ -94,3 +94,19 @@ func TestMissingFileIsAReadable503(t *testing.T) {
 		t.Error("expected an error message in the body")
 	}
 }
+
+func TestInvalidJSONIsAReadable503(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "stats.json")
+	if err := os.WriteFile(path, []byte("version https://git-lfs.github.com/spec/v1\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("STATS_PATH", path)
+
+	w := serve(handlers.NewStatsHandler(), "", "")
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d: %s", w.Code, w.Body.String())
+	}
+	if body := w.Body.String(); body == "" {
+		t.Error("expected a readable deployment error")
+	}
+}

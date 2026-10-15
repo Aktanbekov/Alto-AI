@@ -1,22 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  getEvaluateStatus, evaluateProfile, getMe, getQuestionBank, getAccess,
-  getAdminMe, compareModels,
+  getEvaluateStatus, evaluateProfile, getQuestionBank, getAccess,
+  getAdminMe, compareModels, getCorpusStats,
 } from "../api";
+import { useCurrentUser } from "../components/ProtectedRoute";
 import { TEST_PROFILE, testAnswerFor } from "../data/testProfile";
+import { askAs } from "../data/questionPhrasing";
 import ModelCompare from "../components/admin/ModelCompare";
 import { track, trackScrollDepth, gpaBandOf } from "../analytics";
 import FeedbackRating from "../components/validation/FeedbackRating";
 import FeedbackCard from "../components/validation/FeedbackCard";
 import AccessScreen from "../components/validation/AccessScreen";
 import SurveyFlow from "../components/validation/SurveyFlow";
+import { questionLabel } from "../data/questionLabels";
+import { SMALL_N } from "../components/charts/useChartWidth";
+import Arrow from "../components/ui/Arrow";
 
 /*
  * The profile evaluator, ported from visa-llm's own Evaluate view.
  *
- * It posts to /api/v1/evaluate, which proxies the visa-llm sidecar, so the
- * scoring is the same grounded evaluator - every claim comes from retrieved
- * interviews and precomputed corpus statistics, not model priors.
+ * It posts to /api/v1/evaluate, which fans the same grounded prompt out to
+ * three providers through the visa-llm sidecar. Every report receives the same
+ * retrieved interviews and precomputed corpus statistics; a student is sent
+ * one of them, an admin all three.
  */
 
 // Questions come three at a time from the corpus bank, walked in order of how
@@ -24,6 +30,17 @@ import SurveyFlow from "../components/validation/SurveyFlow";
 // of the test is to face what actually gets asked, not what you have an answer
 // for ready.
 const PER_ROUND = 3;
+
+// A backend can roll out a little after its Vercel frontend. The old endpoint
+// returned one evaluation directly; the new endpoint returns model-result rows.
+// Normalize both shapes so a mixed-version deploy still shows the report.
+const evaluationRows = (response) => {
+  if (Array.isArray(response?.results)) return response.results;
+  if (response && typeof response === "object") {
+    return [{ model: "report", evaluation: response }];
+  }
+  return [];
+};
 
 // Used when the corpus bank cannot be fetched - an old server without the
 // /questions route, a missing data file, a network blip. Four rounds of the
@@ -139,13 +156,53 @@ function roundQuestions(pool, round) {
 const POSTGRAD = new Set(["Masters", "MBA", "PhD"]);
 
 const SCALES = [
-  { value: "", label: "Select your scale…" },
+  { value: "", label: "Choose a scale" },
   { value: "4", label: "Out of 4.0 (US and similar)" },
   { value: "4.3", label: "Out of 4.3" },
   { value: "5", label: "Out of 5.0" },
   { value: "10", label: "Out of 10 (India CGPA)" },
   { value: "100", label: "Percentage (out of 100)" },
 ];
+
+const ATTEMPTS = [
+  { value: "1", label: "First attempt" },
+  { value: "2", label: "Second attempt" },
+  { value: "3", label: "Third attempt" },
+  { value: "4", label: "Fourth or later" },
+];
+
+// Consulate city -> country, so nobody is asked for both. Matched on the
+// lower-cased city; anything not listed can still be typed under "Add more
+// detail". Only cities with a US embassy or consulate that issues student visas.
+const CITY_COUNTRY = {
+  "new delhi": "India", delhi: "India", mumbai: "India", hyderabad: "India",
+  chennai: "India", kolkata: "India",
+  tashkent: "Uzbekistan", almaty: "Kazakhstan", astana: "Kazakhstan",
+  bishkek: "Kyrgyzstan", dushanbe: "Tajikistan", ashgabat: "Turkmenistan",
+  "abu dhabi": "UAE", dubai: "UAE", dhaka: "Bangladesh", kathmandu: "Nepal",
+  colombo: "Sri Lanka", islamabad: "Pakistan", karachi: "Pakistan", lahore: "Pakistan",
+  lagos: "Nigeria", abuja: "Nigeria", accra: "Ghana", nairobi: "Kenya",
+  cairo: "Egypt", istanbul: "Turkey", ankara: "Turkey", riyadh: "Saudi Arabia",
+  jeddah: "Saudi Arabia", dhahran: "Saudi Arabia", hanoi: "Vietnam",
+  "ho chi minh city": "Vietnam", manila: "Philippines", jakarta: "Indonesia",
+  surabaya: "Indonesia", beijing: "China", shanghai: "China", guangzhou: "China",
+  shenyang: "China", seoul: "South Korea", tokyo: "Japan", taipei: "Taiwan",
+  "kuala lumpur": "Malaysia", bangkok: "Thailand", "mexico city": "Mexico",
+  "sao paulo": "Brazil", "são paulo": "Brazil", bogota: "Colombia", "bogotá": "Colombia",
+};
+const countryFor = (city) => CITY_COUNTRY[city.trim().toLowerCase()] || "";
+
+const DEGREES = [
+  { value: "Bachelor", label: "Bachelor's" },
+  { value: "Masters", label: "Master's" },
+  { value: "MBA", label: "MBA" },
+  { value: "PhD", label: "PhD" },
+];
+
+// The two short profile steps that come before the questions.
+const PROFILE_STEPS = 2;
+const profileStarted = (p) =>
+  Boolean(p && (p.university || p.course || p.consulate_city || p.funding_source));
 
 const EMPTY = {
   consulate_city: "", consulate_country: "", university: "", course: "",
@@ -154,25 +211,30 @@ const EMPTY = {
 };
 
 /*
- * The gate falls in the middle of the flow. A guest finishes their free round,
- * asks for the next three questions, and is sent to sign up - so coming back
- * has to hand them the round they asked for, with the eleven profile fields
- * they already typed still filled in. Without this the round-trip drops them
- * on question one of a blank form, which reads as the sign-up having eaten
- * their work.
+ * A reload, or the survey that unlocks more rounds, should hand the person
+ * back the round they were on with the profile and answers they already typed
+ * still filled in, not question one of a blank form.
+ *
+ * Answers are kept by question type, so they come back on whichever round the
+ * question lands on once the real bank has loaded. The scoring error message
+ * tells people their answers are saved; this is what makes that true on their
+ * side of the connection too.
  *
  * sessionStorage, not localStorage: this is one sitting's progress, and a
- * shared browser should not hand the next person someone's profile.
+ * shared browser should not hand the next person someone's profile. For the
+ * same reason it is stamped with the account it belongs to and ignored for any
+ * other, and signing out wipes it (utils/tokenStorage.js).
  */
 const RESUME_KEY = "alto.check_profile.resume";
 
-function readResume() {
+function readResume(owner) {
   try {
     const saved = JSON.parse(sessionStorage.getItem(RESUME_KEY) || "null");
-    if (!saved || typeof saved !== "object") return null;
+    if (!saved || typeof saved !== "object" || !owner || saved.owner !== owner) return null;
     const round = Number(saved.round);
     if (!Number.isInteger(round) || round < 0) return null;
-    return { round, profile: { ...EMPTY, ...(saved.profile || {}) } };
+    const drafts = saved.drafts && typeof saved.drafts === "object" ? saved.drafts : {};
+    return { round, profile: { ...EMPTY, ...(saved.profile || {}) }, drafts };
   } catch {
     // Private browsing, a disabled store, a half-written value - none of it is
     // worth failing the page over. Start fresh.
@@ -180,9 +242,9 @@ function readResume() {
   }
 }
 
-function saveResume(state) {
+function saveResume(owner, state) {
   try {
-    sessionStorage.setItem(RESUME_KEY, JSON.stringify(state));
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ owner, ...state }));
   } catch {
     // Progress is a convenience; losing it is not an error worth showing.
   }
@@ -190,22 +252,96 @@ function saveResume(state) {
 
 const FALLBACK_POOL = spreadTopics(FALLBACK_QUESTIONS, PER_ROUND);
 
+const draftKey = (row) => row.question_type || row.question;
+
+const GPA_SCALE_MESSAGE =
+  "Choose what your grades are out of. A number on its own is ambiguous - 3.5 out of 4 " +
+  "is strong, 3.5 out of 10 is not. Or clear the grades box.";
+
+// What a failed request should say. The server's own messages are already
+// written for students; a dropped connection only has the browser's.
+function plainError(err) {
+  if (err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(err?.message || "")) {
+    return "We couldn't reach Altovisas. Check your connection and try again - your answers are still here.";
+  }
+  return err?.message || "Something went wrong while checking your answers. Try again in a moment.";
+}
+
+/*
+ * How much of the corpus stands behind a comparison for this consulate.
+ * Matched on the city first, then the country; null until the statistics load
+ * or while neither field says anything.
+ */
+function coverageFor(stats, city, country) {
+  if (!stats) return null;
+  const find = (table, name) => {
+    const key = name.trim().toLowerCase();
+    if (!key) return null;
+    const hit = Object.entries(table || {}).find(([k]) => k.toLowerCase() === key);
+    return hit ? { name: hit[0], ...hit[1] } : null;
+  };
+  const byCity = find(stats.by_city, city);
+  if (byCity) return { kind: "city", ...byCity };
+  const byCountry = find(stats.by_country, country);
+  if (byCountry) return { kind: "country", city: city.trim(), ...byCountry };
+  if (city.trim() || country.trim()) return { kind: "none", name: city.trim() || country.trim() };
+  return null;
+}
+
+function CoverageNote({ coverage }) {
+  if (!coverage) return null;
+  const n = coverage.n_decided?.toLocaleString();
+  if (coverage.kind === "city") {
+    return (
+      <p className="pc-cover" role="status">
+        <strong>{n} interviews</strong> from {coverage.name} in the data.
+        {coverage.n_decided < SMALL_N && " That is a thin comparison - read the numbers in your report with that in mind."}
+      </p>
+    );
+  }
+  if (coverage.kind === "country") {
+    return (
+      <p className="pc-cover" role="status">
+        {coverage.city ? <>No interviews from {coverage.city} in the data yet. </> : null}
+        <strong>{n} interviews</strong> from {coverage.name} overall.
+        {coverage.n_decided < SMALL_N && " That is a thin comparison - read the numbers in your report with that in mind."}
+      </p>
+    );
+  }
+  return (
+    <p className="pc-cover" role="status">
+      Few or no interviews from {coverage.name} in the data yet. Your answers are still
+      checked, but the comparisons lean on other consulates, mostly in India.
+    </p>
+  );
+}
+
 export default function CheckProfilePage() {
+  // The route is behind ProtectedRoute, so the account is known at mount.
+  const user = useCurrentUser();
+  const owner = (user?.email || "").toLowerCase();
   // Read once per mount, before the state below is seeded from it.
-  const resume = useRef(readResume());
+  const resume = useRef(readResume(owner));
+  const drafts = useRef(resume.current?.drafts || {});
+  const withDrafts = (rows) =>
+    rows.map((row) => ({ ...row, answer: row.answer || drafts.current[draftKey(row)] || "" }));
+
   const [profile, setProfile] = useState(() => resume.current?.profile || EMPTY);
   const [pool, setPool] = useState(FALLBACK_POOL);
   const [answers, setAnswers] = useState(() =>
-    roundQuestions(FALLBACK_POOL, resume.current?.round || 0)
+    withDrafts(roundQuestions(FALLBACK_POOL, resume.current?.round || 0))
   );
   const [round, setRound] = useState(() => resume.current?.round || 0);
   const [status, setStatus] = useState({ checking: true, available: false, detail: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  // What was sent for the report on screen, so the report can quote it back.
+  const [submitted, setSubmitted] = useState([]);
+  const [stats, setStats] = useState(null);
 
   /*
-   * How many sets are left, which short prompt is due, and whether the survey
+   * How many rounds are left, which short prompt is due, and whether the survey
    * and waitlist are behind them - all from the server, never inferred here.
    *
    * The page could guess most of it from `round`, and would be wrong the moment
@@ -237,6 +373,25 @@ export default function CheckProfilePage() {
   const [comparing, setComparing] = useState(false);
   const [comparison, setComparison] = useState(null);
 
+  /*
+   * Which step of the form is on screen: two short profile steps, then one
+   * question per step. Someone resuming a sitting with a profile already
+   * filled in starts at the first question, not at the top of the form.
+   */
+  const [step, setStep] = useState(() =>
+    profileStarted(resume.current?.profile) ? PROFILE_STEPS : 0
+  );
+  const [stepError, setStepError] = useState("");
+  const stepMoved = useRef(false);
+  useEffect(() => {
+    // Not on first render: arriving on the page should not jump the focus.
+    if (!stepMoved.current) { stepMoved.current = true; return; }
+    const answer = document.getElementById(`pc-a${step - PROFILE_STEPS}`);
+    (answer || document.getElementById("pc-step-h"))?.focus({ preventScroll: true });
+    const top = document.querySelector(".pc-flow")?.getBoundingClientRect().top ?? 0;
+    if (top < 0) scrollTo({ top: Math.max(0, scrollY + top - 16), behavior: "smooth" });
+  }, [step]);
+
   useEffect(() => {
     getEvaluateStatus()
       .then((s) => {
@@ -244,6 +399,14 @@ export default function CheckProfilePage() {
         if (s.access) setAccess(s.access);
       })
       .catch((err) => setStatus({ checking: false, available: false, detail: err.message }));
+  }, []);
+
+  // The corpus statistics, for the coverage line under the consulate fields
+  // and in the report. The page works without them; the line just stays away.
+  useEffect(() => {
+    let cancelled = false;
+    getCorpusStats().then((s) => !cancelled && setStats(s)).catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   // The bank is a static corpus file, so one fetch covers every round. On
@@ -262,7 +425,7 @@ export default function CheckProfilePage() {
         const start = (resume.current?.round || 0) * PER_ROUND;
         const from = start < spread.length ? start : 0;
         setRound(from / PER_ROUND);
-        setAnswers(spread.slice(from, from + PER_ROUND).map(toRound));
+        setAnswers(withDrafts(spread.slice(from, from + PER_ROUND).map(toRound)));
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -270,15 +433,22 @@ export default function CheckProfilePage() {
 
   // Keep the sitting's progress current, so a gate at any point - this round
   // or the next - comes back to where the person actually was.
-  useEffect(() => { saveResume({ round, profile }); }, [round, profile]);
+  useEffect(() => {
+    answers.forEach((row) => {
+      const key = draftKey(row);
+      if (row.answer) drafts.current[key] = row.answer;
+      else delete drafts.current[key];
+    });
+    saveResume(owner, { round, profile, drafts: drafts.current });
+  }, [owner, round, profile, answers]);
 
   /*
    * Start where the server says they left off.
    *
    * The round counter is local and starts at zero, but someone coming back
-   * tomorrow - or after unlocking - has sets behind them that this page knows
+   * tomorrow - or after unlocking - has rounds behind them that this page knows
    * nothing about. Without this they are handed questions they have already
-   * answered, and the sets they paid a survey for go on the same three.
+   * answered, and the rounds they paid a survey for go on the same three.
    *
    * Only for a fresh arrival: a resumed sitting already carries its own round,
    * and a round in progress must not be yanked out from under a report.
@@ -294,11 +464,11 @@ export default function CheckProfilePage() {
     const start = Math.max(resume.current?.round || 0, access.sets_used || 0);
     if (start <= 0 || start * PER_ROUND >= pool.length) return;
     setRound(start);
-    setAnswers(roundQuestions(pool, start));
+    setAnswers(withDrafts(roundQuestions(pool, start)));
   }, [access, pool, result]);
 
   // getAdminMe answers {is_admin:false} rather than throwing for everyone else,
-  // so this is safe to call on every visit, signed in or not.
+  // so this is safe to call on every visit.
   useEffect(() => {
     let cancelled = false;
     getAdminMe()
@@ -309,17 +479,13 @@ export default function CheckProfilePage() {
 
   // Prefill from the signed-in account so people do not retype what we know.
   useEffect(() => {
-    getMe()
-      .then((u) => {
-        if (!u) return;
-        setProfile((p) => ({
-          ...p,
-          university: p.university || u.college || "",
-          major: p.major || u.major || "",
-        }));
-      })
-      .catch(() => {});
-  }, []);
+    if (!user) return;
+    setProfile((p) => ({
+      ...p,
+      university: p.university || user.college || "",
+      major: p.major || user.major || "",
+    }));
+  }, [user]);
 
   // form_start fires on the first edit rather than on mount: arriving on the
   // page is a page_view, and counting it as a form start would flatten the
@@ -354,7 +520,7 @@ export default function CheckProfilePage() {
    * but submitting afterwards fires form_complete regardless, and a funnel with
    * more completions than starts is harder to read than one extra test row.
    *
-   * It fills only - it does not submit. Scoring costs a set and a model call,
+   * It fills only - it does not submit. Scoring costs a round and a model call,
    * and that stays an explicit click.
    */
   const fillWithTestData = () => {
@@ -384,35 +550,51 @@ export default function CheckProfilePage() {
 
   // Next round: same profile, three new questions, empty answers, no report.
   //
-  // No gate here any more. Whether they have a set left is the server's call and
-  // it is made on submit; asking again at this point would only add a round trip
-  // and a second place for the two answers to disagree.
+  // No gate here any more. Whether they have a round left is the server's call
+  // and it is made on submit; asking again at this point would only add a round
+  // trip and a second place for the two answers to disagree.
   const nextRound = async () => {
     setActivePrompt("");
     setPromptDone(false);
-    setAnswers(pool.slice(nextStart, nextStart + PER_ROUND).map(toRound));
+    setAnswers(withDrafts(pool.slice(nextStart, nextStart + PER_ROUND).map(toRound)));
     setRound((r) => r + 1);
     setResult(null);
+    setSubmitted([]);
     setError("");
+    setStep(PROFILE_STEPS);
     roundStartedAt.current = Date.now();
     scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Back to the same three questions with what they wrote, to change an answer
+  // and check it again. Re-checking a round already used is free server-side.
+  const editRound = () => {
+    setActivePrompt("");
+    setPromptDone(false);
+    setResult(null);
+    setError("");
+    setStep(PROFILE_STEPS);
+    scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const showPrior = POSTGRAD.has(profile.degree_level);
+  const country = profile.consulate_country.trim() || countryFor(profile.consulate_city);
+
+  const plannedAnswers = () => answers
+    .map((a) => ({ question: askAs(a, profile.degree_level).trim(), answer: a.answer.trim() }))
+    .filter((a) => a.question && a.answer);
 
   /*
    * Admin only: score this round with all three models at once.
    *
    * Separate from submit() rather than a flag on it, because almost none of
    * what submit does applies here - no analytics funnel (this is not someone
-   * taking the test), no set accounting (the server spends none), no resume
+   * taking the test), no round accounting (the server spends none), no resume
    * state. What it shares is the payload, built the same way so the comparison
    * measures the request students actually send.
    */
   const runComparison = async () => {
-    const planned = answers
-      .map((a) => ({ question: a.question.trim(), answer: a.answer.trim() }))
-      .filter((a) => a.question && a.answer);
+    const planned = plannedAnswers();
     if (!planned.length) {
       setError("Fill in at least one answer before comparing models.");
       return;
@@ -422,19 +604,20 @@ export default function CheckProfilePage() {
     try {
       const res = await compareModels({
         ...profile,
+        consulate_country: country,
         major: showPrior ? profile.major.trim() : "",
         attempt_number: Number(profile.attempt_number) || 1,
         planned_answers: planned,
       });
+      setSubmitted(planned);
       setComparison(res.results || []);
       scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      setError(err.message);
+      setError(plainError(err));
     } finally {
       setComparing(false);
     }
   };
-
 
   const submit = async (e) => {
     e.preventDefault();
@@ -445,20 +628,17 @@ export default function CheckProfilePage() {
       if (!String(value || "").trim()) track("form_field_skipped", { field_name: field });
     });
 
-    const planned = answers
-      .map((a) => ({ question: a.question.trim(), answer: a.answer.trim() }))
-      .filter((a) => a.question && a.answer);
+    const planned = plannedAnswers();
 
     if (!planned.length) {
-      setError("Answer at least one of the questions before scoring.");
+      setError("Answer at least one of the three questions, then check again.");
+      setStep(PROFILE_STEPS);
       return;
     }
     // A bare number is unusable: 3.5 is strong out of 4 and weak out of 10.
     if (profile.gpa.trim() && !profile.gpa_scale) {
-      setError(
-        "Pick your grading scale. A GPA on its own is ambiguous - 3.5 out of 4 is strong, " +
-        "3.5 out of 10 is not. Choose the scale your institution uses, or clear the GPA field."
-      );
+      setStepError(GPA_SCALE_MESSAGE);
+      setStep(0);
       return;
     }
 
@@ -478,7 +658,7 @@ export default function CheckProfilePage() {
     });
     track("form_complete", {
       consulate: profile.consulate_city,
-      country: profile.consulate_country,
+      country,
       degree_level: profile.degree_level,
       gpa_band: gpaBandOf(profile.gpa, profile.gpa_scale),
       funding_type: profile.funding_source ? "stated" : "blank",
@@ -488,17 +668,21 @@ export default function CheckProfilePage() {
     track("test_complete", { total_seconds: elapsed });
 
     setBusy(true);
+    setSubmitted(planned);
+    scrollTo({ top: 0, behavior: "smooth" });
     try {
       const payload = {
         ...profile,
+        consulate_country: country,
         major: showPrior ? profile.major.trim() : "",
         attempt_number: Number(profile.attempt_number) || 1,
         planned_answers: planned,
-        // Which set this is, so re-scoring one after a refresh does not spend
-        // another allowance.
+        // Which round this is, so re-scoring one after a refresh does not
+        // spend another allowance.
         set_index: round,
       };
-      setResult(await evaluateProfile(payload));
+      const response = await evaluateProfile(payload);
+      setResult(evaluationRows(response));
       // The report is on screen; what comes underneath it depends on a count
       // only the server keeps, so ask before rendering the next step.
       refreshAccess();
@@ -508,7 +692,7 @@ export default function CheckProfilePage() {
         refreshAccess();
         return;
       }
-      setError(err.message);
+      setError(plainError(err));
     } finally {
       setBusy(false);
     }
@@ -523,13 +707,16 @@ export default function CheckProfilePage() {
     refreshAccess();
   };
 
-  const country = profile.consulate_country.trim().toLowerCase();
-  const thinComparables = country && country !== "india";
+  const coverage = coverageFor(stats, profile.consulate_city, country);
+  const cities = [...new Set([
+    ...Object.keys(stats?.by_city || {}),
+    ...Object.keys(CITY_COUNTRY).map((c) => c.replace(/\b\w/g, (ch) => ch.toUpperCase())),
+  ])].sort();
 
-  // Out of sets, by the server's count. Until the first access call lands we
-  // assume they have sets - the form is the right thing to show while we do not
-  // know, and the submit itself is still enforced server-side.
-  const outOfSets = !!access && access.sets_remaining <= 0;
+  // Out of rounds, by the server's count. Until the first access call lands we
+  // assume they have rounds - the form is the right thing to show while we do
+  // not know, and the submit itself is still enforced server-side.
+  const outOfSets = !!access && !access.unlimited && access.sets_remaining <= 0;
   const prompt = access?.next_prompt || "";
 
   // Latch it once per round, so answering does not unmount the card mid-thanks.
@@ -542,8 +729,8 @@ export default function CheckProfilePage() {
    *
    * The short prompt comes first when one is due: it is asked once, and asking
    * it after the access screen would mean asking someone who has just been told
-   * they are out of sets. Then the access screen if the allowance is spent, and
-   * otherwise the button for the next three questions.
+   * they are out of rounds. Then the access screen if the allowance is spent,
+   * and otherwise the button for the next three questions.
    */
   let nextAction;
   if (outOfSets) {
@@ -556,15 +743,20 @@ export default function CheckProfilePage() {
     );
   } else if (hasNextRound) {
     nextAction = (
-      <button type="button" className="ev-submit" onClick={nextRound}>
-        Next {PER_ROUND} questions →
-      </button>
+      <div className="pc-next">
+        <button type="button" className="ev-submit" onClick={nextRound}>
+          Next three questions <Arrow />
+        </button>
+        <button type="button" className="pc-quiet" onClick={editRound}>
+          Change an answer and check again
+        </button>
+      </div>
     );
   } else {
     nextAction = (
       <p className="sub">
-        That is the last question in this set. Start again from the top whenever
-        you want another pass.
+        That was the last round of questions. Start again from the top whenever you
+        want another pass.
       </p>
     );
   }
@@ -584,178 +776,353 @@ export default function CheckProfilePage() {
     afterReport = nextAction;
   }
 
+  const roundsLeft = access && !access.unlimited && Number.isFinite(access.sets_remaining) ? access.sets_remaining : null;
+  const reportFor = (ev) => (
+    <Evaluation
+      ev={ev}
+      round={round}
+      submitted={submitted}
+      profile={profile}
+      coverage={coverage}
+    />
+  );
+
+  let body;
+  if (showSurvey) {
+    body = (
+      <SurveyFlow
+        onUnlocked={(next) => { if (next) setAccess(next); else refreshAccess(); }}
+        onContinue={() => { setShowSurvey(false); setResult(null); nextRound(); }}
+        onCancel={() => setShowSurvey(false)}
+      />
+    );
+  } else if (comparison) {
+    body = (
+      <ModelCompare
+        results={comparison}
+        renderReport={reportFor}
+        onBack={() => setComparison(null)}
+      />
+    );
+  } else if (busy) {
+    body = <Scoring planned={submitted} profile={profile} coverage={coverage} />;
+  } else if (result) {
+    // Admins get every model side by side; everyone else is sent one report.
+    body = result.length > 1 ? (
+      <ModelCompare
+        results={result}
+        showMetrics={false}
+        intro="Admin view: every model's report on the same answers. Students see one."
+        renderReport={(ev) => <>{reportFor(ev)}<div className="pc-after no-print">{afterReport}</div></>}
+      />
+    ) : result[0]?.evaluation ? (
+      <>
+        {reportFor(result[0].evaluation)}
+        <div className="pc-after no-print">{afterReport}</div>
+      </>
+    ) : (
+      <div className="caveat bad" role="alert">
+        <strong>The report didn&rsquo;t come back.</strong> Your answers are still here -{" "}
+        <button type="button" className="pc-inline" onClick={editRound}>go back and check again</button>.
+      </div>
+    );
+  } else if (outOfSets) {
+    body = (
+      <AccessScreen
+        access={access}
+        onStartSurvey={() => setShowSurvey(true)}
+        onWaitlistJoined={refreshAccess}
+      />
+    );
+  } else {
+    const totalSteps = PROFILE_STEPS + answers.length;
+    const qIndex = step - PROFILE_STEPS;
+    const row = qIndex >= 0 ? answers[qIndex] : null;
+    const last = step >= totalSteps - 1;
+    const stepName = step === 0 ? "Your study"
+      : step === 1 ? "Your interview"
+        : `Question ${qIndex + 1} of ${answers.length}`;
+    const extraOpen = Boolean(
+      profile.work_experience || profile.consulate_country || profile.attempt_number !== "1"
+    );
+
+    const goNext = (e) => {
+      e.preventDefault();
+      if (step === 0 && profile.gpa.trim() && !profile.gpa_scale) {
+        setStepError(GPA_SCALE_MESSAGE);
+        return;
+      }
+      setStepError("");
+      setError("");
+      setStep((n) => Math.min(n + 1, totalSteps - 1));
+    };
+    const goBack = () => {
+      setStepError("");
+      setError("");
+      setStep((n) => Math.max(0, n - 1));
+    };
+
+    body = (
+      <form className="pc-flow" onSubmit={last ? submit : goNext} noValidate>
+        {/* type="button" matters: inside a form, a bare button submits. */}
+        {isAdmin && (
+          <div className="ev-devbar">
+            <span className="ev-devbar-tag">Admin</span>
+            <button type="button" className="ev-devfill" onClick={fillWithTestData}>
+              Fill with test data
+            </button>
+            <button
+              type="button"
+              className="ev-devfill"
+              onClick={runComparison}
+              disabled={comparing}
+            >
+              {comparing ? "Scoring with all three…" : "Compare 3 models"}
+            </button>
+            <span className="ev-devbar-note">
+              Fill drops in a sample applicant. Compare scores this round with
+              Claude Opus, GPT-5.6 Terra and DeepSeek V4 Pro at once &mdash; three model calls, no
+              practice round spent, nothing stored.
+            </span>
+          </div>
+        )}
+
+        <div className="pc-progress">
+          <p className="pc-step-of">
+            <span>Step {step + 1} of {totalSteps}</span>
+            <span aria-hidden="true"> · </span>
+            <span>{round > 0 ? `Round ${round + 1} · ` : ""}{stepName}</span>
+          </p>
+          <div
+            className="pc-track" role="progressbar" aria-label="Progress"
+            aria-valuemin={1} aria-valuemax={totalSteps} aria-valuenow={step + 1}
+          >
+            <span style={{ width: `${((step + 1) / totalSteps) * 100}%` }} />
+          </div>
+        </div>
+
+        <div className="pc-panel">
+          {step === 0 && (
+            <>
+              <h2 id="pc-step-h" tabIndex={-1}>First, your study</h2>
+              <p className="sub">
+                This is how we find interviews like yours. Skip anything you don&rsquo;t know.
+              </p>
+
+              <fieldset className="pc-choice">
+                <legend className="fl">What degree are you applying for?</legend>
+                <div className="pc-seg">
+                  {DEGREES.map((d) => (
+                    <label key={d.value} className={profile.degree_level === d.value ? "on" : ""}>
+                      <input
+                        type="radio" name="degree_level" value={d.value}
+                        checked={profile.degree_level === d.value}
+                        onChange={set("degree_level")}
+                      />
+                      {d.label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="pc-fields">
+                <Field id="university" label="University" hint="e.g. Arizona State University"
+                  value={profile.university} onChange={set("university")} autoComplete="organization" />
+                <Field id="course" label="What you will study" hint="e.g. MS in Computer Science"
+                  value={profile.course} onChange={set("course")} />
+                {showPrior && (
+                  <Field id="major" label="What you studied before" hint="e.g. B.Tech in Mechanical Engineering"
+                    value={profile.major} onChange={set("major")} />
+                )}
+                <div className="pc-pair">
+                  <Field id="gpa" label="Your grades" hint="e.g. 8.2" inputMode="decimal"
+                    value={profile.gpa} onChange={set("gpa")} />
+                  <Select id="gpa_scale" label="Out of" value={profile.gpa_scale}
+                    onChange={set("gpa_scale")} options={SCALES} />
+                </div>
+              </div>
+            </>
+          )}
+
+          {step === 1 && (
+            <>
+              <h2 id="pc-step-h" tabIndex={-1}>Your interview and funding</h2>
+              <p className="sub">
+                The consulate decides which officers&rsquo; questions we compare you with.
+              </p>
+
+              <div className="pc-fields">
+                <div>
+                  <Field id="consulate_city" label="Which consulate is your interview at?"
+                    hint="e.g. Chennai" list="pc-cities"
+                    value={profile.consulate_city} onChange={set("consulate_city")} />
+                  <CoverageNote coverage={coverage} />
+                </div>
+                <Field id="funding_source" label="Who is paying for your degree?"
+                  hint="e.g. My father's business savings and an education loan"
+                  value={profile.funding_source} onChange={set("funding_source")} />
+              </div>
+              <datalist id="pc-cities">
+                {cities.map((c) => <option key={c} value={c} />)}
+              </datalist>
+
+              <details className="pc-more" open={extraOpen}>
+                <summary>Add more detail <span>(optional)</span></summary>
+                <div className="pc-fields">
+                  <Field id="work_experience" label="Work experience"
+                    hint="e.g. 2 years as a data analyst, or none"
+                    value={profile.work_experience} onChange={set("work_experience")} />
+                  <Select id="attempt_number" label="Is this your first attempt?"
+                    value={profile.attempt_number} onChange={set("attempt_number")} options={ATTEMPTS} />
+                  <Field id="consulate_country" label="Consulate country"
+                    hint={countryFor(profile.consulate_city)
+                      ? `We'll use ${countryFor(profile.consulate_city)} unless you change it`
+                      : "e.g. India"}
+                    value={profile.consulate_country} onChange={set("consulate_country")}
+                    autoComplete="country-name" />
+                </div>
+              </details>
+            </>
+          )}
+
+          {row && (
+            <>
+              <label className="pc-q" htmlFor={`pc-a${qIndex}`}>
+                {askAs(row, profile.degree_level)}
+              </label>
+              {row.share != null && (
+                <p className="ev-q-share">
+                  Asked in {Math.round(row.share * 100)}% of the interviews in the data
+                </p>
+              )}
+              <textarea
+                id={`pc-a${qIndex}`}
+                className="pc-answer-box"
+                rows={5}
+                value={row.answer}
+                onChange={setAnswer(qIndex)}
+                aria-describedby={`pc-a${qIndex}-tip`}
+              />
+              <p className="fh" id={`pc-a${qIndex}-tip`}>
+                Write what you would really say at the window. Two or three sentences is plenty.
+                You can leave a question blank.
+              </p>
+            </>
+          )}
+        </div>
+
+        {(stepError || error) && (
+          <div className="caveat bad" role="alert">{stepError || error}</div>
+        )}
+
+        <div className="pc-nav">
+          <button className="ev-submit" disabled={last && !status.available}>
+            {last ? "Check my answers" : row ? "Next question" : "Continue"}
+            {!last && <Arrow />}
+          </button>
+          {step > 0 && (
+            <button type="button" className="pc-quiet" onClick={goBack}>Back</button>
+          )}
+          {step >= PROFILE_STEPS && (
+            <button type="button" className="pc-quiet pc-edit" onClick={() => setStep(0)}>
+              Edit your details
+            </button>
+          )}
+        </div>
+
+        {last && (
+          <p className="sub pc-status" aria-live="polite">
+            {status.checking
+              ? "Checking that scoring is up…"
+              : !status.available
+                ? "Scoring is down right now. Your answers stay in this browser until it's back."
+                : access?.unlimited
+                  ? "Your admin account has unlimited practice rounds."
+                  : roundsLeft != null
+                  ? `A new round uses one of your free rounds. You have ${roundsLeft} left.`
+                  : "Your answers are saved in this browser as you type."}
+          </p>
+        )}
+      </form>
+    );
+  }
+
   return (
     <div className="vz">
       <div className="page-w ev">
-        <h1>Check my profile</h1>
-        <p className="sub" style={{ marginBottom: 18 }}>
-          Your answers are scored against comparable interviews from the corpus.
+        <h1>Profile check</h1>
+        <p className="lede-vz">
+          A few details about you, then three questions officers ask most. We show where
+          an officer would push back.
         </p>
 
-        {status.checking ? (
-          <div className="caveat">Checking the evaluator…</div>
-        ) : status.available ? (
-          <div className="caveat">
-            Connected to the evaluator. Your answers are scored against comparable
-            interviews from the corpus.
-          </div>
-        ) : (
-          <div className="caveat bad">
-            <strong>The evaluator is unavailable.</strong>{" "}
-            {status.detail || "The visa-llm service is not reachable."} You can still
-            fill this in, but answers cannot be scored right now.
+        {!status.checking && !status.available && (
+          <div className="caveat bad" role="alert">
+            <strong>Scoring is down right now.</strong> You can still fill this in; your
+            answers stay in this browser, and you can check them when it&rsquo;s back.
+            {isAdmin && status.detail && <span className="pc-admin"> Admin detail: {status.detail}</span>}
           </div>
         )}
 
-        {/* The corpus is overwhelmingly Indian consulates; anyone else deserves
-            to know that before reading the output. */}
-        {thinComparables && (
-          <div className="caveat">
-            <strong>Limited comparables for your country.</strong> Most interviews in this
-            dataset are from Indian consulates, and their GPAs are on a 10-point scale.
-            Your answers are still evaluated, but the statistics and retrieved examples
-            come mainly from Indian applicants - weigh them accordingly.
-          </div>
-        )}
-
-        {showSurvey ? (
-          <SurveyFlow
-            onUnlocked={(next) => { if (next) setAccess(next); else refreshAccess(); }}
-            onContinue={() => { setShowSurvey(false); setResult(null); nextRound(); }}
-            onCancel={() => setShowSurvey(false)}
-          />
-        ) : comparison ? (
-          <ModelCompare
-            results={comparison}
-            renderReport={(ev) => <Evaluation ev={ev} round={round} />}
-            onBack={() => setComparison(null)}
-          />
-        ) : result ? (
-          <Evaluation ev={result} round={round} footer={afterReport} />
-        ) : outOfSets ? (
-          <AccessScreen
-            access={access}
-            onStartSurvey={() => setShowSurvey(true)}
-            onWaitlistJoined={refreshAccess}
-          />
-        ) : (
-        <form onSubmit={submit}>
-          {/* type="button" matters: inside a form, a bare button submits. */}
-          {isAdmin && (
-            <div className="ev-devbar">
-              <span className="ev-devbar-tag">Admin</span>
-              <button type="button" className="ev-devfill" onClick={fillWithTestData}>
-                Fill with test data
-              </button>
-              <button
-                type="button"
-                className="ev-devfill"
-                onClick={runComparison}
-                disabled={comparing}
-              >
-                {comparing ? "Scoring with all three…" : "Compare 3 models"}
-              </button>
-              <span className="ev-devbar-note">
-                Fill drops in a sample applicant. Compare scores this round with
-                Opus, DeepSeek and o3-mini at once &mdash; three model calls, no
-                practice set spent, nothing stored.
-              </span>
-            </div>
-          )}
-
-          <div className="vz-card">
-            <h2>Your profile</h2>
-            <p className="sub">
-              Use your real details - the tool is built to help you say true things clearly.
-              <em> Course</em> is the program you are going to study.
-            </p>
-
-            <div className="ev-grid">
-              <Field label="Consulate city" value={profile.consulate_city} onChange={set("consulate_city")} />
-              <Field label="Country" value={profile.consulate_country} onChange={set("consulate_country")} />
-              <Field label="University" value={profile.university} onChange={set("university")} />
-              <Field label="Course in the US" value={profile.course} onChange={set("course")} />
-
-              <label className="ev-f">
-                <span className="fl">Degree level</span>
-                <select value={profile.degree_level} onChange={set("degree_level")}>
-                  {["Bachelor", "Masters", "MBA", "PhD"].map((d) => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-              </label>
-
-              {showPrior && (
-                <Field
-                  label="Undergraduate major"
-                  hint="What you already studied"
-                  value={profile.major}
-                  onChange={set("major")}
-                />
-              )}
-
-              <Field label="GPA" value={profile.gpa} onChange={set("gpa")} />
-
-              <label className="ev-f">
-                <span className="fl">Grading scale</span>
-                <select value={profile.gpa_scale} onChange={set("gpa_scale")}>
-                  {SCALES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-              </label>
-
-              <Field label="Work experience" value={profile.work_experience} onChange={set("work_experience")} />
-              <Field label="Funding" value={profile.funding_source} onChange={set("funding_source")} />
-              <Field label="Attempt number" value={profile.attempt_number} onChange={set("attempt_number")} />
-            </div>
-          </div>
-
-          <div className="vz-card">
-            <h2>Your answers</h2>
-            <p className="sub">
-              Round {round + 1} · questions {round * PER_ROUND + 1}-
-              {round * PER_ROUND + answers.length} of {pool.length}. These are the
-              questions officers ask most often, most-asked first, with each round
-              spread across different topics. Say what you would really say.
-            </p>
-
-            {answers.map((row, i) => (
-              <div className="ev-qa" key={`${round}-${i}`}>
-                <p className="ev-q">{row.question}</p>
-                {row.share != null && (
-                  <p className="ev-q-share">
-                    Asked in {(row.share * 100).toFixed(1)}% of interviews
-                  </p>
-                )}
-                <span className="fl">Your answer</span>
-                <textarea rows={3} value={row.answer} onChange={setAnswer(i)} />
-              </div>
-            ))}
-          </div>
-
-          {error && <div className="caveat bad">{error}</div>}
-
-          <button className="ev-submit" disabled={busy || !status.available}>
-            {busy ? "Retrieving comparable interviews and evaluating…" : "Score these answers"}
-          </button>
-        </form>
-        )}
+        {body}
       </div>
     </div>
   );
 }
 
-function Field({ label, hint, value, onChange }) {
+function Field({ id, label, hint, value, onChange, list, ...rest }) {
+  const hintId = hint ? `pc-${id}-hint` : undefined;
   return (
-    <label className="ev-f">
-      <span className="fl">{label}</span>
-      <input value={value} onChange={onChange} placeholder={hint || ""} />
-    </label>
+    <div className="ev-f">
+      <label className="fl" htmlFor={`pc-${id}`}>{label}</label>
+      <input id={`pc-${id}`} value={value} onChange={onChange} aria-describedby={hintId} list={list} {...rest} />
+      {hint && <span className="fh" id={hintId}>{hint}</span>}
+    </div>
   );
 }
 
-const tone = (v) => (v === "strong" ? "ok" : v === "weak" || v === "needs_work" ? "bad" : "");
+function Select({ id, label, value, onChange, options }) {
+  return (
+    <div className="ev-f">
+      <label className="fl" htmlFor={`pc-${id}`}>{label}</label>
+      <select id={`pc-${id}`} value={value} onChange={onChange}>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+/*
+ * While the answers are being checked. The form is replaced rather than left
+ * on screen with a busy button at its foot, so there is one thing to look at:
+ * what is being compared, and the answers being compared, read back.
+ */
+function Scoring({ planned, profile, coverage }) {
+  const where = profile.consulate_city.trim() || profile.consulate_country.trim();
+  return (
+    <section className="pc-scoring" aria-live="polite" aria-busy="true">
+      <svg className="pc-rosette" viewBox="0 0 400 240" aria-hidden="true">
+        <use href="#guil" />
+      </svg>
+      <h2>Checking your answers</h2>
+      <p className="sub">
+        Comparing them with interviews from {where || "applicants like you"}
+        {coverage?.n_decided ? ` - ${coverage.n_decided.toLocaleString()} in the data` : ""}, and
+        with the questions officers ask there. It takes a little while; keep this tab open.
+      </p>
+      <ol className="pc-readback">
+        {planned.map((a) => (
+          <li key={a.question}>
+            <span className="q">{a.question}</span>
+            <span className="a">{a.answer}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 /*
  * The evaluator cites its sources the way the corpus stores them: opaque
@@ -820,71 +1187,182 @@ function scrub(text) {
 
 const scrubList = (xs) => (xs || []).map(scrub);
 
-function Evaluation({ ev, round, footer }) {
+const READINESS = {
+  strong: { word: "Holding up", tone: "ok" },
+  moderate: { word: "Partly ready", tone: "" },
+  needs_work: { word: "Needs work", tone: "bad" },
+};
+const VERDICT = {
+  strong: { word: "Holds up", tone: "ok" },
+  adequate: { word: "Could be stronger", tone: "" },
+  weak: { word: "Weak", tone: "bad" },
+};
+const SEVERITY = { high: "High risk", medium: "Medium risk", low: "Low risk" };
+
+// The model echoes each question back; match it to what was sent so the report
+// can quote the applicant's own words. Position is the fallback.
+function ownAnswer(submitted, fb, i) {
+  const hit = submitted.find((s) => s.question.trim().toLowerCase() === (fb.question || "").trim().toLowerCase());
+  return (hit || submitted[i] || {}).answer || "";
+}
+
+/*
+ * The report, laid out as the document the home page's sample card promises:
+ * a header with the verdict and what it stands on, then each answer quoted
+ * back with what an officer may hear and how to fix it, then what is likely to
+ * come next. It prints cleanly, because people rehearse from paper.
+ */
+function Evaluation({ ev, round, submitted, profile, coverage }) {
+  const feedback = ev.answer_feedback || [];
+  const likely = ev.likely_questions || [];
+  const risks = ev.risk_factors || [];
+  const readiness = READINESS[ev.readiness] || { word: (ev.readiness || "").replace("_", " "), tone: "" };
+  const rework = feedback.filter((f) => f.verdict !== "strong").length;
+  const where = coverage?.kind === "city" || coverage?.kind === "country" ? coverage.name : "";
+
+  const print = () => {
+    track("report_print", { round: round + 1 });
+    window.print();
+  };
+
   return (
-    <div className="ev-result">
-      <p className="sub">Round {round + 1} · your report</p>
-      <div className="vz-card">
-        <h2>
-          Readiness: <span className={tone(ev.readiness)}>{ev.readiness.replace("_", " ")}</span>
-        </h2>
-        <p>{scrub(ev.summary)}</p>
-      </div>
-
-      {ev.answer_feedback?.length > 0 && (
-        <div className="vz-card">
-          <h2>Your answers</h2>
-          {ev.answer_feedback.map((f, i) => (
-            <div className="ev-fb" key={i}>
-              <div className={`verdict ${tone(f.verdict)}`}>{f.verdict}</div>
-              <p className="q">{f.question}</p>
-              {f.strengths?.length > 0 && (
-                <ul>{scrubList(f.strengths).map((s, j) => <li key={j}>{s}</li>)}</ul>
-              )}
-              {f.risks?.length > 0 && (
-                <ul className="risks">{scrubList(f.risks).map((s, j) => <li key={j}>{s}</li>)}</ul>
-              )}
-              <p><strong>Suggested:</strong> {scrub(f.suggested_revision)}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {ev.likely_questions?.length > 0 && (
-        <div className="vz-card">
-          <h2>Likely questions for your profile</h2>
-          {ev.likely_questions.map((q, i) => (
-            <div className="ev-fb" key={i}>
-              <div className="verdict">
-                {q.question_type.replace(/_/g, " ")} · {q.asked_in_share}
+    <article className="pc-report" aria-labelledby="pc-report-title">
+      <header className="pc-doc">
+        <svg className="foil-g" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <use href="#guil" />
+        </svg>
+        <div className="pc-doc-in">
+          <div className="pc-doc-head">
+            <span>Profile check · round {round + 1}</span>
+            <span>{[profile.consulate_city, profile.degree_level].filter(Boolean).join(" · ")}</span>
+          </div>
+          <h2 id="pc-report-title" className={`pc-verdict ${readiness.tone}`}>{readiness.word}</h2>
+          <p className="pc-summary">{scrub(ev.summary)}</p>
+          <dl className="pc-doc-meta">
+            <div><dt>Answers checked</dt><dd>{feedback.length}</dd></div>
+            <div><dt>Answers to rework</dt><dd>{rework}</dd></div>
+            {where && (
+              <div>
+                <dt>Interviews from {where}</dt>
+                <dd>{coverage.n_decided.toLocaleString()}</dd>
               </div>
-              <p className="q">“{scrub(q.example_question)}”</p>
-              <p className="sub">{scrub(q.why_likely)}</p>
-              <p><strong>Prepare:</strong> {scrub(q.how_to_prepare)}</p>
-            </div>
-          ))}
+            )}
+            {where && coverage.rejected != null && coverage.n_decided > 0 && (
+              <div>
+                <dt>Of those, reported a refusal</dt>
+                <dd>{((coverage.rejected / coverage.n_decided) * 100).toFixed(1)}%</dd>
+              </div>
+            )}
+          </dl>
         </div>
+      </header>
+
+      {feedback.length > 0 && (
+        <section className="pc-sec">
+          <h3>Your answers, one by one</h3>
+          {feedback.map((f, i) => {
+            const verdict = VERDICT[f.verdict] || { word: f.verdict, tone: "" };
+            const said = ownAnswer(submitted, f, i);
+            return (
+              <div className="pc-answer" key={i}>
+                <div className="pc-answer-head">
+                  <h4>{f.question}</h4>
+                  <span className={`pc-pill ${verdict.tone}`}>{verdict.word}</span>
+                </div>
+                {said && (
+                  <blockquote className="pc-said">
+                    <span className="pc-k">You said</span>
+                    {said}
+                  </blockquote>
+                )}
+                {f.risks?.length > 0 && (
+                  <div className="pc-row">
+                    <span className="pc-k">An officer may hear</span>
+                    <ul>{scrubList(f.risks).map((s, j) => <li key={j}>{s}</li>)}</ul>
+                  </div>
+                )}
+                {f.strengths?.length > 0 && (
+                  <div className="pc-row">
+                    <span className="pc-k">What works</span>
+                    <ul>{scrubList(f.strengths).map((s, j) => <li key={j}>{s}</li>)}</ul>
+                  </div>
+                )}
+                {f.suggested_revision && (
+                  <div className="pc-fix">
+                    <span className="pc-k">How to fix it</span>
+                    <p>{scrub(f.suggested_revision)}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </section>
       )}
 
-      {ev.risk_factors?.length > 0 && (
-        <div className="vz-card">
-          <h2>Risk factors</h2>
-          {ev.risk_factors.map((r, i) => (
-            <div className="ev-fb" key={i}>
-              <div className={`verdict ${r.severity === "high" ? "bad" : ""}`}>{r.severity}</div>
-              <p className="q">{scrub(r.factor)}</p>
-              <p className="sub">{scrub(r.evidence)}</p>
+      {likely.length > 0 && (
+        <section className="pc-sec">
+          <h3>What an officer is likely to ask you next</h3>
+          {likely.map((q, i) => (
+            <div className="pc-likely" key={i}>
+              <p className="pc-quote">&ldquo;{scrub(q.example_question)}&rdquo;</p>
+              <p className="pc-likely-meta">
+                {questionLabel(q.question_type)}
+                {q.asked_in_share ? ` · asked in ${q.asked_in_share} of comparable interviews` : ""}
+              </p>
+              <p>{scrub(q.why_likely)}</p>
+              <p><strong>To prepare:</strong> {scrub(q.how_to_prepare)}</p>
             </div>
           ))}
-        </div>
+        </section>
       )}
 
-      <div className="caveat">{scrub(ev.caveat)}</div>
+      {risks.length > 0 && (
+        <section className="pc-sec">
+          <h3>Risks in your profile</h3>
+          {risks.map((r, i) => (
+            <div className="pc-risk" key={i}>
+              <div className="pc-answer-head">
+                <h4>{scrub(r.factor)}</h4>
+                <span className={`pc-pill ${r.severity === "high" ? "bad" : ""}`}>
+                  {SEVERITY[r.severity] || r.severity}
+                </span>
+              </div>
+              <p>{scrub(r.evidence)}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
-      {/* Whatever comes next - a feedback prompt, the access screen, or the
-          button for the next three questions. The report above is rendered and
-          complete before any of it, which is the one rule this flow has. */}
-      {footer}
-    </div>
+      {(likely.length > 0 || feedback.some((f) => f.suggested_revision)) && (
+        <section className="pc-sec pc-rehearse">
+          <h3>Rehearse these</h3>
+          <p className="sub">
+            Say each answer out loud, in your own words, then try the follow-up. Don&rsquo;t
+            memorise a script: officers hear one immediately.
+          </p>
+          <ol>
+            {feedback.filter((f) => f.verdict !== "strong" && f.suggested_revision).map((f, i) => (
+              <li key={`fix-${i}`}>
+                <strong>{f.question}</strong> {scrub(f.suggested_revision)}
+              </li>
+            ))}
+            {likely.map((q, i) => (
+              <li key={`next-${i}`}>
+                <strong>Then be ready for:</strong> &ldquo;{scrub(q.example_question)}&rdquo;
+              </li>
+            ))}
+          </ol>
+          <button type="button" className="pc-quiet no-print" onClick={print}>
+            Print or save as PDF
+          </button>
+        </section>
+      )}
+
+      <p className="pc-note">
+        <strong>How to read this.</strong> {scrub(ev.caveat)} The interviews behind it were
+        posted by applicants themselves, so the numbers describe who chose to post, not
+        official approval rates.
+      </p>
+    </article>
   );
 }

@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
       toc={TOC}
       summary={
         <Callout>
-          <p className="font-semibold mb-2">The short version</p>
+          <p className="doc-callout-h">The short version</p>
           <p>
             We collect what the Service needs to give you feedback, and not more. We do not
             sell your information, we do not run advertising, and we never share anything you
@@ -48,12 +48,12 @@ export default function PrivacyPolicyPage() {
           altovisas.com (the "Service"). It applies whether or not you have an account. For
           the purposes of the UK and EU GDPR, Altovisas is the data controller. It should be
           read alongside our{" "}
-          <Link to="/terms" className="text-indigo-700 hover:underline">Terms of Service</Link>.
+          <Link to="/terms">Terms of Service</Link>.
         </p>
       </Section>
 
       <Section id="collect" title="2. What we collect">
-        <p className="font-semibold text-stone-900">Information you give us</p>
+        <p className="doc-sub">Information you give us</p>
         <List>
           <li>
             <strong>Account details.</strong> Your name and email address, and a hashed
@@ -79,7 +79,7 @@ export default function PrivacyPolicyPage() {
           </li>
         </List>
 
-        <p className="font-semibold text-stone-900 pt-2">Information collected automatically</p>
+        <p className="doc-sub">Information collected automatically</p>
         <List>
           <li>
             <strong>Usage events.</strong> Which pages you open, which steps of the flow you
@@ -239,7 +239,7 @@ export default function PrivacyPolicyPage() {
         </List>
         <p>
           We may also disclose information if we are legally required to, to enforce our{" "}
-          <Link to="/terms" className="text-indigo-700 hover:underline">Terms</Link>, or to
+          <Link to="/terms">Terms</Link>, or to
           protect the rights and safety of our users or the public. If the Service is ever
           part of a merger, acquisition, or sale of assets, information may transfer to the
           new owner, who would remain bound by this policy or give you notice before changing
@@ -305,7 +305,7 @@ export default function PrivacyPolicyPage() {
         </List>
         <p>
           To exercise any of them, email{" "}
-          <a href={`mailto:${CONTACT}`} className="text-indigo-700 hover:underline font-medium">
+          <a href={`mailto:${CONTACT}`}>
             {CONTACT}
           </a>{" "}
           from the address on your account. We respond within 30 days. We may need to verify
@@ -373,7 +373,7 @@ export default function PrivacyPolicyPage() {
       <Section id="contact" title="16. Contact">
         <p>
           Questions, requests, or complaints about privacy go to{" "}
-          <a href={`mailto:${CONTACT}`} className="text-indigo-700 hover:underline font-medium">
+          <a href={`mailto:${CONTACT}`}>
             {CONTACT}
           </a>
           . We read everything sent there.

@@ -1,16 +1,17 @@
 package tests
 
 import (
+	"altoai_mvp/internal/middleware"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"altoai_mvp/internal/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
 func TestCORS(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	
+
 	r := gin.New()
 	r.Use(middleware.CORS())
 	r.GET("/test", func(c *gin.Context) {
@@ -23,11 +24,16 @@ func TestCORS(t *testing.T) {
 		expectedOrigin string
 		method         string
 	}{
-		{"No origin header", "", "*", "GET"},
+		{"No origin header", "", "", "GET"},
 		{"localhost:5173", "http://localhost:5173", "http://localhost:5173", "GET"},
 		{"localhost:3000", "http://localhost:3000", "http://localhost:3000", "GET"},
+		{"Configured frontend", "https://alto-ai.vercel.app", "https://alto-ai.vercel.app", "GET"},
+		{"Additional configured frontend", "https://alto-ai-preview.vercel.app", "https://alto-ai-preview.vercel.app", "GET"},
+		{"Untrusted origin", "https://attacker.example", "", "GET"},
 		{"OPTIONS request", "http://localhost:5173", "http://localhost:5173", "OPTIONS"},
 	}
+	t.Setenv("FRONTEND_URL", "https://alto-ai.vercel.app/app")
+	t.Setenv("CORS_ALLOWED_ORIGINS", "https://alto-ai-preview.vercel.app, not-a-url")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -56,5 +62,3 @@ func TestCORS(t *testing.T) {
 		})
 	}
 }
-
-

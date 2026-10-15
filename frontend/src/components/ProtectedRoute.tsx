@@ -1,41 +1,86 @@
-import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { getMe } from "../api";
 import { setupTokenRefresh, stopTokenRefresh } from "../utils/tokenRefresh";
+import { SIGNED_OUT_EVENT } from "../utils/tokenStorage";
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const [ok, setOk] = useState<boolean | null>(null);
+type CurrentUser = {
+    email: string;
+    name?: string;
+    picture?: string;
+    college?: string;
+    major?: string;
+};
+
+// The account this route verified, for pages that keep per-person state. It is
+// always set inside a ProtectedRoute: children render only once it is known.
+const CurrentUserContext = createContext<CurrentUser | null>(null);
+export const useCurrentUser = () => useContext(CurrentUserContext);
+
+type GateProps = { onAuthed: (user: CurrentUser | null) => void };
+
+/*
+ * Renders its children for a signed-in visitor.
+ *
+ * Signed out, it either shows `gate` in place - a page that explains why an
+ * account is needed and offers one there - or, with no gate, sends the
+ * visitor to /login and back here afterwards.
+ */
+export default function ProtectedRoute({
+    children,
+    gate: Gate,
+}: {
+    children: React.ReactNode;
+    gate?: React.ComponentType<GateProps>;
+}) {
+    // undefined while checking, null when signed out.
+    const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
+    const location = useLocation();
 
     useEffect(() => {
         getMe().then((data) => {
-            setOk(!!data);
+            setUser(data || null);
             if (data) {
-                // Setup token refresh when authenticated
                 setupTokenRefresh();
             }
         }).catch(() => {
-            setOk(false);
+            setUser(null);
             stopTokenRefresh();
         });
 
-        // Cleanup on unmount
+        // Signing out from the sidebar, or a session that expires, must take
+        // the person off the page rather than leave it rendered behind them.
+        const onSignedOut = () => setUser(null);
+        addEventListener(SIGNED_OUT_EVENT, onSignedOut);
+
         return () => {
             stopTokenRefresh();
+            removeEventListener(SIGNED_OUT_EVENT, onSignedOut);
         };
     }, [])
 
-    if (ok === null) {
+    if (user === undefined) {
+        // Usually a few hundred milliseconds. A quiet line rather than a
+        // full-screen animation, so the page does not flash a second design.
         return (
-            <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-6xl mb-4 animate-bounce">🤖</div>
-                    <div className="text-stone-700">Loading...</div>
-                </div>
-            </div>
+            <p className="route-wait" role="status">Checking your sign-in…</p>
         );
     }
-    if (!ok) {
-        return <Navigate to="/login" replace />;
+    if (!user) {
+        if (Gate) {
+            return (
+                <Gate
+                    onAuthed={(data) => {
+                        if (!data) return;
+                        setupTokenRefresh();
+                        setUser(data);
+                    }}
+                />
+            );
+        }
+        // Come back here after signing in, not to the home page.
+        const back = encodeURIComponent(location.pathname + location.search);
+        return <Navigate to={`/login?redirect=${back}`} replace />;
     }
-    return <>{children}</>;
+    return <CurrentUserContext.Provider value={user}>{children}</CurrentUserContext.Provider>;
 }

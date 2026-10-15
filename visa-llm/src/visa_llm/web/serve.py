@@ -174,10 +174,11 @@ def create_app(processed_dir: Path, web_dir: Path):
         # way to tell an expensive prompt from an expensive answer.
         cost = usage_cost(meta)
         log.info(
-            "evaluate: %s in=%s cached=%s out=%s cost=$%.4f",
+            "evaluate: %s in=%s cached=%s cache_write=%s out=%s cost=$%.4f",
             meta.get("model"),
             meta.get("input_tokens"),
             meta.get("cache_read_input_tokens"),
+            meta.get("cache_creation_input_tokens"),
             meta.get("output_tokens"),
             cost if cost is not None else float("nan"),
         )

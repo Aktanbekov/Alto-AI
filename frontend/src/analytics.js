@@ -10,7 +10,7 @@
  * pagehide - never one request per event.
  */
 
-const API = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? "" : "http://localhost:8080");
+import { API_BASE as API } from "./utils/apiBase";
 
 const VISITOR_KEY = "av_visitor_id";
 const SESSION_KEY = "av_session";

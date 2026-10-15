@@ -27,9 +27,13 @@ kill_port() {
 }
 
 # Kill processes on ports 8080 (backend) and 5173 (frontend)
+# The visa-llm sidecar that scores answers. Must match VISA_LLM_URL in .env.
+VISA_LLM_PORT=8099
+
 echo "🧹 Cleaning up ports..."
 kill_port 8080
 kill_port 5173
+kill_port $VISA_LLM_PORT
 
 # Wait a moment for ports to be fully released
 sleep 2
@@ -40,11 +44,32 @@ cleanup() {
     echo "🛑 Shutting down servers..."
     kill_port 8080
     kill_port 5173
+    kill_port $VISA_LLM_PORT
     exit 0
 }
 
 # Set trap to cleanup on script exit
 trap cleanup SIGINT SIGTERM EXIT
+
+# Start the evaluator sidecar. The app runs without it, but answers cannot be
+# scored, so a failure here is a warning rather than a reason to stop.
+if [ -x visa-llm/.venv/bin/visa-llm ]; then
+    echo "🚀 Starting visa-llm evaluator on port $VISA_LLM_PORT..."
+    (cd visa-llm && .venv/bin/visa-llm serve --port $VISA_LLM_PORT) &
+    for i in $(seq 1 20); do
+        if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$VISA_LLM_PORT/api/health 2>/dev/null | grep -q 200; then
+            echo "✅ Evaluator is up at http://127.0.0.1:$VISA_LLM_PORT"
+            break
+        fi
+        if [ $i -eq 20 ]; then
+            echo "⚠️  Evaluator did not start; answers will not be scored."
+        fi
+        sleep 1
+    done
+else
+    echo "⚠️  visa-llm/.venv not found; answers will not be scored."
+    echo "   Set it up: cd visa-llm && uv venv && VIRTUAL_ENV=.venv uv pip install -e '.[rag,web]'"
+fi
 
 # Start backend (loads .env via godotenv in main.go)
 echo "🚀 Starting backend on port 8080..."

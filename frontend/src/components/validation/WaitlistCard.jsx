@@ -57,9 +57,9 @@ export default function WaitlistCard({ access, onJoined }) {
   if (state === "done") {
     return (
       <div className="vz-card vwl" role="status">
-        <h2>You’re on the premium waitlist</h2>
+        <h2>You&rsquo;re on the waitlist</h2>
         <p className="sub">
-          We’ll email you when unlimited practice is ready. No payment details needed.
+          We&rsquo;ll email you when the paid version is ready. No payment details needed now.
         </p>
       </div>
     );
@@ -72,17 +72,20 @@ export default function WaitlistCard({ access, onJoined }) {
     // nothing like this page and appears in a different place each engine, so
     // the check below owns the message.
     <form className="vz-card vwl" onSubmit={submit} noValidate>
-      <h2>Join the premium waitlist</h2>
+      <h2>Or wait for the paid version</h2>
       <p className="sub">
+        It works through each weak point with you, rebuilds the answer from your own
+        facts, then drills you on the follow-ups by voice. One payment.{" "}
         {known
           ? "Confirm the address you’d like us to use."
-          : "Leave an email and we’ll tell you when unlimited practice is ready."}
+          : "Leave an email and we’ll tell you when it’s ready."}
       </p>
 
       <label className="ev-f">
         <span className="fl">Email</span>
         <input
           type="email"
+          autoComplete="email"
           value={email}
           disabled={busy}
           onChange={(e) => { setEmail(e.target.value); setError(""); }}
@@ -91,7 +94,7 @@ export default function WaitlistCard({ access, onJoined }) {
         />
       </label>
 
-      {error && <p className="vfb-err">{error}</p>}
+      {error && <p className="vfb-err" role="alert">{error}</p>}
 
       <button type="submit" className="ev-submit vwl-submit" disabled={busy}>
         {busy ? "Adding you…" : known ? "Confirm and join" : "Join the waitlist"}

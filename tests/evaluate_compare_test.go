@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"altoai_mvp/internal/handlers"
+	"altoai_mvp/internal/middleware"
 	"altoai_mvp/internal/visallm"
 
 	"github.com/gin-gonic/gin"
@@ -118,7 +119,7 @@ func TestCompareRunsEveryModelAndKeepsTheirAnswersApart(t *testing.T) {
 	}
 
 	// Fixed order, whichever finished first.
-	want := []string{"opus", "deepseek", "o3-mini"}
+	want := []string{"opus", "terra", "deepseek"}
 	for i, model := range want {
 		if got.Data.Results[i].Model != model {
 			t.Errorf("row %d is %q, expected %q", i, got.Data.Results[i].Model, model)
@@ -165,8 +166,8 @@ func TestAFailingModelStillOccupiesItsRow(t *testing.T) {
 	}
 }
 
-// The public endpoint must pin the model. Without this a crafted body picks
-// which vendor we are billed by.
+// The public endpoint must pin all three models. Without this a crafted body
+// could choose which vendor we are billed by or suppress two of the reports.
 func TestStudentsCannotChooseTheModel(t *testing.T) {
 	spy := &modelSpy{}
 	body := `{"model":"deepseek","planned_answers":[{"question":"Q","answer":"A"}]}`
@@ -176,11 +177,117 @@ func TestStudentsCannotChooseTheModel(t *testing.T) {
 
 	spy.mu.Lock()
 	defer spy.mu.Unlock()
-	if len(spy.seen) != 1 {
-		t.Fatalf("expected 1 upstream call, got %d", len(spy.seen))
+	if len(spy.seen) != 3 {
+		t.Fatalf("expected 3 upstream calls, got %d", len(spy.seen))
 	}
-	if spy.seen[0] != "" {
-		t.Errorf("a caller picked the model: sidecar was asked for %q, expected the "+
-			"empty value that makes it use its production default", spy.seen[0])
+	want := map[string]bool{"opus": true, "terra": true, "deepseek": true}
+	for _, model := range spy.seen {
+		if !want[model] {
+			t.Errorf("a caller picked an unexpected model: sidecar was asked for %q", model)
+		}
+		delete(want, model)
+	}
+	if len(want) != 0 {
+		t.Errorf("public evaluation skipped models: %v", want)
+	}
+}
+
+func decodeCompare(t *testing.T, w *httptest.ResponseRecorder) compareBody {
+	t.Helper()
+	var got compareBody
+	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
+		t.Fatalf("body: %v (%s)", err, w.Body.String())
+	}
+	return got
+}
+
+// A student gets one report, not three to arbitrate between. All three models
+// still run (TestStudentsCannotChooseTheModel) so the admin comparison keeps
+// its data; only the response is narrowed.
+func TestPublicEvaluationReturnsOneReport(t *testing.T) {
+	spy := &modelSpy{}
+	w := postJSON(t, compareHandler(t, spy), "/evaluate", oneAnswer)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	got := decodeCompare(t, w)
+	if len(got.Data.Results) != 1 {
+		t.Fatalf("expected 1 public result, got %d", len(got.Data.Results))
+	}
+	row := got.Data.Results[0]
+	if row.Model != "opus" {
+		t.Errorf("public report came from %q, expected the first model in order", row.Model)
+	}
+	if row.Evaluation == nil || row.Evaluation.Summary != "scored by "+row.Model {
+		t.Errorf("%s did not return its own evaluation: %+v", row.Model, row.Evaluation)
+	}
+}
+
+// When the first model is down the student still gets a report, from the next
+// one in order, and never sees a failed row.
+func TestPublicReportFallsThroughAFailedModel(t *testing.T) {
+	spy := &modelSpy{failFor: "opus"}
+	w := postJSON(t, compareHandler(t, spy), "/evaluate", oneAnswer)
+	if w.Code != http.StatusOK {
+		t.Fatalf("two available reports should succeed: got %d: %s", w.Code, w.Body.String())
+	}
+
+	got := decodeCompare(t, w)
+	if len(got.Data.Results) != 1 {
+		t.Fatalf("expected 1 public result, got %d", len(got.Data.Results))
+	}
+	if row := got.Data.Results[0]; row.Model != "terra" || row.Evaluation == nil || row.Error != "" {
+		t.Errorf("expected terra's report with no error, got %+v", row)
+	}
+}
+
+func TestPublicPartialFailureDoesNotLeakProviderDetails(t *testing.T) {
+	spy := &modelSpy{failFor: "deepseek"}
+	w := postJSON(t, compareHandler(t, spy), "/evaluate", oneAnswer)
+	if w.Code != http.StatusOK {
+		t.Fatalf("two available reports should succeed: got %d: %s", w.Code, w.Body.String())
+	}
+	if strings.Contains(w.Body.String(), "no credits") {
+		t.Fatalf("public response leaked provider billing details: %s", w.Body.String())
+	}
+	for _, row := range decodeCompare(t, w).Data.Results {
+		if row.Error != "" {
+			t.Errorf("a student should never see a failed provider row: %+v", row)
+		}
+	}
+}
+
+// Admins keep the three-way view on the student endpoint, failed row included,
+// with the neutral message rather than the provider's billing text.
+func TestAdminEvaluationReturnsEveryModel(t *testing.T) {
+	t.Setenv("ADMIN_EMAILS", "admin@example.com")
+
+	spy := &modelSpy{failFor: "deepseek"}
+	sidecar := httptest.NewServer(spy.handler())
+	t.Cleanup(sidecar.Close)
+	h := handlers.NewEvaluateHandler(
+		&visallm.Client{BaseURL: sidecar.URL, HTTP: sidecar.Client()},
+		nil, visallm.NewIncidentLog(), nil, nil, nil)
+
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.POST("/evaluate", func(c *gin.Context) {
+		c.Set("user", &middleware.MyClaims{Email: "admin@example.com"})
+		h.Evaluate(c)
+	})
+
+	w := postJSON(t, r, "/evaluate", oneAnswer)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	got := decodeCompare(t, w)
+	if len(got.Data.Results) != 3 {
+		t.Fatalf("expected 3 results for an admin, got %d", len(got.Data.Results))
+	}
+	for _, row := range got.Data.Results {
+		if row.Model == "deepseek" && row.Error == "" {
+			t.Error("the unavailable provider should keep its error row for admins")
+		}
 	}
 }

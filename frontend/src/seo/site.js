@@ -72,6 +72,15 @@ export const ROUTES = [
     indexable: true,
   },
   {
+    path: "/data",
+    title: "F1 Visa Interview Statistics from 16,204 Write-ups | Altovisas",
+    description:
+      "Approval shares by consulate, degree and attempt, and which questions officers ask most, from 16,204 self-reported F-1 interview write-ups.",
+    changefreq: "monthly",
+    priority: "0.7",
+    indexable: true,
+  },
+  {
     path: "/faq",
     title: "F1 Visa Interview FAQ - Questions Answered | Altovisas",
     description:

@@ -8,7 +8,9 @@ import Tooltip from "./Tooltip";
  * thin sample as visibly thin rather than drop it, so the reader can tell
  * "low" apart from "barely measured".
  */
-export default function BarChart({ rows }) {
+// showCount puts each group's size beside its share, for breakdowns where how
+// much evidence a row stands on is the point (the consulate chart).
+export default function BarChart({ rows, showCount = false }) {
   const { tip, bind } = useTooltip();
 
   if (!rows?.length) return <p className="sub">No data for this breakdown.</p>;
@@ -19,7 +21,7 @@ export default function BarChart({ rows }) {
         const value = r.approval_rate ?? r.value ?? 0;
         const small = (r.n_decided ?? Infinity) < SMALL_N;
         return (
-          <div className="vzbar" key={r.label}>
+          <div className={`vzbar${showCount ? " counted" : ""}`} key={r.label}>
             <span className="lab">{r.label}{small ? " *" : ""}</span>
             <span
               className="track"
@@ -34,7 +36,12 @@ export default function BarChart({ rows }) {
                 style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%` }}
               />
             </span>
-            <span className="val">{(value * 100).toFixed(1)}</span>
+            <span className="val">
+              {(value * 100).toFixed(1)}%
+              {showCount && r.n_decided != null && (
+                <span className="cnt">{r.n_decided.toLocaleString()}</span>
+              )}
+            </span>
           </div>
         );
       })}

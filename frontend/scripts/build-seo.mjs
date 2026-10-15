@@ -19,7 +19,7 @@
  * Nothing about the React tree changes.
  */
 
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { copyFile, readFile, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -69,6 +69,30 @@ async function verifyCorpus() {
     );
   }
   console.log(`  corpus verified: ${actual.toLocaleString()} records, ${from}-${to}`);
+}
+
+/*
+ * The public dashboard and first practice round do not need a live API. Ship
+ * the same source-of-truth documents as static Vercel assets, then let the
+ * client use them if the separately deployed Go API is unavailable.
+ */
+async function copyPublicCorpus() {
+  const source = join(repoRoot, "visa-llm", "web", "data");
+  const target = join(dist, "data");
+  await mkdir(target, { recursive: true });
+
+  for (const name of ["stats.json", "questions.json"]) {
+    const from = join(source, name);
+    const raw = await readFile(from, "utf8");
+    if (raw.startsWith("version https://git-lfs.github.com/spec/")) {
+      throw new Error(
+        `${name} is a Git LFS pointer, not JSON. Commit this runtime asset as a regular Git file.`,
+      );
+    }
+    JSON.parse(raw);
+    await copyFile(from, join(target, name));
+    console.log(`  data/${name.padEnd(14)} -> static corpus fallback`);
+  }
 }
 
 // ------------------------------------------------------------- structured --
@@ -292,6 +316,7 @@ async function main() {
     throw new Error(`${shellPath} not found. Run vite build first.`);
   }
   await verifyCorpus();
+  await copyPublicCorpus();
 
   const shell = await readFile(shellPath, "utf8");
 

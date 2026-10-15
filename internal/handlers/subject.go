@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"altoai_mvp/internal/middleware"
 	"altoai_mvp/internal/repository"
 	"altoai_mvp/internal/services"
 
@@ -16,6 +17,13 @@ const guestCookie = "alto_guest_id"
 // freeSets is what everyone gets without giving anything back. Completing the
 // validation survey adds repository.SurveyUnlockSets on top.
 const freeSets = 2
+
+// unlimitedPractice trusts only the authenticated admin allowlist, never a
+// profile field or a browser-supplied email.
+func unlimitedPractice(c *gin.Context) bool {
+	claims, ok := currentClaims(c)
+	return ok && claims != nil && middleware.IsAdminEmail(claims.Email)
+}
 
 // maxSetIndex bounds a client-supplied set number to the question bank, which
 // holds 37 questions — thirteen sets of three, counted from zero.

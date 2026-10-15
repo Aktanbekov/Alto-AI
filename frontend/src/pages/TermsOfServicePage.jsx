@@ -36,7 +36,7 @@ export default function TermsOfServicePage() {
       toc={TOC}
       summary={
         <Callout>
-          <p className="font-semibold mb-2">The short version</p>
+          <p className="doc-callout-h">The short version</p>
           <p>
             Altovisas is a practice tool. It is not legal advice, not immigration advice,
             and not connected to any government. Nothing here can change what a consular
@@ -53,7 +53,7 @@ export default function TermsOfServicePage() {
           Altovisas ("Altovisas", "we", "us"), covering altovisas.com and everything on
           it (the "Service"). By creating an account, submitting a profile, or otherwise
           using the Service, you agree to these Terms and to our{" "}
-          <Link to="/privacy" className="text-indigo-700 hover:underline">Privacy Policy</Link>,
+          <Link to="/privacy">Privacy Policy</Link>,
           which is part of this agreement.
         </p>
         <p>
@@ -70,7 +70,7 @@ export default function TermsOfServicePage() {
           feedback and statistics drawn from write-ups other applicants posted publicly
           about their own interviews.
         </p>
-        <p className="font-semibold text-stone-900">The Service is not:</p>
+        <p className="doc-sub">The Service is not:</p>
         <List>
           <li>
             <strong>Legal or immigration advice.</strong> We are not a law firm and we are
@@ -124,7 +124,7 @@ export default function TermsOfServicePage() {
           you present true facts about yourself clearly and calmly. It does not exist to
           help you present facts that are not true.
         </p>
-        <p className="font-semibold text-stone-900">You agree that you will not:</p>
+        <p className="doc-sub">You agree that you will not:</p>
         <List>
           <li>
             use the Service to invent, rehearse, or refine a false or misleading statement
@@ -255,7 +255,7 @@ export default function TermsOfServicePage() {
           We do not sell Your Content, publish it, or show it to other users. We do not use
           it to train our own machine-learning models, and the AI provider that processes it
           on our behalf is contractually barred from training on it. See the{" "}
-          <Link to="/privacy" className="text-indigo-700 hover:underline">Privacy Policy</Link>{" "}
+          <Link to="/privacy">Privacy Policy</Link>{" "}
           for the detail, including how to have it deleted.
         </p>
         <p>
@@ -346,7 +346,7 @@ export default function TermsOfServicePage() {
       </Section>
 
       <Section id="warranty" title="14. Disclaimer of warranties">
-        <p className="uppercase text-sm tracking-wide text-stone-800">
+        <p className="doc-caps">
           The service and everything in it are provided "as is" and "as available", without
           warranty of any kind. To the fullest extent permitted by law, we disclaim all
           warranties, express or implied, including merchantability, fitness for a particular
@@ -363,7 +363,7 @@ export default function TermsOfServicePage() {
       </Section>
 
       <Section id="liability" title="15. Limitation of liability">
-        <p className="uppercase text-sm tracking-wide text-stone-800">
+        <p className="doc-caps">
           To the fullest extent permitted by law, Altovisas and its owners, employees, and
           contractors will not be liable for any indirect, incidental, special,
           consequential, exemplary, or punitive damages, or for lost profits, lost
@@ -371,12 +371,12 @@ export default function TermsOfServicePage() {
           Service, whether in contract, tort, or any other theory, and whether or not we were
           advised of the possibility.
         </p>
-        <p className="uppercase text-sm tracking-wide text-stone-800">
+        <p className="doc-caps">
           This includes, without limitation, any visa refusal, delay, administrative
           processing, ban, deferred or lost admission, forfeited deposit, cancelled travel,
           or immigration consequence of any kind.
         </p>
-        <p className="uppercase text-sm tracking-wide text-stone-800">
+        <p className="doc-caps">
           Our total aggregate liability for all claims relating to the Service will not
           exceed the greater of the amount you paid us in the twelve months before the claim
           arose, or one hundred U.S. dollars (US$100).
@@ -410,7 +410,7 @@ export default function TermsOfServicePage() {
           On termination, your licence to use the Service ends. Sections 3, 4, 9, 10, 11, 12,
           14, 15, 16, 19, and 20 survive. Deletion of your data on termination is covered by
           the{" "}
-          <Link to="/privacy" className="text-indigo-700 hover:underline">Privacy Policy</Link>.
+          <Link to="/privacy">Privacy Policy</Link>.
         </p>
       </Section>
 
@@ -485,7 +485,7 @@ export default function TermsOfServicePage() {
       <Section id="contact" title="21. Contact">
         <p>
           Questions about these Terms go to{" "}
-          <a href={`mailto:${CONTACT}`} className="text-indigo-700 hover:underline font-medium">
+          <a href={`mailto:${CONTACT}`}>
             {CONTACT}
           </a>
           .

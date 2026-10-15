@@ -1,0 +1,29 @@
+# Vercel runs the app and evaluator as separate container services.
+FROM node:20-alpine AS frontend-builder
+WORKDIR /src/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+# The SEO build validates and publishes the public corpus documents.
+COPY visa-llm/web/data/stats.json visa-llm/web/data/questions.json /src/visa-llm/web/data/
+RUN npm run build
+
+FROM golang:1.24-alpine AS backend-builder
+WORKDIR /src
+RUN apk add --no-cache ca-certificates git
+COPY go.mod go.sum ./
+ENV GOTOOLCHAIN=local
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /alto ./cmd/api
+
+FROM alpine:3.22
+RUN apk add --no-cache ca-certificates tzdata \
+    && addgroup -S alto && adduser -S -G alto alto
+WORKDIR /app
+COPY --from=backend-builder /alto ./alto
+COPY --from=frontend-builder /src/frontend/dist ./frontend/dist
+COPY interview/questions.json ./interview/questions.json
+COPY visa-llm/web/data/stats.json visa-llm/web/data/questions.json ./visa-llm/web/data/
+USER alto
+CMD ["./alto"]

@@ -2,6 +2,9 @@ package middleware
 
 import (
 	"net/http"
+	"net/url"
+	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,33 +16,61 @@ import (
 const allowedHeaders = "Content-Type, Authorization, X-Requested-With, " +
 	"X-Visitor-Id, X-Session-Id, X-Src"
 
+var developmentOrigins = map[string]struct{}{
+	"http://localhost:3000": {},
+	"http://localhost:5173": {},
+	"http://localhost:8080": {},
+	"http://127.0.0.1:3000": {},
+	"http://127.0.0.1:5173": {},
+}
+
+// configuredOrigins returns the browser origins allowed to call the API.
+// FRONTEND_URL is already required for OAuth redirects, so it is also the
+// canonical production CORS origin. CORS_ALLOWED_ORIGINS supports additional
+// deployments (for example, an explicitly trusted Vercel preview URL).
+func configuredOrigins() map[string]struct{} {
+	origins := make(map[string]struct{}, len(developmentOrigins)+1)
+	for origin := range developmentOrigins {
+		origins[origin] = struct{}{}
+	}
+
+	values := append(strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ","), os.Getenv("FRONTEND_URL"))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		parsed, err := url.Parse(value)
+		if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+			continue
+		}
+		origins[parsed.Scheme+"://"+parsed.Host] = struct{}{}
+	}
+	return origins
+}
+
+func setCORSHeaders(headers http.Header, origin string) {
+	if origin != "" {
+		if _, allowed := configuredOrigins()[origin]; allowed {
+			headers.Set("Access-Control-Allow-Origin", origin)
+		}
+		headers.Add("Vary", "Origin")
+	}
+	headers.Set("Access-Control-Allow-Credentials", "true")
+	headers.Set("Access-Control-Allow-Headers", allowedHeaders)
+	headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+}
+
 // CORS returns a Gin middleware handler for CORS
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		origin := c.Request.Header.Get("Origin")
-		
-		// Allow same-origin requests (for production when frontend is served from same server)
-		if origin == "" {
-			// Same-origin request, allow it
-			c.Header("Access-Control-Allow-Origin", "*")
-		} else {
-			// Cross-origin request - allow common dev origins
-			allowedOrigin := "http://localhost:5173"
-			if origin == "http://localhost:3000" || origin == "http://localhost:8080" || origin == "http://127.0.0.1:5173" || origin == "http://127.0.0.1:3000" {
-				allowedOrigin = origin
-			}
-			c.Header("Access-Control-Allow-Origin", allowedOrigin)
-		}
-		
-		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Header("Access-Control-Allow-Headers", allowedHeaders)
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		
+		setCORSHeaders(c.Writer.Header(), c.Request.Header.Get("Origin"))
+
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
-		
+
 		c.Next()
 	}
 }
@@ -47,24 +78,7 @@ func CORS() gin.HandlerFunc {
 // Legacy CORS for http.Handler (used in main.go)
 func CORSLegacy(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		
-		// Allow same-origin requests (for production when frontend is served from same server)
-		if origin == "" {
-			// Same-origin request, allow it
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-		} else {
-			// Cross-origin request - allow common dev origins
-			allowedOrigin := "http://localhost:5173"
-			if origin == "http://localhost:3000" || origin == "http://localhost:8080" || origin == "http://127.0.0.1:5173" || origin == "http://127.0.0.1:3000" {
-				allowedOrigin = origin
-			}
-			w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
-		}
-		
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", allowedHeaders)
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		setCORSHeaders(w.Header(), r.Header.Get("Origin"))
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

@@ -24,24 +24,24 @@ export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }
   return (
     <div className="ev-result">
       <div className="vz-card vac">
-        <h2>Continue practicing with Altovisas</h2>
+        <h2>You&rsquo;ve used your free rounds</h2>
         <p className="sub">
           {done
-            ? "You have used all of your interview sets."
-            : "You’ve completed your 2 free interview sets. Choose how you’d like to continue."}
+            ? "That includes the three extra rounds from the survey."
+            : "Everyone gets two free rounds of three questions. There are two ways to keep going."}
         </p>
 
         {done ? (
           <p className="vac-receipt" role="status">
-            ✓ Survey completed - thank you. Those three extra sets have been used.
+            Survey done - thank you. Your three extra rounds have been used.
           </p>
         ) : (
           <div className="vac-primary">
             <button type="button" className="ev-submit" onClick={onStartSurvey}>
-              Unlock 3 more interview sets
+              Answer a 2-minute survey for 3 more rounds
             </button>
             <p className="vac-support">
-              Complete a short 2-minute survey to unlock 9 additional visa questions.
+              Seven short questions about how you are preparing. No payment, nothing to sign up for.
             </p>
           </div>
         )}

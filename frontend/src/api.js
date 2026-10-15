@@ -1,6 +1,5 @@
 import { trackingHeaders } from "./analytics";
-// Use environment variable, or empty string for same-origin (production), or localhost for dev
-const API = import.meta.env.VITE_API_BASE || (import.meta.env.PROD ? "" : "http://localhost:8080");
+import { API_BASE as API } from "./utils/apiBase";
 
 import { getAccessToken, setAccessToken, clearAccessToken } from "./utils/tokenStorage";
 
@@ -231,24 +230,46 @@ export async function register(email, name, password) {
 // Backs the landing-page dashboard. Public on purpose: logged-out visitors
 // see the charts, so this must not go through fetchWithAuth.
 export async function getCorpusStats() {
-  const res = await fetch(`${API}/api/v1/stats`);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Statistics unavailable (${res.status})`);
-  }
-  return res.json();
+  return getPublicCorpusJSON("/api/v1/stats", "/data/stats.json", "Statistics");
 }
 
 // The question bank the test draws its rounds from: every question type with
 // its real phrasings, ordered by how often officers ask it. Public, like the
 // stats above - the first round loads before anyone signs in.
 export async function getQuestionBank() {
-  const res = await fetch(`${API}/api/v1/questions`);
+  return getPublicCorpusJSON("/api/v1/questions", "/data/questions.json", "Question bank");
+}
+
+async function readJSON(url, label) {
+  const res = await fetch(url);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Question bank unavailable (${res.status})`);
+    throw new Error(err.error || `${label} unavailable (${res.status})`);
+  }
+
+  const type = res.headers.get("content-type") || "";
+  if (!type.toLowerCase().includes("application/json")) {
+    // A Vercel SPA fallback returns index.html with 200 for an unknown /api
+    // route. Call that out as a deployment miss instead of showing Safari's
+    // opaque "string did not match the expected pattern"/JSON error.
+    throw new Error(`${label} endpoint returned ${type || "a non-JSON response"}`);
   }
   return res.json();
+}
+
+async function getPublicCorpusJSON(apiPath, staticPath, label) {
+  try {
+    return await readJSON(`${API}${apiPath}`, label);
+  } catch (apiError) {
+    try {
+      // These public, generated files ship with the Vercel frontend. The
+      // dashboard and first practice round therefore remain available while
+      // the separately deployed Go API is unavailable or misconfigured.
+      return await readJSON(staticPath, label);
+    } catch {
+      throw apiError;
+    }
+  }
 }
 
 // ---------- Grounded evaluation (visa-llm sidecar) ----------
@@ -264,8 +285,8 @@ export async function getEvaluateStatus() {
   return data.data ?? data;
 }
 
-// One evaluation costs real credits, so this is deliberately only called on
-// explicit submit - never on mount or on keystroke.
+// One profile check makes three provider calls, so this is deliberately only
+// called on explicit submit - never on mount or on keystroke.
 //
 // `profile.set_index` tells the server which set of three this is, so scoring
 // the same set again after a refresh is not counted as reaching for a new one.

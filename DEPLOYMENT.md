@@ -2,6 +2,40 @@
 
 This guide covers deploying AltoAI MVP to production using Docker and Docker Compose.
 
+## Vercel production deployment
+
+The `alto-labs/alto-ai` Vercel project deploys production automatically from the
+GitHub repository's `main` branch. The root `vercel.json` defines two container
+services, built with `Dockerfile.vercel` in their respective roots:
+
+- `app`: the Go API and its built React frontend, served from the same origin.
+- `evaluator`: the Python `visa-llm` service, corpus, and embedding model.
+
+Vercel injects each service's `PORT` and binds the evaluator URL to the app's
+`VISA_LLM_URL`. Both services must be healthy for answer scoring to work.
+The app supports `DATABASE_URL` and Vercel's `POSTGRES_URL` connection variables;
+the managed database remains persistent across application deployments.
+
+Keep production credentials in Vercel environment variables: database connection,
+`JWT_SECRET`, Google OAuth and SMTP settings, `ANTHROPIC_API_KEY`,
+`OPENAI_API_KEY`, and `DEEPSEEK_API_KEY`. Configure `ADMIN_EMAILS` with the
+comma-separated admin allowlist; authenticated admins have unlimited practice.
+Set `FRONTEND_URL` and `GOOGLE_REDIRECT_URL` to the deployed production origin
+and callback URL. Register that callback URL in Google Cloud Console.
+
+Leave `VITE_API_BASE` unset for this same-origin deployment. The frontend appends
+paths such as `/api/v1/auth/login` itself. A separate frontend-only Vercel project
+can still use `frontend/vercel.json` and set `VITE_API_BASE` to its HTTPS API
+origin. Vite embeds this value at build time, so changing it requires a redeploy.
+
+Before pushing, run the Go tests, Python evaluator tests, and frontend build.
+After pushing `main`, verify Vercel reports Ready and check `/health`,
+`/api/v1/stats`, `/api/v1/questions`, and `/api/v1/evaluate/status` on the deployed
+origin. A successful health check confirms configuration and corpus readiness;
+only a real evaluation verifies provider credentials and billing.
+
+The Docker Compose instructions below describe the alternative self-hosted stack.
+
 ## Prerequisites
 
 - Docker Engine 20.10 or later
@@ -350,6 +384,3 @@ For issues or questions:
 - Check logs: `docker-compose logs -f`
 - Review health endpoints: `curl http://localhost:8080/health`
 - Verify all environment variables are set correctly
-
-
-

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"sort"
 	"sync"
@@ -21,8 +22,8 @@ import (
  * retrieval and the instruction identical across the three runs, so what comes
  * back differs only by model.
  *
- * It is deliberately not wired into the student path:
- *   - it spends three model calls per submission, on three vendors;
+ * The same three-provider runner now powers the student path. This admin route
+ * remains separate because:
  *   - it does not consume or check the free-set allowance, because an
  *     evaluation nobody reads as advice should not cost a student anything;
  *   - it stores nothing. A comparison is a measurement of ours, not a report
@@ -32,7 +33,7 @@ import (
 
 // compareModels are the providers a comparison runs, in the order the screen
 // shows them. The keys are the sidecar's, not the vendors' model ids.
-var compareModels = []string{"opus", "deepseek", "o3-mini"}
+var compareModels = []string{"opus", "terra", "deepseek"}
 
 // ModelResult is one model's attempt at the same profile. Exactly one of
 // Evaluation or Error is meaningful: a provider that failed still occupies its
@@ -81,16 +82,7 @@ func (h *EvaluateHandler) Compare(c *gin.Context) {
 		}
 	}
 
-	results := make([]ModelResult, len(compareModels))
-	var wg sync.WaitGroup
-	for i, model := range compareModels {
-		wg.Add(1)
-		go func(i int, model string) {
-			defer wg.Done()
-			results[i] = h.runOne(c, req, model)
-		}(i, model)
-	}
-	wg.Wait()
+	results, _ := h.runAll(c.Request.Context(), req)
 
 	// Stable order regardless of which finished first: the screen compares
 	// columns, and columns that move between runs are unreadable.
@@ -102,23 +94,40 @@ func (h *EvaluateHandler) Compare(c *gin.Context) {
 }
 
 // runOne scores the profile with a single model, converting a failure into a
-// filled-in row rather than an error that would sink the other two.
-func (h *EvaluateHandler) runOne(c *gin.Context, req visallm.ProfileRequest, model string) ModelResult {
+// filled-in row as well as returning the typed error to the caller.
+func (h *EvaluateHandler) runOne(ctx context.Context, req visallm.ProfileRequest, model string) (ModelResult, error) {
 	req.Model = model
 	started := time.Now()
-	// Context, not gin.Context: this runs on its own goroutine, and only the
-	// request's cancellation is safe to share across them.
-	evaluation, usage, err := h.client.EvaluateWithUsage(c.Request.Context(), req)
+	evaluation, usage, err := h.client.EvaluateWithUsage(ctx, req)
 	out := ModelResult{Model: model, LatencyMS: time.Since(started).Milliseconds()}
 	if err != nil {
 		// Admins see the real text. The neutral student-facing message exists to
 		// keep billing and key problems away from people who cannot act on them;
 		// the whole point of this screen is to be able to act on them.
 		out.Error = err.Error()
-		return out
+		return out, err
 	}
 	out.Evaluation, out.Usage = &evaluation, &usage
-	return out
+	return out, nil
+}
+
+// runAll fans one immutable profile out to all three providers. Results and
+// errors retain model order, so a partial outage cannot relabel a neighbour's
+// report and the caller can choose its own error policy (detailed for admins,
+// neutral for students).
+func (h *EvaluateHandler) runAll(ctx context.Context, req visallm.ProfileRequest) ([]ModelResult, []error) {
+	results := make([]ModelResult, len(compareModels))
+	errs := make([]error, len(compareModels))
+	var wg sync.WaitGroup
+	for i, model := range compareModels {
+		wg.Add(1)
+		go func(i int, model string) {
+			defer wg.Done()
+			results[i], errs[i] = h.runOne(ctx, req, model)
+		}(i, model)
+	}
+	wg.Wait()
+	return results, errs
 }
 
 func indexOfModel(model string) int {

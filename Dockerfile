@@ -12,12 +12,16 @@ RUN npm ci
 
 # Copy frontend source code
 COPY frontend/ ./
+COPY visa-llm/web/data/stats.json visa-llm/web/data/questions.json /app/visa-llm/web/data/
 
 # Build frontend for production
 RUN npm run build
 
 # Stage 2: Build Go Backend
-FROM golang:1.23-alpine AS backend-builder
+# Must match the go directive in go.mod (currently 1.24). On a 1.23 base the
+# build depended on GOTOOLCHAIN=auto fetching 1.24.2 over the network at build
+# time - which is not reproducible, and which failed outright on a cold cache.
+FROM golang:1.24-alpine AS backend-builder
 
 WORKDIR /app
 
@@ -27,15 +31,26 @@ RUN apk add --no-cache git ca-certificates tzdata
 # Copy go mod files
 COPY go.mod go.sum ./
 
-# Download dependencies (allow Go to auto-download toolchain if needed)
-ENV GOTOOLCHAIN=auto
-RUN go mod download
+# The base image now satisfies go.mod on its own, so pin the toolchain rather
+# than letting a build silently reach for a different one.
+ENV GOTOOLCHAIN=local
+# Retried: module fetches go over the network from inside the build container,
+# and a TLS handshake timeout against proxy.golang.org failed three multi-arch
+# builds in a row here. Three attempts, then fail honestly - a bounded retry
+# absorbs a flaky network without hiding a genuinely unresolvable module.
+RUN for i in 1 2 3; do       go mod download && break;       echo "go mod download failed (attempt $i), retrying...";       sleep 10;       [ "$i" = 3 ] && exit 1;     done
 
 # Copy source code
 COPY . .
 
-# Build the Go application with optimizations
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+# Build the Go application with optimizations.
+#
+# GOARCH comes from buildx rather than being hardcoded: this image is built
+# --platform linux/amd64,linux/arm64, and a fixed GOARCH=amd64 put an amd64
+# binary inside the arm64 image, which cannot execute at all. It went unnoticed
+# because the server is amd64 and nothing ever ran the arm64 variant.
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build \
   -a -installsuffix cgo \
   -ldflags='-w -s -extldflags "-static"' \
   -o main ./cmd/api

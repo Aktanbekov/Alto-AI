@@ -1,10 +1,14 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { getMe } from "../api";
 import { setAccessToken } from "../utils/tokenStorage";
 import { safeRedirect } from "../utils/authRedirect";
-import CorpusDashboard from "../components/CorpusDashboard";
+import HomeFindings from "../components/HomeFindings";
+import HomeInterviewPreview from "../components/HomeInterviewPreview";
 import { track } from "../analytics";
+import { CORPUS } from "../seo/site";
+import Arrow from "../components/ui/Arrow";
+import "./HomePage.css";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -30,151 +34,170 @@ export default function HomePage() {
       .catch(() => {});
   }, [searchParams, setSearchParams, navigate]);
 
-  // The first profile check is available to guests. The server asks them to
-  // create an account only when they come back for another report.
+  // The check itself asks a signed-out visitor for a free account, in place
+  // and with the reason, so the button only has to say that it needs one.
   const start = (location = "hero") => {
     track("cta_click", { location });
     navigate("/check-profile");
   };
 
   return (
-    <>
-      <div className="tf">
-      {/* The green band covers the hero and the three-cell strip only;
-          everything below it sits on white. */}
+    <div className="tf home-page">
+      {/* ---------------------------------------------------------- hero --
+          The tinted band: the promise, the one action, and a sample of what
+          comes back. */}
       <div className="hero-band">
-      {/* ---------------------------------------------------------- hero -- */}
-      <div className="wrap">
-        <div className="grid2" style={{ padding: "64px 0 56px", alignItems: "center" }}>
-          <div>
-            <p className="eyebrow">16,204 interviews · 14,589 full transcripts · 2020-2026</p>
-            <h1>Find out where your interview breaks.</h1>
-            <p className="lede">
-              Interview duration is in average 3 minutes which can completely change your future, and it’s important to be prepared. 
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap", marginTop: 28 }}>
-              <button className="btn" onClick={() => start("hero")}>
-                Simulate Interview <span className="btn-free">Free</span> <span className="arrow">→</span>
-              </button>
+        <div className="wrap">
+          <div className="grid2 hero">
+            <div>
+              <h1>Your F-1 interview.<br /><span className="home-headline-emphasis">Better prepared.</span></h1>
+              <p className="lede hero-lede">
+                Answer <strong>three real interview questions.</strong> Get clear feedback
+                on what to improve and how to explain your plans with confidence.
+              </p>
+              <div className="hero-act">
+                <button className="btn" onClick={() => start("hero")}>
+                  Start your profile check <span className="btn-free">Free</span>{" "}
+                  <Arrow />
+                </button>
+              </div>
+              <p className="meta">About four minutes. Needs a free account.</p>
+              <Link className="home-evidence-link" to="/#why-us">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                  <path d="M5 3h10l4 4v14H5V3Zm10 0v5h4M8 12h8M8 16h6" strokeLinejoin="round" />
+                </svg>
+                <span>Built on <strong>{CORPUS.interviews.toLocaleString()} real interview reports</strong></span>
+                <Arrow />
+              </Link>
             </div>
-          </div>
 
-          <div className="foil">
-            <svg className="foil-g" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-              <use href="#guil" />
-            </svg>
-            <div className="foil-in">
-              <div className="foil-head">
-                <div className="t">Profile check · sample</div>
-                <div className="t">Chennai</div>
-              </div>
-              <div className="foil-score">
-                <div className="big">34.7<span style={{ fontSize: 26 }}>%</span></div>
-                <div className="cap">of comparable posts reported a refusal</div>
-              </div>
-              <div className="foil-meta">
-                <div><span>Comparable posts</span>528</div>
-                <div><span>Weak points found</span>3</div>
-              </div>
-            </div>
-            <div className="mrz">BSC&lt;CS&lt;&lt;BACH&lt;&lt;FATHER&lt;&lt;CHENNAI&lt;&lt;F1&lt;&lt;A1&lt;&lt;FLAGS3&lt;&lt;&lt;</div>
+            <HomeInterviewPreview />
           </div>
+        </div>
+
+        {/* ------------------------------------------------------ steps --
+            How it works, in the order it happens. The numbers are the
+            sequence, not decoration. */}
+        <div className="wrap">
+          <ol className="steps">
+            <li>
+              <span className="step-n">1</span>
+              <h2>Share your plans</h2>
+              <p>Your university, your course and who pays. A minute or two.</p>
+            </li>
+            <li>
+              <span className="step-n">2</span>
+              <h2>Answer three real questions</h2>
+              <p>The ones officers ask most, one at a time, in your own words.</p>
+            </li>
+            <li>
+              <span className="step-n">3</span>
+              <h2>Know what to improve</h2>
+              <p>Clear feedback, real interview examples and practical next steps.</p>
+            </li>
+          </ol>
         </div>
       </div>
-
-      <div className="wrap"><div className="grid3">
-        <div className="gcell">
-          <div className="k">Free</div>
-          <div className="v">Your weak points, named</div>
-          <p>The full diagnosis: which of your answers an officer will push on, what they&rsquo;ll ask next, and the numbers behind it.</p>
-        </div>
-        <div className="gcell">
-          <div className="k">Paid · one payment</div>
-          <div className="v">Your case, rebuilt</div>
-          <p>We work through each weak point and rebuild the answer out of facts you give us. Then we drill you by voice with the follow-ups.</p>
-        </div>
-        <div className="gcell">
-          <div className="k">Where the data comes from</div>
-          <div className="v">Students, after the window</div>
-          <p>Self-reported write-ups posted publicly by students online, deduplicated and parsed question by question. Roughly 200 more each month.</p>
-        </div>
-      </div></div>
-      </div>{/* /.hero-band */}
 
       {/* -------------------------------------------------------- stakes -- */}
-      <div className="stakes">
-        <div className="wrap">
-          <p className="eyebrow">The interview</p>
-          <h2>It is over in about three minutes.</h2>
+      <section className="wrap section stakes-short">
+        <div>
+          <h2>A short interview.<br /><mark>A big next chapter.</mark></h2>
           <p>
-            You will have spent a year on applications, paid the SEVIS and MRV fees,
-            taken a day off and stood in a queue. Then someone behind glass asks four
-            or five questions and decides. There is no appeal, no second look at your
-            file, and no moment where you get to explain what you meant.
-          </p>
-          <p>
-            And it turns on small things. Saying a university is{" "}
-            <b>ranked second in the world</b> instead of naming a course you want to
-            take. Listing three of your father&rsquo;s businesses without a single
-            number attached to any of them. Saying you would like to stay. None of
-            those mean your case is weak - they mean it was <b>stated badly</b>. From
-            the other side of the glass, in three minutes, badly stated and weak look
-            exactly the same.
+            Your university, your funding, your plans for the future. You need to
+            explain them clearly, even when the next question catches you off guard.
           </p>
         </div>
-      </div>
+        <p className="pull">You know your plans.<br />We help you <span className="home-underline">explain them.</span></p>
+      </section>
 
-      <div className="wrap section">
-        <p className="pull">
-          Most students who get refused don&rsquo;t have a bad case. They have a good
-          case they can&rsquo;t explain yet.
-        </p>
+      {/* -------------------------------------------------------- why us -- */}
+      <section className="wrap section why-us" id="why-us" aria-labelledby="why-us-heading">
+        <div className="grid2">
+          <div className="why-us-intro">
+            <h2 id="why-us-heading">Why us?</h2>
+            <p className="pull">We&rsquo;re not guessing.<br /><mark>We start with evidence.</mark></p>
+            <p className="lede">
+              Your preparation should start with real experience. Altovisas draws on{" "}
+              <strong>{CORPUS.interviews.toLocaleString()} real F-1 interview reports</strong> shared by
+              students, covering what officers asked, how applicants answered and what
+              happened next.
+            </p>
+          </div>
+          <ul className="why-us-reasons">
+            <li>
+              <h3>Real interviews behind the advice</h3>
+              <p>
+                We look at both approvals and refusals to understand the questions
+                applicants face and where officers ask for more detail.
+              </p>
+            </li>
+            <li>
+              <h3>AI guided by that experience</h3>
+              <p>
+                Our AI checks your answers against <strong>real interview experiences
+                and statistics.</strong> You get feedback on weak points and what to
+                explain more clearly.
+              </p>
+            </li>
+            <li>
+              <h3>Statistics you can explore</h3>
+              <p>
+                See which questions come up most and how reported experiences differ
+                by consulate and degree. The numbers behind our approach are open for
+                you to explore.
+              </p>
+            </li>
+          </ul>
+        </div>
+        <div className="why-us-source">
+          <p>
+            These are students&rsquo; own reports, not official consular records.
+            They show patterns, not your chances of approval.
+          </p>
+          <Link to="/about" className="why-us-link">
+            How we use the data <Arrow />
+          </Link>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------- data -- */}
+      <section className="wrap section data-short" id="the-data">
+        <h2>What {CORPUS.interviews.toLocaleString()} interviews show</h2>
         <p className="lede">
-          The officer is not looking for a perfect applicant. They are looking for a
-          plan that holds together and money that is accounted for. Plenty of students
-          have both and still walk out without a visa, because they were answering a
-          question they had never once said out loud.
+          Students wrote down what they were asked and what happened. Three things stand out.
         </p>
-        <p className="lede" style={{ marginTop: 18 }}>
-          That part is fixable, and it is the only part of this you control. You
-          can&rsquo;t change your GPA in three weeks, or which consulate you were
-          assigned, or how many refusals came before you in the queue. You can change
-          whether you know what is coming and whether your answers survive the second
-          question.
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap", marginTop: 28 }}>
-          <button className="btn" onClick={() => start("stakes")}>
-            Simulate Interview <span className="btn-free">Free</span> <span className="arrow">→</span>
-          </button>
-        </div>
-      </div>
+        <HomeFindings />
+      </section>
 
-      </div>{/* /.tf */}
-
-      {/* ---------------------------------------------------------- data --
-          The dashboard keeps visa_llm's own look - white cards, blue/red
-          series, sans-serif - rather than the Altovisas paper/ink treatment. */}
-      <div className="vz" id="the-data">
-        <div className="page-w">
-          <h1>What 16,204 interview write-ups show</h1>
-          <p className="sub" style={{ marginBottom: 18 }}>Public · free · updated monthly</p>
-          <CorpusDashboard />
-        </div>
-      </div>
-
-      <div className="tf">
       {/* ------------------------------------------------------ limits --- */}
-      <div className="wrap section" style={{ paddingTop: 0 }}>
-        <h2>What this tool will not do</h2>
-        <ul className="no-list">
-          <li><strong>Write you a script.</strong> Rehearsed answers are one of the clearest refusal signals an officer sees. We build answers from what you tell us, in your words.</li>
-          <li><strong>Invent facts for you.</strong> A false statement at the window is a permanent bar, not a refusal you can reapply from. If you ask us to make something up, we say no and explain why.</li>
-          <li><strong>Promise you a visa.</strong> Our numbers describe who chose to post about their interview. They are not consular approval rates and they predict nothing about you.</li>
-          <li><strong>Give legal advice.</strong> This is interview preparation. We are not lawyers and have no affiliation with any consulate or with the US government.</li>
+      <section className="wrap section limits">
+        <h2>What we won&rsquo;t do</h2>
+        <ul className="no-grid">
+          <li><strong>Write you a script.</strong> Memorised answers are a common refusal signal. The words stay yours.</li>
+          <li><strong>Invent facts.</strong> A false statement at the window can bar you permanently.</li>
+          <li><strong>Promise a visa.</strong> Only the officer decides. Our numbers predict nothing about you.</li>
+          <li><strong>Give legal advice.</strong> We are not lawyers, and not linked to any consulate or government.</li>
         </ul>
-      </div>
+      </section>
 
-      </div>{/* /.tf */}
-    </>
+      {/* ------------------------------------------------------- close --- */}
+      <div className="close-band">
+        <div className="wrap">
+          <h2>Your next chapter starts with <span className="home-underline">a clearer answer.</span></h2>
+          <div className="hero-act">
+            <button className="btn" onClick={() => start("close")}>
+              Start your profile check <span className="btn-free">Free</span>{" "}
+              <Arrow />
+            </button>
+          </div>
+          <p className="meta">
+            Want help fixing them? A paid version that rebuilds each answer with you and
+            drills you by voice is on the way. <Link to="/about">How it works</Link> ·{" "}
+            <Link to="/faq">Questions</Link>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

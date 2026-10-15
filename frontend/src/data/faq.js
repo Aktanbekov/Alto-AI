@@ -22,11 +22,11 @@ export const FAQ = [
   },
   {
     q: "How does it work?",
-    a: "You give a short profile - university, programme, funding, consulate - and answer three interview questions in your own words. Your answers are compared against the interview reports in the dataset, and you get back the specific points an officer is most likely to probe, along with the numbers behind each one. It takes about four minutes and needs no account.",
+    a: "You give a short profile - university, programme, funding, consulate - and answer three interview questions in your own words. Your answers are compared against the interview reports in the dataset, and you get back the specific points an officer is most likely to probe, along with the numbers behind each one. It takes about four minutes and needs a free account.",
   },
   {
     q: "Is it free?",
-    a: "Yes. The profile check is free and does not require an account or a credit card.",
+    a: "Yes. The profile check is free. It needs a free account, which keeps your rounds and progress, but never a credit card. The statistics on the home page are open to everyone without one.",
   },
   {
     q: "Where does the interview data come from?",

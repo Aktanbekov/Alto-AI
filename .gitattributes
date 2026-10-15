@@ -5,3 +5,10 @@ visa-llm/data/**/*.jsonl         filter=lfs diff=lfs merge=lfs -text
 visa-llm/data/**/*.parquet       filter=lfs diff=lfs merge=lfs -text
 visa-llm/data/**/*.npy           filter=lfs diff=lfs merge=lfs -text
 visa-llm/web/data/**/*.json      filter=lfs diff=lfs merge=lfs -text
+
+# These two small documents are runtime assets, not large corpus artifacts.
+# Vercel and container builders must receive their JSON bytes even when Git LFS
+# is unavailable; serving an LFS pointer as application/json breaks the public
+# statistics dashboard and the first practice round.
+visa-llm/web/data/stats.json     -filter -diff -merge text
+visa-llm/web/data/questions.json -filter -diff -merge text

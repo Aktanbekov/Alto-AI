@@ -9,7 +9,12 @@ import pandas as pd
 import pytest
 
 from visa_llm.evaluator.evaluate import build_messages, load_profile
-from visa_llm.evaluator.prompts import format_retrieved, format_statistics, format_student
+from visa_llm.evaluator.prompts import (
+    format_city_mix,
+    format_retrieved,
+    format_statistics,
+    format_student,
+)
 from visa_llm.evaluator.schema import Evaluation
 from visa_llm.rag.retrieve import StudentProfile
 
@@ -43,15 +48,23 @@ STATS = {
 
 
 def test_statistics_block_reports_and_filters():
-    text = format_statistics(STATS, profile_city="Chennai")
+    text = format_statistics(STATS)
     assert "87.2%" not in text  # only numbers actually in STATS
     assert "funding_sponsor" in text
     assert "rare_type" not in text, "low-n question types must not be quoted at students"
-    assert "Most common question types at Chennai" in text
 
 
-def test_statistics_block_without_city_omits_city_mix():
+def test_statistics_block_carries_nothing_per_city():
+    # It is the cached prefix: anything city-specific splits the cache.
     assert "Most common question types at" not in format_statistics(STATS)
+
+
+def test_city_mix_reports_the_consulate_or_nothing():
+    text = format_city_mix(STATS, "Chennai")
+    assert "Most common question types at Chennai (n=40)" in text
+    assert "why_university: 50.0%" in text
+    assert format_city_mix(STATS, "Mumbai") == ""
+    assert format_city_mix(STATS, None) == ""
 
 
 def test_retrieved_block_includes_transcripts_by_record_id():
@@ -99,11 +112,27 @@ def test_build_messages_puts_cache_breakpoint_on_static_prefix():
     )
     assert len(system_blocks) == 2
     # The statistics block is the last cached block; per-student text must not be cached.
-    assert system_blocks[1].get("cache_control") == {"type": "ephemeral"}
+    assert system_blocks[1].get("cache_control") == {"type": "ephemeral", "ttl": "1h"}
     assert "cache_control" not in system_blocks[0]
     assert messages[0]["role"] == "user"
     assert "RETRIEVED COMPARABLE INTERVIEWS" in messages[0]["content"]
     assert "THIS STUDENT" in messages[0]["content"]
+
+
+def test_students_at_different_consulates_share_one_cached_prefix():
+    retrieved = pd.DataFrame([{"record_id": "r1", "outcome": "approved", "similarity": 0.6}])
+    chennai, chennai_msgs = build_messages(
+        StudentProfile(consulate_city="Chennai"), STATS, retrieved, None
+    )
+    mumbai, mumbai_msgs = build_messages(
+        StudentProfile(consulate_city="Mumbai"), STATS, retrieved, None
+    )
+    assert chennai == mumbai
+    # The city mix still reaches the model, after the cached prefix.
+    content = chennai_msgs[0]["content"]
+    assert "Most common question types at Chennai" in content
+    assert content.index("CONSULATE STATISTICS") < content.index("RETRIEVED COMPARABLE")
+    assert "CONSULATE STATISTICS" not in mumbai_msgs[0]["content"]
 
 
 def test_load_profile_roundtrip(tmp_path: Path):

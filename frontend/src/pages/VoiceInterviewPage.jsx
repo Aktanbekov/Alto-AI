@@ -17,12 +17,12 @@ export default function VoiceInterviewPage() {
         <span className="timer"><i className="dot" />02:12</span>
       </div>
 
-      <p className="q">So you&rsquo;ll just stay in America after your OPT, won&rsquo;t you?</p>
+      <h1 className="q">So you&rsquo;ll just stay in America after your OPT, won&rsquo;t you?</h1>
       <p className="q-src">Follow-up · generated from your weak point, not from a fixed list</p>
 
-      <button className="mic" type="button">
-        <span className="ring"><i /></span><span>Answer now</span>
-      </button>
+      <div className="mic is-static" role="img" aria-label="Voice answers - not available yet">
+        <span className="ring"><i /></span><span>Voice answers are coming. This screen does not record.</span>
+      </div>
 
       <div className="readout">
         {readout.map((r) => (

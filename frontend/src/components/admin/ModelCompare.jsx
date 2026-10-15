@@ -16,12 +16,12 @@ import { useState } from "react";
 
 const LABELS = {
   opus: "Claude Opus 5",
+  terra: "GPT-5.6 Terra",
   deepseek: "DeepSeek V4 Pro",
-  "o3-mini": "OpenAI o3-mini",
+  report: "AI report",
 };
 
-// Opus is what production uses; the other two are the candidates being measured
-// against it, so its numbers are the baseline the deltas are read from.
+// Opus is the established baseline, so admin cost deltas are read against it.
 const BASELINE = "opus";
 
 const labelOf = (key) => LABELS[key] || key;
@@ -52,7 +52,13 @@ function relativeCost(row, baseline) {
 const readinessTone = (v) =>
   v === "strong" ? "ok" : v === "weak" || v === "needs_work" ? "bad" : "";
 
-export default function ModelCompare({ results, renderReport, onBack }) {
+export default function ModelCompare({
+  results,
+  renderReport,
+  onBack,
+  showMetrics = true,
+  intro = "Same profile, same retrieved interviews, same instruction — only the model differs.",
+}) {
   const rows = results || [];
   // Open on the first model that actually produced something, so a failed
   // baseline does not land the reader on an empty tab.
@@ -66,8 +72,7 @@ export default function ModelCompare({ results, renderReport, onBack }) {
     <div className="ev-result">
       <div className="mc-head">
         <p className="sub" style={{ margin: 0 }}>
-          Same profile, same retrieved interviews, same instruction &mdash; only the
-          model differs.
+          {intro}
         </p>
         {onBack && (
           <button type="button" className="ev-devfill" onClick={onBack}>
@@ -99,13 +104,13 @@ export default function ModelCompare({ results, renderReport, onBack }) {
                   {(row.evaluation?.readiness || "—").replace(/_/g, " ")}
                 </div>
                 <dl className="mc-stats">
-                  <div><dt>Time</dt><dd>{seconds(row.latency_ms)}</dd></div>
-                  <div><dt>Cost</dt><dd>{money(row.usage)}</dd></div>
-                  <div><dt>Tokens</dt><dd>{tokens(row.usage)}</dd></div>
+                  {showMetrics && <div><dt>Time</dt><dd>{seconds(row.latency_ms)}</dd></div>}
+                  {showMetrics && <div><dt>Cost</dt><dd>{money(row.usage)}</dd></div>}
+                  {showMetrics && <div><dt>Tokens</dt><dd>{tokens(row.usage)}</dd></div>}
                   <div><dt>Flags</dt><dd>{row.evaluation?.risk_factors?.length ?? 0}</dd></div>
                   <div><dt>Likely Qs</dt><dd>{row.evaluation?.likely_questions?.length ?? 0}</dd></div>
                 </dl>
-                <div className="mc-rel">{relativeCost(row, baseline)}</div>
+                {showMetrics && <div className="mc-rel">{relativeCost(row, baseline)}</div>}
               </>
             )}
           </div>

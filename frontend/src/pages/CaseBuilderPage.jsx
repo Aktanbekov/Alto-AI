@@ -14,18 +14,18 @@ export default function CaseBuilderPage() {
     <div className="tf">
     <div className="wrap pt pb">
       <PreviewChip />
-      <div className="grid2" style={{ gridTemplateColumns: "1.5fr .9fr" }}>
+      <div className="grid-case">
         <div>
-          <p className="eyebrow">Weak point 03 of 03 · post-graduation plan</p>
-          <h2 style={{ marginBottom: 22 }}>Let&rsquo;s find your real answer</h2>
+          <h1 className="pv-title">Let&rsquo;s find your real answer</h1>
+          <p className="meta" style={{ marginBottom: 26 }}>Weak point 3 of 3 · your plan after the degree</p>
 
           <div className="turn sys">
             <div className="who">Altovisas</div>
             <p className="said">
               Your answer says you&rsquo;ll help your father&rsquo;s businesses, but it
               never says where you&rsquo;ll be. As written, an officer can read it as
-              remote work from the US - and <em>return_intent</em> only gets asked when
-              they&rsquo;re already unsure. I&rsquo;m not going to hand you a replacement
+              remote work from the US - and officers only ask whether you&rsquo;ll go home
+              when they&rsquo;re already unsure. I&rsquo;m not going to hand you a replacement
               sentence. Where will you physically be, and what is the first thing
               you&rsquo;d actually build?
             </p>
@@ -78,9 +78,9 @@ export default function CaseBuilderPage() {
         </div>
 
         <aside className="ledger">
-          <h4>Your facts · everything is built from this</h4>
+          <h2 className="ledger-h">Your facts · everything is built from this</h2>
           {FACTS.map((f) => (
-            <div className="fact" key={f}><span className="m">✓</span><span>{f}</span></div>
+            <div className="fact" key={f}><svg className="m" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 6.5 4.8 9 10 3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg><span>{f}</span></div>
           ))}
           <p className="note">
             Nothing we write for you comes from anywhere but this list. Edit or delete

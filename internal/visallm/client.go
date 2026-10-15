@@ -71,13 +71,12 @@ type ProfileRequest struct {
 	TestScores       map[string]string `json:"test_scores,omitempty"`
 	PlannedAnswers   []PlannedAnswer   `json:"planned_answers"`
 
-	// Which model scores this run. Omitted on the public path, where the
-	// sidecar applies its production default; set only by the admin
-	// comparison, which runs the same profile through several models.
+	// Which model scores this run. The public and admin comparison handlers set
+	// this server-side while fanning the profile out to the fixed provider set.
 	//
-	// The public handler clears whatever a caller sent here - see
-	// EvaluateHandler.Evaluate. Left settable by a student, this field would
-	// let anyone pick which vendor we pay for.
+	// The public handler clears whatever a caller sent before selecting those
+	// providers. Left caller-controlled, this field would let anyone pick which
+	// vendor we pay for.
 	Model string `json:"model,omitempty"`
 }
 

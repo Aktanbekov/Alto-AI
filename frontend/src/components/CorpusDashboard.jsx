@@ -31,8 +31,8 @@ export default function CorpusDashboard() {
   if (state.loading) return <p className="sub">Loading the corpus…</p>;
   if (state.error) {
     return (
-      <div className="caveat bad">
-        <strong>Statistics unavailable.</strong> {state.error}
+      <div className="caveat bad" role="alert">
+        <strong>The statistics didn&rsquo;t load.</strong> Refresh the page to try again.
       </div>
     );
   }
@@ -40,7 +40,9 @@ export default function CorpusDashboard() {
   const s = state.stats;
   const counts = s.meta.outcome_counts || {};
   const years = (s.meta.year_range || []).join("-");
-  const withTranscript = s.meta.n_with_transcript ?? 14589;
+  // Only shown when the export carries it. A remembered figure in its place
+  // would be the one number on the page that no longer matches the data.
+  const withTranscript = s.meta.n_with_transcript;
 
   const tiles = [
     { k: "Interviews", n: s.meta.n_records.toLocaleString(), sub: "deduplicated posts" },
@@ -54,9 +56,11 @@ export default function CorpusDashboard() {
       n: `${(s.overall.approval_rate * 100).toFixed(1)}%`,
       sub: "among posters, not the true rate",
     },
-    { k: "Full transcripts", n: withTranscript.toLocaleString(), sub: "readable question by question" },
+    withTranscript != null && {
+      k: "Full transcripts", n: withTranscript.toLocaleString(), sub: "readable question by question",
+    },
     { k: "Years covered", n: years, sub: "earliest to latest post" },
-  ];
+  ].filter(Boolean);
 
   const attempts = toRows(s.by_attempt).map((r) => ({
     ...r,
@@ -90,14 +94,14 @@ export default function CorpusDashboard() {
         <p className="sub">Every record in the corpus, including those with no stated decision.</p>
         <ProportionBar
           segments={[
-            { label: "Approved", value: counts.approved || 0, color: "#2a78d6" },
-            { label: "Rejected", value: counts.rejected || 0, color: "#d03b3b" },
+            { label: "Approved", value: counts.approved || 0, color: "var(--series-pos)" },
+            { label: "Refused", value: counts.rejected || 0, color: "var(--series-neg)" },
             {
               label: "221(g) processing",
               value: counts.administrative_processing_221g || 0,
-              color: "#898781",
+              color: "var(--series-alt)",
             },
-            { label: "Not stated", value: counts.unknown || 0, color: "#dedcd6" },
+            { label: "Not stated", value: counts.unknown || 0, color: "var(--series-none)" },
           ]}
         />
       </div>
@@ -116,6 +120,16 @@ export default function CorpusDashboard() {
           </p>
           <BarChart rows={attempts} />
         </div>
+      </div>
+
+      <div className="vz-card">
+        <h2>By consulate</h2>
+        <p className="sub">
+          How many interviews the data holds from each consulate, and the approval
+          share among them. A consulate with few posts gives a thin comparison -
+          the faded bars are under {SMALL_N} decided interviews.
+        </p>
+        <BarChart rows={toRows(s.by_city, 16)} showCount />
       </div>
 
       <div className="vz-card">

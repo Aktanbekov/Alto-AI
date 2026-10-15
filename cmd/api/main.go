@@ -42,7 +42,7 @@ func main() {
 
 	handler := middleware.CORSLegacy(r)
 	srv := &http.Server{
-		Addr:        ":8080",
+		Addr:        listenAddress(),
 		Handler:     handler,
 		ReadTimeout: 10 * time.Second,
 		// Derived from the evaluation timeout rather than written as its own
@@ -63,7 +63,7 @@ func main() {
 	}
 
 	go func() {
-		log.Println("HTTP server listening on :8080")
+		log.Printf("HTTP server listening on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %v", err)
 		}
@@ -81,4 +81,13 @@ func main() {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 	log.Println("Server exited")
+}
+
+// Vercel assigns each service its listening port at runtime.
+func listenAddress() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	return ":" + port
 }

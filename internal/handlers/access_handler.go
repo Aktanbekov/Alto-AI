@@ -46,9 +46,10 @@ func NewAccessHandler(
 // computed from the database on every call rather than tracked in the browser,
 // so a refresh, a second tab or a new device all agree.
 type accessState struct {
-	SetsUsed      int `json:"sets_used"`
-	SetsAllowed   int `json:"sets_allowed"`
-	SetsRemaining int `json:"sets_remaining"`
+	Unlimited     bool `json:"unlimited"`
+	SetsUsed      int  `json:"sets_used"`
+	SetsAllowed   int  `json:"sets_allowed"`
+	SetsRemaining int  `json:"sets_remaining"`
 
 	// "rating" after the first set, "detail" after the second, "" once each has
 	// been answered or skipped. Empty is the steady state.
@@ -59,8 +60,8 @@ type accessState struct {
 	SignedIn        bool `json:"signed_in"`
 }
 
-func (h *AccessHandler) stateFor(s repository.Subject) accessState {
-	return computeAccess(h.evals, h.val, s)
+func (h *AccessHandler) stateFor(c *gin.Context, s repository.Subject) accessState {
+	return computeAccess(h.evals, h.val, s, unlimitedPractice(c))
 }
 
 // computeAccess assembles a caller's access state. A free function because the
@@ -71,9 +72,9 @@ func (h *AccessHandler) stateFor(s repository.Subject) accessState {
 // deployment without the tables should hand out the free sets, not lock
 // everyone out.
 func computeAccess(
-	evals repository.EvaluationRepo, val repository.ValidationRepo, s repository.Subject,
+	evals repository.EvaluationRepo, val repository.ValidationRepo, s repository.Subject, unlimited bool,
 ) accessState {
-	st := accessState{SetsAllowed: freeSets, SignedIn: s.SignedIn()}
+	st := accessState{SetsAllowed: freeSets, SignedIn: s.SignedIn(), Unlimited: unlimited}
 
 	if evals != nil {
 		used, _, err := evals.SetsUsed(s)
@@ -97,6 +98,12 @@ func computeAccess(
 		st.NextPrompt = nextPrompt(val, s, st.SetsUsed)
 	}
 
+	// Counts still record admin activity, but zero is not a quota when unlimited
+	// is true. The client uses that flag instead of inventing a finite allowance.
+	if st.Unlimited {
+		st.SetsAllowed = 0
+		return st
+	}
 	st.SetsRemaining = st.SetsAllowed - st.SetsUsed
 	if st.SetsRemaining < 0 {
 		st.SetsRemaining = 0
@@ -128,7 +135,7 @@ func nextPrompt(val repository.ValidationRepo, s repository.Subject, setsUsed in
 // State serves the caller's access state. Public: the flow starts before anyone
 // signs in, and guests are the population it most needs to work for.
 func (h *AccessHandler) State(c *gin.Context) {
-	response.OK(c, h.stateFor(h.subjects.resolve(c)))
+	response.OK(c, h.stateFor(c, h.subjects.resolve(c)))
 }
 
 // ---------------------------------------------------------------- feedback --
@@ -196,7 +203,7 @@ func (h *AccessHandler) saveFeedback(c *gin.Context, kind string) {
 	if !body.Skipped {
 		h.recordFeedbackEvent(c, subject, kind, f)
 	}
-	response.OK(c, h.stateFor(subject))
+	response.OK(c, h.stateFor(c, subject))
 }
 
 // ------------------------------------------------------------------ survey --
@@ -251,7 +258,7 @@ func (h *AccessHandler) Survey(c *gin.Context) {
 	if granted {
 		h.recordSurveyEvents(c, subject, body)
 	}
-	state := h.stateFor(subject)
+	state := h.stateFor(c, subject)
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{
 		"granted":       granted,
 		"unlocked_sets": repository.SurveyUnlockSets,

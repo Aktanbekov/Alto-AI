@@ -3,6 +3,8 @@ package handlers
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -51,10 +53,16 @@ func NewQuestionsHandler() *CachedJSONHandler {
 
 func (h *CachedJSONHandler) load() {
 	h.body, h.err = os.ReadFile(h.path)
-	if h.err == nil {
-		sum := sha256.Sum256(h.body)
-		h.etag = `"` + hex.EncodeToString(sum[:16]) + `"`
+	if h.err != nil {
+		return
 	}
+	if !json.Valid(h.body) {
+		h.body = nil
+		h.err = fmt.Errorf("%s is not valid JSON", h.path)
+		return
+	}
+	sum := sha256.Sum256(h.body)
+	h.etag = `"` + hex.EncodeToString(sum[:16]) + `"`
 }
 
 // Get returns the raw document. Public: the dashboard is on the landing page and

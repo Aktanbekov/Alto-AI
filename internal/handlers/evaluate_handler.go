@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"altoai_mvp/internal/middleware"
 	"altoai_mvp/internal/repository"
 	"altoai_mvp/internal/services"
 	"altoai_mvp/internal/visallm"
@@ -60,7 +61,7 @@ func (h *EvaluateHandler) Status(c *gin.Context) {
 	// being a condition of practising when the free allowance went to two sets
 	// for everyone, but a cached bundle from before that release still reads
 	// this field and would bounce people to /signup if it went missing.
-	access := computeAccess(h.evals, h.val, h.subjects.resolve(c))
+	access := computeAccess(h.evals, h.val, h.subjects.resolve(c), unlimitedPractice(c))
 	body := gin.H{"signup_required": false, "access": access}
 
 	switch {
@@ -94,10 +95,9 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	req := body.ProfileRequest
 	setIndex := clampSetIndex(body.SetIndex)
 
-	// Model choice is not the caller's. The field exists for the admin
-	// comparison below; on this path an empty value makes the sidecar use its
-	// production default, and clearing it here is what stops a crafted body
-	// from billing us to a vendor of the sender's choosing.
+	// Model choice is not the caller's. Clear it before runAll selects the fixed
+	// three-provider set, so a crafted body cannot choose which vendor we pay or
+	// suppress two of the reports.
 	req.Model = ""
 
 	if len(req.PlannedAnswers) == 0 {
@@ -124,21 +124,52 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 		c.Request.Header.Set("X-Visitor-Id", subject.VisitorID)
 	}
 
-	if msg, ok := h.allowed(subject, setIndex); !ok {
+	if msg, ok := h.allowed(c, subject, setIndex); !ok {
 		c.JSON(http.StatusForbidden, gin.H{"error": msg, "code": "sets_exhausted"})
 		return
 	}
 
 	started := time.Now()
-	evaluation, usage, err := h.client.EvaluateWithUsage(c.Request.Context(), req)
+	results, runErrs := h.runAll(c.Request.Context(), req)
 	latency := time.Since(started).Milliseconds()
-	if err != nil {
+
+	var primary *visallm.Evaluation
+	primaryIdx := -1
+	aggregate := visallm.Usage{CostKnown: true}
+	models := make([]string, 0, len(results))
+	var firstErr error
+	for i := range results {
+		if runErrs[i] != nil {
+			if firstErr == nil {
+				firstErr = runErrs[i]
+			}
+			continue
+		}
+		if results[i].Evaluation == nil || results[i].Usage == nil {
+			continue
+		}
+		if primary == nil {
+			primary = results[i].Evaluation
+			primaryIdx = i
+		}
+		models = append(models, results[i].Model)
+		aggregate.InputTokens += results[i].Usage.InputTokens
+		aggregate.CachedTokens += results[i].Usage.CachedTokens
+		aggregate.OutputTokens += results[i].Usage.OutputTokens
+		aggregate.CostUSD += results[i].Usage.CostUSD
+		aggregate.CostKnown = aggregate.CostKnown && results[i].Usage.CostKnown
+	}
+
+	if primary == nil {
 		// Store what they wrote before saying scoring is down. The message they
 		// are about to read promises their answers are saved, and until this
 		// call existed that promise was false: persist ran only on the success
 		// path, so a scoring outage threw away the work as well as the report.
 		h.persistFailure(c, req, latency, userID, setIndex)
-		h.failed(c, err)
+		if firstErr == nil {
+			firstErr = errors.New("no provider returned an evaluation")
+		}
+		h.failed(c, firstErr)
 		return
 	}
 
@@ -146,11 +177,49 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	if claims, ok := currentClaims(c); ok && claims != nil {
 		email = claims.Email
 	}
-	if h.incidents != nil {
-		h.incidents.RecordRun(visallm.Run{Usage: usage, UserEmail: email})
+	for i := range results {
+		if runErrs[i] != nil {
+			h.recordPartialFailure(runErrs[i], email)
+			// Keep the failed tab so the response is visibly three-way rather than
+			// silently becoming a two-model answer, but hide operator details.
+			results[i].Error = "This provider could not return a report. Please use the other available reports."
+			continue
+		}
+		if h.incidents != nil && results[i].Usage != nil {
+			h.incidents.RecordRun(visallm.Run{Usage: *results[i].Usage, UserEmail: email})
+		}
+		// Cost and token counts are operational data; the public UI needs the
+		// model's answer, not the account's spend.
+		results[i].Usage = nil
 	}
-	h.persist(c, req, evaluation, usage, latency, userID, setIndex)
-	response.OK(c, evaluation)
+	aggregate.Model = strings.Join(models, ",")
+	h.persist(c, req, *primary, results, aggregate, latency, userID, setIndex)
+
+	// All three still run and are stored, so the admin comparison keeps its
+	// data. Only admins see them side by side: a student handed three verdicts
+	// that can disagree has to arbitrate between vendors, which is not their
+	// job. Everyone else gets the first report in the fixed model order, so a
+	// provider that is down falls through to the next one instead of a gap.
+	if !middleware.IsAdminEmail(email) {
+		response.OK(c, gin.H{"results": results[primaryIdx : primaryIdx+1]})
+		return
+	}
+	response.OK(c, gin.H{"results": results})
+}
+
+// recordPartialFailure records a provider failure without writing an HTTP
+// response. A multi-model request can still succeed when one provider is down.
+func (h *EvaluateHandler) recordPartialFailure(err error, email string) {
+	var up *visallm.UpstreamError
+	if errors.As(err, &up) {
+		h.record(visallm.KindOf(err), up.Detail, up.StatusCode, email)
+		return
+	}
+	status := http.StatusBadGateway
+	if errors.Is(err, visallm.ErrNotConfigured) || strings.Contains(err.Error(), "unreachable") {
+		status = http.StatusServiceUnavailable
+	}
+	h.record("upstream", err.Error(), status, email)
 }
 
 // setsExhaustedMessage is what the page turns into the access screen. It names
@@ -168,8 +237,8 @@ const setsExhaustedMessage = "You have used all of your practice sets. " +
 //   - The cost ceiling is counted in evaluations, because every one is a model
 //     call we pay for. Without it a client that pinned set_index to a set it
 //     already owned could re-score forever on our budget.
-func (h *EvaluateHandler) allowed(s repository.Subject, setIndex int) (string, bool) {
-	if h.evals == nil {
+func (h *EvaluateHandler) allowed(c *gin.Context, s repository.Subject, setIndex int) (string, bool) {
+	if unlimitedPractice(c) || h.evals == nil {
 		return "", true
 	}
 	distinct, total, err := h.evals.SetsUsed(s)
@@ -305,12 +374,16 @@ func (h *EvaluateHandler) persist(
 	c *gin.Context,
 	req visallm.ProfileRequest,
 	ev visallm.Evaluation,
+	results []ModelResult,
 	usage visallm.Usage,
 	latencyMS int64,
 	userID string,
 	setIndex int,
 ) {
-	raw, _ := json.Marshal(ev)
+	// Keep the same three-result envelope the student received. `ev` below is
+	// the first successful report (normally Opus), used only for denormalised
+	// analytics fields that need one stable baseline.
+	raw, _ := json.Marshal(gin.H{"results": results})
 	var report map[string]any
 	_ = json.Unmarshal(raw, &report)
 

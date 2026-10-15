@@ -198,13 +198,13 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
     return (
       <div className="ev-result">
         <div className="vz-card vsv-done" role="status">
-          <h2>You unlocked {unlocked} additional interview sets.</h2>
+          <h2>{unlocked} more rounds unlocked</h2>
           <p className="sub">
-            That is {unlocked * 3} more questions, drawn from the same corpus - thank you
-            for the answers.
+            That&rsquo;s {unlocked * 3} more questions from real interviews. Thank you for
+            the answers.
           </p>
           <button type="button" className="ev-submit" onClick={() => onContinue?.()}>
-            Continue practicing
+            Start the next round
           </button>
         </div>
       </div>

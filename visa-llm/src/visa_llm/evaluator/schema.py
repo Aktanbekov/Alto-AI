@@ -18,10 +18,16 @@ class AnswerFeedback(BaseModel):
         "understands on the first read. Where a real interview or a percentage "
         "backs the concern, say so without naming record ids or raw counts."
     )
+    # The name predates the change in what it holds; the frontend and the Go
+    # proxy both read this key, so it stays.
     suggested_revision: str = Field(
-        description="A rewritten answer the student could truthfully say, "
-        "using only facts present in their own profile. Never invent "
-        "credentials, funding, or ties they did not state."
+        description="How to restructure this answer, as one or two short "
+        "instructions to the student: what to lead with, which specific fact "
+        "or number from their own profile to state, and what to cut. Write "
+        "advice ('Lead with...', 'Name the...'), never a finished answer to "
+        "recite: a memorised answer is itself a refusal signal. Use only facts "
+        "present in their own profile. Never invent credentials, funding, or "
+        "ties they did not state."
     )
 
 

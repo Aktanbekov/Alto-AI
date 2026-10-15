@@ -48,6 +48,10 @@ docker-compose*.yml
 
 # CI/CD
 .github/
+.agents/
+.claude/
+.codex/
+.impeccable/
 .gitlab-ci.yml
 
 # Temporary files

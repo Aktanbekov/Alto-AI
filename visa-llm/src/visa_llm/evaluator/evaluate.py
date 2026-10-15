@@ -13,6 +13,7 @@ from ..rag.retrieve import InterviewIndex, StudentProfile
 from .prompts import (
     SYSTEM_PROMPT,
     TASK_INSTRUCTION,
+    format_city_mix,
     format_retrieved,
     format_statistics,
     format_student,
@@ -30,6 +31,13 @@ MAX_TOKENS = 16000
 # for the other half of this budget.
 DEFAULT_K = 6
 
+# How long Anthropic keeps the shared prefix. A 1h write costs 2x input against
+# 1.25x for 5m, and a read 0.1x either way. Hits need another evaluation inside
+# the window, so 5m only pays off at a steady stream of traffic; 1h is cheaper
+# once evaluations arrive more often than about one every two hours, and below
+# that the difference is a fraction of a cent per call.
+PREFIX_CACHE_TTL = "1h"
+
 
 def build_messages(
     profile: StudentProfile,
@@ -39,25 +47,31 @@ def build_messages(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Return (system_blocks, messages).
 
-    The system blocks carry the cache breakpoint: prompt + corpus statistics are
-    the same for every student, so they stay a stable cached prefix while the
-    per-student material rides in the user turn.
+    The system blocks carry the only cache breakpoint: prompt + corpus
+    statistics are byte-identical for every student, so every evaluation from
+    every consulate shares one cached prefix. All three providers cache on
+    prefix, so this ordering is what makes caching work for each of them.
+
+    Nothing per-student is cached. The retrieved block changes with every set
+    of answers - retrieval embeds the answers, and each record's header carries
+    its similarity score - so a second breakpoint would pay the write premium
+    on every call and almost never be read back.
     """
     system_blocks = [
         {"type": "text", "text": SYSTEM_PROMPT},
         {
             "type": "text",
-            "text": format_statistics(stats, profile.consulate_city),
-            "cache_control": {"type": "ephemeral"},
+            "text": format_statistics(stats),
+            "cache_control": {"type": "ephemeral", "ttl": PREFIX_CACHE_TTL},
         },
     ]
-    user_text = "\n\n".join(
-        [
-            format_retrieved(retrieved, full_df),
-            format_student(profile),
-            TASK_INSTRUCTION,
-        ]
-    )
+    parts = [
+        format_city_mix(stats, profile.consulate_city),
+        format_retrieved(retrieved, full_df),
+        format_student(profile),
+        TASK_INSTRUCTION,
+    ]
+    user_text = "\n\n".join(part for part in parts if part)
     return system_blocks, [{"role": "user", "content": user_text}]
 
 
@@ -133,7 +147,7 @@ def render(evaluation: Evaluation, meta: dict[str, Any]) -> str:
                 out.append(f"   + {s}")
             for r in fb.risks:
                 out.append(f"   ! {r}")
-            out.append(f"   -> suggested: {fb.suggested_revision}")
+            out.append(f"   -> how to fix: {fb.suggested_revision}")
 
     out.append("")
     out.append("=" * 70)

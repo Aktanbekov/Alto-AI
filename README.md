@@ -278,7 +278,11 @@ altoai_mvp/
 | `JWT_SECRET` | Secret key for JWT tokens | Yes |
 | `DATABASE_URL` | PostgreSQL connection string | No |
 | `FRONTEND_URL` | Frontend URL for redirects | No |
+| `CORS_ALLOWED_ORIGINS` | Additional comma-separated frontend origins | No |
 | `GIN_MODE` | Gin mode (release/debug) | No |
+
+For a Vercel frontend deployment, set `VITE_API_BASE` in Vercel to the public
+origin of the separately deployed Go backend. See [DEPLOYMENT.md](DEPLOYMENT.md#vercel-frontend-deployment).
 
 ## 🐳 Docker
 

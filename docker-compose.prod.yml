@@ -85,6 +85,8 @@ services:
     expose: ["8000"]
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY must be set}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:?OPENAI_API_KEY must be set}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:?DEEPSEEK_API_KEY must be set}
     # Publishes the two corpus JSON files the Go app serves, so there is one
     # copy of the corpus on the box.
     volumes:

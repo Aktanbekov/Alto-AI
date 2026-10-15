@@ -31,7 +31,7 @@ so plainly instead of filling the gap from general knowledge.
 HONESTY RULES — these are absolute:
 5. Never help anyone fabricate. Do not suggest inventing funding, sponsors, \
 family ties, job offers, admissions, scores, or intent to return. Every \
-suggested revision must be sayable truthfully by this student given the \
+suggested fix must be sayable truthfully by this student given the \
 profile they provided.
 6. If a student's stated plan appears to involve misrepresentation, refuse \
 that part, say why in one sentence, and coach the honest version instead.
@@ -52,8 +52,11 @@ its GPAs are on a 10-point scale. Never compare a raw GPA number across scales: 
 3.5/4 is strong, 3.5/10 is weak. Use the percent-of-maximum given for the \
 student, treat any cross-system equivalence as approximate, and if the student \
 did not state a scale, say the comparison cannot be made rather than assuming one.
-11. Be direct and specific. Prefer one concrete rewrite over three general \
-tips. If an answer is already good, say so rather than inventing criticism.
+11. Be direct and specific. Prefer one concrete instruction over three general \
+tips: the fact to lead with, the detail to add, the line to cut. Never write a \
+finished answer for the student to memorise; rehearsed answers are themselves a \
+refusal signal. If an answer is already good, say so rather than inventing \
+criticism.
 
 PLAIN LANGUAGE RULES — the reader is a student, not an analyst. Many read \
 English as a second language and have never taken a statistics class. Write so \
@@ -79,8 +82,14 @@ worry with no action is not useful to them.
 """
 
 
-def format_statistics(stats: dict[str, Any], profile_city: str | None = None) -> str:
-    """Corpus-wide statistics block — identical across students, so cacheable."""
+def format_statistics(stats: dict[str, Any]) -> str:
+    """Corpus-wide statistics block — identical across students, so cacheable.
+
+    Nothing about the student may appear here. The per-consulate question mix
+    used to, which split the cached prefix into one entry per city and meant a
+    cache hit needed two students from the same consulate within the TTL. It
+    now lives in `format_city_mix()`, in the user turn.
+    """
     overall = stats.get("overall", {})
     lines = [
         "# CORPUS STATISTICS",
@@ -128,20 +137,30 @@ def format_statistics(stats: dict[str, Any], profile_city: str | None = None) ->
             f"{entry['approval_rate_when_asked']:.1%} (delta {entry['delta_vs_base']:+.1%})"
         )
 
-    mix = stats.get("question_mix_by_city", {})
-    if profile_city and profile_city in mix:
-        city_row = mix[profile_city]
-        lines += [
-            "",
-            f"## Most common question types at {profile_city} (n={city_row['n']:,})",
-        ]
-        for item in city_row.get("top_types", [])[:12]:
-            lines.append(f"- {item['question_type']}: {item['share']:.1%}")
-
     answer_len = stats.get("answer_length")
     if answer_len:
         lines += ["", "## Applicant answer length vs outcome", json.dumps(answer_len)]
 
+    return "\n".join(lines)
+
+
+def format_city_mix(stats: dict[str, Any], profile_city: str | None) -> str:
+    """The question mix at the student's consulate, or "" when there is none.
+
+    Same corpus and same figures as the statistics block; it is split out only
+    so the cached prefix does not depend on where the student interviews.
+    """
+    mix = stats.get("question_mix_by_city", {})
+    if not profile_city or profile_city not in mix:
+        return ""
+    city_row = mix[profile_city]
+    lines = [
+        "# CONSULATE STATISTICS",
+        "",
+        f"## Most common question types at {profile_city} (n={city_row['n']:,})",
+    ]
+    for item in city_row.get("top_types", [])[:12]:
+        lines.append(f"- {item['question_type']}: {item['share']:.1%}")
     return "\n".join(lines)
 
 
@@ -250,7 +269,7 @@ it stated in plain words, and what to do about it.
 - comparable_interviews is an internal audit trail and is not shown to the \
 student: put the record_ids there and nowhere else. No record id, and no \
 bracketed list of an interview's details, may appear in any other field.
-- Every suggested revision must be truthful for this student. Do not invent \
+- Every suggested fix must be truthful for this student. Do not invent \
 facts they did not give you.
 - Before returning, reread every sentence the student will see and ask whether \
 someone with no statistics training understands it. Rewrite the ones that fail.

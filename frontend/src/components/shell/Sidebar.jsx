@@ -1,25 +1,25 @@
 import { NavLink, Link } from "react-router-dom";
 
-// The four destinations from the design brief. "Take a test" points at the
-// working evaluator; the other three are prototype screens with no backend
-// yet, which is what their "Soon" badge says.
+// The four destinations from the design brief. "Profile check" is the working
+// evaluator, and the name the home page, the page itself and the search
+// listing all use; the other three are prototype screens with no backend yet,
+// which is what their "Soon" badge says.
 const NAV = [
-  { to: "/check-profile", label: "Take a test", icon: ClipboardIcon },
+  { to: "/check-profile", label: "Profile check", icon: ClipboardIcon },
   { to: "/voice-interview", label: "Voice Interview", icon: MicIcon, soon: true },
   { to: "/case-builder", label: "Custom Case Builder", icon: BlocksIcon, soon: true },
   { to: "/answers", label: "Questions/Answers", icon: ChatIcon, soon: true },
 ];
 
-// Moved out of the page header so it holds one row. "The data" targets a
-// section of the home page rather than a route; AppShell scrolls to it once
-// the section has actually rendered.
+// Only pages that exist. The preview screens are reachable from Explore, marked Soon, and nowhere
+// else - a second, unmarked link to them reads as a working feature.
 const LEARN = [
-  { href: "/#the-data", label: "The data", icon: ChartIcon },
-  { to: "/answers", label: "Answer library", icon: BookIcon },
-  { to: "/case-builder", label: "How this works", icon: CompassIcon },
+  { to: "/data", label: "The data", icon: ChartIcon },
+  { to: "/about", label: "How it works", icon: CompassIcon },
+  { to: "/faq", label: "Questions", icon: BookIcon },
 ];
 
-export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout }) {
+export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onAuth }) {
   return (
     <aside id="app-side" className={`app-side${open ? " is-open" : ""}`} aria-label="Sections">
       <NavLink to="/" className="brand" onClick={onNavigate}>
@@ -89,6 +89,25 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout }) {
         })}
       </nav>
 
+      {/* Signed out, the drawer is where a phone finds the way in - the header
+          has room for the brand and the menu button only. */}
+      {!user && onAuth && (
+        <div className="side-account side-guest">
+          <div className="side-label">Account</div>
+          <p className="side-why">
+            The profile check needs a free account. It counts your free rounds
+            and remembers where you got to.
+          </p>
+          <button type="button" className="side-cta" onClick={() => onAuth("signup")}>
+            Create free account
+          </button>
+          <button type="button" className="app-navitem" onClick={() => onAuth("login")}>
+            <EnterIcon />
+            <span className="lbl">Log in</span>
+          </button>
+        </div>
+      )}
+
       {user && (
         <div className="side-account">
           <div className="side-label">Account</div>
@@ -123,10 +142,8 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout }) {
         <nav className="side-legal" aria-label="Legal">
           <Link to="/terms" onClick={onNavigate}>Terms</Link>
           <Link to="/privacy" onClick={onNavigate}>Privacy</Link>
-          <Link to="/faq" onClick={onNavigate}>FAQ</Link>
-          <Link to="/about" onClick={onNavigate}>About</Link>
         </nav>
-        <p className="side-note">Prototype · data updated monthly</p>
+        <p className="side-note">Interview data updated monthly</p>
       </div>
     </aside>
   );
@@ -176,6 +193,11 @@ function CompassIcon() {
 function ShieldIcon() {
   return base(<>
     <path d="M12 3l7 3v6c0 4-3 7.2-7 9-4-1.8-7-5-7-9V6z" /><path d="m9 12 2 2 4-4" />
+  </>);
+}
+function EnterIcon() {
+  return base(<>
+    <path d="M9 4h9a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H9" /><path d="m12 15 3-3-3-3M15 12H4" />
   </>);
 }
 function ExitIcon() {
