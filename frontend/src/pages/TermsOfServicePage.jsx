@@ -295,8 +295,8 @@ export default function TermsOfServicePage() {
           use it to train machine-learning models of our own. To generate your feedback it is
           processed by third-party AI providers. The{" "}
           <Link to="/privacy">Privacy Policy</Link>{" "}
-          names them, explains what each one&rsquo;s terms allow, and tells you how to have
-          your content deleted.
+          describes them, explains what their terms allow, and tells you how to have your
+          content deleted.
         </p>
         <p>
           You confirm that you have the right to submit Your Content and that it does not

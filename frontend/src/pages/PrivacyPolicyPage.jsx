@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
             sell your information, we do not run advertising, and we never share anything you
             write with any government or with your university. What you type stays private to
             your account; only anonymous, aggregated counts are used to see how the site is
-            doing. Your profile and practice answers are scored by three AI providers, one of
+            doing. Your profile and practice answers are scored by outside AI providers, one of
             which processes data in China; section 6 explains what that means. You can delete
             your data at any time by emailing {CONTACT}.
           </p>
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
             "reddit", never anything about you personally. See section 7.
           </li>
           <li>
-            <strong>Page analytics.</strong> We count page views with Umami Cloud, an
+            <strong>Page analytics.</strong> We count page views with a third-party
             analytics service that sets no cookies. It receives the page address, the site
             that sent you, your browser, operating system, device type, screen size,
             language, and approximate location (country or city), and nothing you type.
@@ -205,35 +205,23 @@ export default function PrivacyPolicyPage() {
 
       <Section id="ai" title="6. AI processing">
         <p>
-          To generate your feedback, we send your profile and your practice answers to three
+          To generate your feedback, we send your profile and your practice answers to
           third-party AI providers, which process them on our behalf and return a report.
-          Every check goes to all three. You are shown one report; all three are stored with
-          your account so we can compare the providers&rsquo; quality. We do not send your
-          name, email address, or account identifiers to any of them, but anything you write
-          inside an answer goes as written.
+          Each check goes to more than one provider. You are shown one report; the others are
+          stored with your account so we can compare quality. We do not send your name, email
+          address, or account identifiers to any of them, but anything you write inside an
+          answer goes as written.
         </p>
-        <List>
-          <li>
-            <strong>Anthropic</strong> (Claude), United States.
-          </li>
-          <li>
-            <strong>OpenAI</strong> (GPT), United States.
-          </li>
-          <li>
-            <strong>DeepSeek</strong> (DeepSeek&rsquo;s API), which processes and stores data
-            in the People&rsquo;s Republic of China.
-          </li>
-        </List>
         <p>
-          Anthropic&rsquo;s and OpenAI&rsquo;s commercial API terms do not allow them to use
-          what we send to train their models, though they may keep it for a limited time to
-          monitor abuse. DeepSeek&rsquo;s own terms govern how it handles what it receives,
-          and we cannot make the same commitment for it. We do not use your content to train
-          any model of our own.
+          Most of these providers are in the United States. One processes and stores data in
+          the People&rsquo;s Republic of China. Some providers&rsquo; terms do not allow them
+          to use what we send to train their models, though they may keep it for a limited
+          time to monitor abuse; not every provider makes that commitment, so we cannot promise
+          it for all of them. We do not use your content to train any model of our own.
         </p>
         <Callout>
           <p>
-            Because your answers are read by three outside providers in two countries, keep
+            Because your answers are read by outside providers in more than one country, keep
             them to what the questions ask. Leave out names, contact details, and anything you
             would not want to leave your hands.
           </p>
@@ -270,7 +258,8 @@ export default function PrivacyPolicyPage() {
           We do not use third-party advertising cookies, cross-site trackers, or advertising
           pixels, and we do not sell or share personal information for cross-context
           behavioural advertising. Our usage events go to our own servers. Page-view counts go
-          to Umami Cloud, which sets no cookies and does not track you across other sites.
+          to a third-party analytics service, which sets no cookies and does not track you
+          across other sites.
         </p>
         <p>
           You can clear or block cookies and local storage in your browser settings. Blocking
@@ -286,15 +275,12 @@ export default function PrivacyPolicyPage() {
           and only as far as they need to:
         </p>
         <List>
-          <li>
-            <strong>Anthropic, OpenAI, and DeepSeek</strong> - AI processing that generates
-            your feedback (see section 6).
-          </li>
+          <li><strong>AI providers</strong> - scoring your answers (see section 6).</li>
+          <li><strong>An analytics service</strong> - cookie-free page-view counts.</li>
           <li><strong>Google</strong> - optional sign-in, if you use it.</li>
           <li>
             <strong>Our payment processor</strong> - taking payment when you buy a plan.
           </li>
-          <li><strong>Umami</strong> - cookie-free page-view counts.</li>
           <li><strong>Our email provider</strong> - delivery of verification and account email.</li>
           <li>
             <strong>Vercel and our database provider</strong> - hosting the Service and storing
@@ -413,7 +399,7 @@ export default function PrivacyPolicyPage() {
           We operate from and store data in the United States, and most of our service
           providers are U.S.-based. If you use the Service from outside the United States,
           your information will be transferred there, where data protection law differs from
-          your own. Your profile and practice answers are also sent to DeepSeek in the
+          your own. Your profile and practice answers are also sent to an AI provider in the
           People&rsquo;s Republic of China to be scored (see section 6).
         </p>
         <p>
