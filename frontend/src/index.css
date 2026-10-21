@@ -11,8 +11,8 @@
   --paper: #E7ECE6;       /* the tinted band, selected rows */
   --paper-2: #F3F6F1;     /* panels and cards */
   --ink: #16233B;
-  --ink-soft: #4A5568;    /* secondary text: 6.3:1 on paper */
-  --ink-muted: #5B6577;   /* the tertiary floor: 4.9:1 on paper */
+  --ink-soft: #3A4558;    /* secondary text: 8.2:1 on paper */
+  --ink-muted: #4F5A6C;   /* the tertiary floor: 6.1:1 on paper */
   --guilloche: #7C6BA8;   /* the rosette, and every focus ring */
   --ok: #2F6B4F;
   --bad: #A33556;
@@ -156,21 +156,21 @@ button {
   background: #fff;
   color: var(--ink);
   font-family: var(--body);
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 
 .tf h1, .tf h2, .tf h3, .tf h4 {
-  font-family: var(--display); margin: 0;
+  font-family: var(--display); margin: 0; text-wrap: balance;
   letter-spacing: -.022em; line-height: 1.15; font-weight: 600;
 }
-.tf h1 { font-size: clamp(32px, 5.4vw, 56px); font-weight: 600; letter-spacing: -.035em; }
-.tf h2 { font-size: clamp(21px, 3vw, 28px); font-weight: 600; }
-.tf h3 { font-size: 18px; font-weight: 600; letter-spacing: -.012em; }
-.tf h4 { font-size: 15px; font-weight: 600; }
+.tf h1 { font-size: clamp(36px, 5.8vw, 64px); font-weight: 600; letter-spacing: -.035em; }
+.tf h2 { font-size: clamp(26px, 3.4vw, 40px); font-weight: 600; line-height: 1.18; }
+.tf h3 { font-size: 21px; font-weight: 600; letter-spacing: -.014em; }
+.tf h4 { font-size: 17px; font-weight: 600; }
 .tf p  { margin: 0 0 1em; }
 
 .tf .wrap    {
@@ -178,35 +178,35 @@ button {
   padding-inline: var(--page-pad);
 }
 .tf .narrow  { max-width: 700px; margin: 0 auto; padding: 0 24px; }
-.tf .section { padding-block: 56px; }
+.tf .section { padding-block: 80px; }
 .tf .pt { padding-top: 48px; }
 .tf .pb { padding-bottom: 80px; }
 
 .tf .lede {
-  font-size: clamp(17px, 2vw, 20px); color: var(--ink-soft);
+  font-size: clamp(19px, 2.1vw, 23px); color: var(--ink-soft);
   max-width: 54ch; font-weight: 400;
 }
 /* A supporting line that follows a heading or an action. It never sits above
    a heading: the heading carries its own weight. */
 .tf .meta {
-  font-size: 14px; color: var(--ink-soft); margin: 14px 0 0;
+  font-size: 15px; color: var(--ink-soft); margin: 14px 0 0;
   font-variant-numeric: tabular-nums;
 }
 .tf .tiny {
-  font-family: var(--font); font-size: 12px; letter-spacing: .05em;
+  font-family: var(--font); font-size: 13px; letter-spacing: .05em;
   color: var(--ink-soft); line-height: 1.6;
 }
 .tf .pull {
   font-family: var(--display); font-weight: 600;
-  font-size: clamp(20px, 2.8vw, 27px); letter-spacing: -.02em;
+  font-size: clamp(24px, 3.2vw, 34px); letter-spacing: -.02em;
   line-height: 1.32; max-width: 30ch; margin: 0 0 26px;
 }
 
 .tf .btn {
   display: inline-flex; align-items: center; gap: 12px;
-  font-family: var(--display); font-weight: 600; font-size: 16px;
+  font-family: var(--display); font-weight: 600; font-size: 17px;
   background: var(--ink); color: var(--paper); border: 1px solid var(--ink);
-  padding: 15px 24px; border-radius: 2px; text-decoration: none;
+  padding: 16px 26px; border-radius: 2px; text-decoration: none;
   transition: transform .12s, box-shadow .12s;
 }
 .tf .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -12px rgba(22, 35, 59, .55); }
@@ -218,7 +218,7 @@ button {
 /* Price rides on the button now that the caption beside it is gone. Knocked
    out of the ink rather than tinted, so it stays legible on the dark fill. */
 .tf .btn .btn-free {
-  font-family: var(--font); font-size: 12px; font-weight: 400;
+  font-family: var(--font); font-size: 13px; font-weight: 400;
   letter-spacing: .06em; text-transform: uppercase;
   background: rgba(231, 236, 230, .18); color: var(--paper);
   padding: 3px 7px; border-radius: 2px; line-height: 1.5;
@@ -228,10 +228,10 @@ button {
 
 .tf .banner {
   border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-2);
-  padding: 16px 18px; margin: 0 0 30px; font-size: 15.5px;
+  padding: 16px 18px; margin: 0 0 30px; font-size: 16.5px;
   color: var(--ink-soft);
 }
-.tf .banner b { color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 15px; }
+.tf .banner b { color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 16.5px; }
 .tf .banner-bad { border-color: rgba(163, 53, 86, .35); background: rgba(163, 53, 86, .05); }
 
 /* Shared security-print motif on the profile report. */
@@ -248,16 +248,16 @@ button {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px;
   border-top: 1px solid var(--rule);
 }
-.tf .steps h2 { font-size: 18px; letter-spacing: -.015em; margin: 14px 0 6px; }
+.tf .steps h2 { font-size: 21px; letter-spacing: -.015em; margin: 16px 0 8px; }
 .tf .steps p { margin: 0; color: var(--ink-soft); max-width: 34ch; }
 .tf .step-n {
-  display: inline-grid; place-items: center; width: 30px; height: 30px;
+  display: inline-grid; place-items: center; width: 34px; height: 34px;
   border: 1px solid var(--ink); border-radius: 50%;
-  font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums;
+  font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums;
 }
 
 .tf .section + .section { border-top: 1px solid var(--rule); }
-.tf .stakes-short p { font-size: 17px; color: var(--ink-soft); max-width: 60ch; margin: 14px 0 26px; }
+.tf .stakes-short p { font-size: 18px; color: var(--ink-soft); max-width: 60ch; margin: 16px 0 26px; }
 .tf .stakes-short .pull { color: var(--ink); margin: 0; }
 
 .tf .why-us .grid2 { gap: 40px; }
@@ -271,7 +271,7 @@ button {
 .tf .why-us-source {
   margin-top: 30px; padding: 16px 18px;
   border: 1px solid var(--rule); border-radius: 3px; background: var(--paper-2);
-  color: var(--ink-soft); font-size: 14px;
+  color: var(--ink-soft); font-size: 16px;
 }
 .tf .why-us-source p { max-width: 72ch; margin: 0; }
 .tf .why-us-link {
@@ -284,19 +284,19 @@ button {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px;
 }
 .tf .finding { border-top: 1px solid var(--ink); padding-top: 18px; }
-.tf .finding h3 { font-size: 19px; letter-spacing: -.015em; line-height: 1.3; margin-bottom: 8px; }
+.tf .finding h3 { font-size: 22px; letter-spacing: -.016em; line-height: 1.3; margin-bottom: 10px; }
 .tf .finding > p { color: var(--ink-soft); margin: 0 0 16px; }
-.tf .finding-note { font-size: 13px; color: var(--ink-muted); margin: 10px 0 0; }
+.tf .finding-note { font-size: 14.5px; color: var(--ink-muted); margin: 12px 0 0; }
 .tf .mbars { list-style: none; margin: 0; padding: 0; }
 .tf .mbars li {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px;
-  margin-bottom: 12px; font-size: 14.5px;
+  margin-bottom: 14px; font-size: 16px;
 }
 .tf .mbar-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tf .mbar-v { font-weight: 600; font-variant-numeric: tabular-nums; }
-.tf .mbar-t { grid-column: 1 / -1; height: 8px; background: var(--paper); border-radius: 0 4px 4px 0; overflow: hidden; }
+.tf .mbar-t { grid-column: 1 / -1; height: 10px; background: var(--paper); border-radius: 0 4px 4px 0; overflow: hidden; }
 .tf .mbar-f { display: block; height: 100%; background: var(--series-pos); border-radius: 0 4px 4px 0; }
-.tf .findings-foot { margin: 30px 0 0; font-size: 14.5px; color: var(--ink-soft); max-width: 72ch; }
+.tf .findings-foot { margin: 34px 0 0; font-size: 16px; color: var(--ink-soft); max-width: 72ch; }
 .tf .findings-foot .more {
   display: inline-flex; align-items: center; gap: 6px; color: var(--ink);
   font-weight: 600; text-underline-offset: 3px; white-space: nowrap;
@@ -306,7 +306,7 @@ button {
   list-style: none; margin: 18px 0 0; padding: 0;
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px;
 }
-.tf .no-grid li { border-top: 1px solid var(--rule); padding: 14px 0; color: var(--ink-soft); }
+.tf .no-grid li { border-top: 1px solid var(--rule); padding: 18px 0; color: var(--ink-soft); }
 .tf .no-grid strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 2px; }
 
 @media (max-width: 900px) {
@@ -318,28 +318,28 @@ button {
   .tf .no-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .tf .section { padding-block: 40px; }
+  .tf .section { padding-block: 52px; }
   .tf .hero { padding: 36px 0 36px; }
-  .tf .btn { width: 100%; justify-content: center; }
+  .tf .btn { width: 100%; justify-content: center; gap: 10px; padding-inline: 18px; font-size: 16px; }
 }
 
 /* ---- prototype screen primitives (test / drill / builder / library) ---- */
-.tf .timer {font-family:var(--font);font-variant-numeric:tabular-nums;font-size:13px;letter-spacing: .08em;display:flex;align-items:center;gap:9px;color:var(--bad)}
+.tf .timer {font-family:var(--font);font-variant-numeric:tabular-nums;font-size:14px;letter-spacing: .08em;display:flex;align-items:center;gap:9px;color:var(--bad)}
 .tf .timer .dot {width:7px;height:7px;border-radius:50%;background:currentColor}
 .tf .topbar {display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;gap:14px;flex-wrap:wrap}
-.tf .q {font-family:var(--display);font-weight:600;font-size:clamp(24px,4.2vw,36px);letter-spacing:-.028em;line-height:1.13;margin-bottom:10px}
-.tf .q-src {font-family:var(--font);font-size: 12px;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:26px}
-.tf .mic {display:flex;align-items:center;gap:15px;width:100%;justify-content:center;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:20px;font-family:var(--display);font-weight:600;font-size:15px}
+.tf .q {font-family:var(--display);font-weight:600;font-size:clamp(26px,4.4vw,40px);letter-spacing:-.028em;line-height:1.13;margin-bottom:10px}
+.tf .q-src {font-family:var(--font);font-size: 13px;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:26px}
+.tf .mic {display:flex;align-items:center;gap:15px;width:100%;justify-content:center;background:#fff;border:1px solid var(--rule);border-radius:3px;padding:20px;font-family:var(--display);font-weight:600;font-size:16px}
 .tf .mic:hover {border-color:var(--ink)}
 .tf .mic.is-static {color:var(--ink-soft);font-weight:500;cursor:default}
 .tf .mic.is-static:hover {border-color:var(--rule)}
 .tf .mic.is-static .ring {border-color:var(--ink-muted)}
 .tf .mic.is-static .ring i {background:var(--ink-muted)}
 .tf .timer.is-static {color:var(--ink-soft)}
-.tf h1.q {font-size:clamp(24px,4.2vw,36px)}
-.tf .pv-title {font-size:clamp(26px,3.6vw,36px);margin-bottom:6px}
-.tf .ledger-h {font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);margin-bottom:14px}
-.tf .card-h {font-size:17px;margin-bottom:8px}
+.tf h1.q {font-size:clamp(26px,4.4vw,40px)}
+.tf .pv-title {font-size:clamp(28px,3.8vw,40px);margin-bottom:6px}
+.tf .ledger-h {font-size:13px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-soft);margin-bottom:14px}
+.tf .card-h {font-size:19px;margin-bottom:8px}
 .tf .grid-case {display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr);gap:30px;align-items:start}
 @media (max-width: 900px) { .tf .grid-case {grid-template-columns:1fr} }
 .tf .ring {width:32px;height:32px;border-radius:50%;border:2px solid var(--bad);display:grid;place-items:center;flex:none}
@@ -347,16 +347,16 @@ button {
 .tf .readout {border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);margin-top:26px}
 .tf .rrow {display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--rule-soft);align-items:baseline}
 .tf .rrow:last-child {border-bottom:0}
-.tf .rrow .k {font-family:var(--font);font-size: 12px;letter-spacing: .08em;text-transform:uppercase;color:var(--ink-soft);width:128px;flex:none}
-.tf .rrow .v {font-size:15.5px}
+.tf .rrow .k {font-family:var(--font);font-size: 13px;letter-spacing: .08em;text-transform:uppercase;color:var(--ink-soft);width:128px;flex:none}
+.tf .rrow .v {font-size:17px}
 .tf .probe {background:var(--ink);color:var(--paper);padding:20px 18px}
-.tf .probe .k {font-family:var(--font);font-size: 12px;letter-spacing: .08em;text-transform:uppercase;color:rgba(231,236,230,.5);margin-bottom:8px}
-.tf .probe .v {font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:-.015em}
-.tf .why {font-size:15.5px;color:var(--ink-soft);font-weight: 400;margin:0}
-.tf .why em {color:var(--ink);font-style:normal;font-family:var(--font);font-size:13px}
+.tf .probe .k {font-family:var(--font);font-size: 13px;letter-spacing: .08em;text-transform:uppercase;color:rgba(231,236,230,.7);margin-bottom:8px}
+.tf .probe .v {font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:-.015em}
+.tf .why {font-size:17px;color:var(--ink-soft);font-weight: 400;margin:0}
+.tf .why em {color:var(--ink);font-style:normal;font-family:var(--font);font-size:14px}
 .tf .turn {margin-bottom:22px}
-.tf .turn .who {font-family:var(--font);font-size: 12px;letter-spacing: .08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
-.tf .turn .said {font-size:16px;line-height:1.6}
+.tf .turn .who {font-family:var(--font);font-size: 13px;letter-spacing: .08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+.tf .turn .said {font-size:17.5px;line-height:1.6}
 .tf .turn.sys .said {border-left:1px solid var(--ink);padding-left:16px}
 .tf .turn.you .said {background:#fff;border:1px solid var(--rule);padding:14px 16px;border-radius:2px}
 .tf .turn.refuse .said {border-left:1px solid var(--bad);padding-left:16px;color:var(--bad)}
@@ -364,21 +364,21 @@ button {
 .tf .ba>div {padding:15px 17px}
 .tf .ba .before {border-bottom:1px dashed var(--rule);background:rgba(163,53,86,.05)}
 .tf .ba .after {background:rgba(47,107,79,.06)}
-.tf .ba .tag {font-family:var(--font);font-size: 12px;letter-spacing: .08em;text-transform:uppercase;margin-bottom:7px;color:var(--ink-soft)}
+.tf .ba .tag {font-family:var(--font);font-size: 13px;letter-spacing: .08em;text-transform:uppercase;margin-bottom:7px;color:var(--ink-soft)}
 .tf .ba .before .tag {color:var(--bad)}
 .tf .ba .after .tag {color:var(--ok)}
 .tf .ledger {background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:20px;position:sticky;top:66px}
-.tf .ledger h4 {font-family:var(--font);font-size: 12px;letter-spacing: .08em;text-transform:uppercase;font-weight:500;color:var(--ink-soft);margin-bottom:14px}
-.tf .fact {border-bottom:1px solid var(--rule-soft);padding:10px 0;font-size:14.5px;display:flex;gap:9px;align-items:flex-start}
+.tf .ledger h4 {font-family:var(--font);font-size: 13px;letter-spacing: .08em;text-transform:uppercase;font-weight:500;color:var(--ink-soft);margin-bottom:14px}
+.tf .fact {border-bottom:1px solid var(--rule-soft);padding:10px 0;font-size:16px;display:flex;gap:9px;align-items:flex-start}
 .tf .fact .m {color:var(--ok);margin-top:5px;flex:none}
-.tf .ledger .note {font-size:13px;color:var(--ink-soft);margin:14px 0 0;font-weight: 400;line-height:1.5}
+.tf .ledger .note {font-size:14.5px;color:var(--ink-soft);margin:14px 0 0;font-weight: 400;line-height:1.5}
 .tf .lib {border:1px solid var(--rule);border-radius:3px;background:var(--paper-2);margin-bottom:12px;overflow:hidden}
 .tf .lib-h {display:flex;gap:12px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--rule);flex-wrap:wrap}
-.tf .pill {font-family:var(--font);font-size: 12px;letter-spacing: .08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;flex:none}
+.tf .pill {font-family:var(--font);font-size: 13px;letter-spacing: .08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;flex:none}
 .tf .pill.a {background:rgba(47,107,79,.14);color:var(--ok)}
 .tf .pill.r {background:rgba(163,53,86,.12);color:var(--bad)}
-.tf .lib-b {padding:16px 18px;font-size:16px;font-style:italic}
-.tf .lib-f {padding:0 18px 16px;font-size:14.5px;color:var(--ink-soft);font-weight: 400}
+.tf .lib-b {padding:16px 18px;font-size:17.5px;font-style:italic}
+.tf .lib-f {padding:0 18px 16px;font-size:16px;color:var(--ink-soft);font-weight: 400}
 .tf .ledger {position:static}
 
 /* ==========================================================================
@@ -519,12 +519,12 @@ button {
 }
 .app-side .brand {
   display: flex; align-items: center; gap: 11px; padding: 4px 8px 20px;
-  font-weight: 600; font-size: 21px; letter-spacing: -.02em;
+  font-weight: 600; font-size: 22px; letter-spacing: -.02em;
   color: var(--ink); text-decoration: none;
 }
 
 .app-side .side-label {
-  font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
   color: var(--ink-soft); font-weight: 500; margin-bottom: 8px; padding: 0 8px;
 }
 .app-nav { display: flex; flex-direction: column; }
@@ -533,7 +533,7 @@ button {
 .app-navitem {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 16px; border-radius: 12px; text-decoration: none;
-  font-size: 15px; font-weight: 400; line-height: 22px; color: var(--ink);
+  font-size: 16px; font-weight: 400; line-height: 24px; color: var(--ink);
 }
 .app-navitem:hover { background: var(--paper-2); }
 .app-navitem.is-active { background: var(--paper); font-weight: 500; }
@@ -545,30 +545,30 @@ button {
 }
 .app-side .side-legal { display: block; margin-bottom: 8px; }
 .app-side .side-legal a {
-  font-size: 13px; color: var(--ink-soft); text-decoration: underline;
+  font-size: 14px; color: var(--ink-soft); text-decoration: underline;
   text-underline-offset: 3px; line-height: 1.9;
 }
 .app-side .side-legal a:hover { color: var(--ink); }
 .app-side .side-legal a:not(:last-child)::after {
   content: "·"; color: var(--ink-muted); text-decoration: none; margin: 0 6px;
 }
-.app-side .side-note { margin: 0; font-size: 12px; color: var(--ink-muted); line-height: 1.45; }
+.app-side .side-note { margin: 0; font-size: 13px; color: var(--ink-muted); line-height: 1.45; }
 
 .side-account { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); }
 .side-who { padding: 0 8px 10px; min-width: 0; }
 .side-name {
-  margin: 0; font-size: 14px; font-weight: 600; color: var(--ink);
+  margin: 0; font-size: 15px; font-weight: 600; color: var(--ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .side-mail {
-  margin: 2px 0 0; font-size: 13px; color: var(--ink-soft);
+  margin: 2px 0 0; font-size: 14px; color: var(--ink-soft);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.side-why { margin: 0 8px 12px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+.side-why { margin: 0 8px 12px; font-size: 14.5px; color: var(--ink-soft); line-height: 1.5; }
 .side-cta {
   display: block; width: calc(100% - 16px); margin: 0 8px 6px;
   border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
-  font: inherit; font-size: 15px; font-weight: 600;
+  font: inherit; font-size: 16px; font-weight: 600;
   padding: 12px 16px; border-radius: 2px; text-align: center;
 }
 .side-cta:hover { background: #0E1729; }
@@ -660,31 +660,31 @@ button.app-navitem {
 .auth-close:hover { background: var(--paper-2); color: var(--ink); }
 
 .auth-title {
-  font-size: 23px; font-weight: 600; letter-spacing: -.02em;
+  font-size: 25px; font-weight: 600; letter-spacing: -.02em;
   color: var(--ink); margin: 4px 0 6px;
 }
 .auth-sub {
-  font-size: 15px; color: var(--ink-soft); margin: 0 0 22px; line-height: 1.5;
+  font-size: 16px; color: var(--ink-soft); margin: 0 0 22px; line-height: 1.5;
 }
 
 .auth-oauth {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   width: 100%; min-height: 48px; padding: 12px 16px;
   border: 1px solid var(--control); border-radius: 2px; background: #fff;
-  font: inherit; font-size: 15px; font-weight: 500; color: var(--ink);
+  font: inherit; font-size: 16px; font-weight: 500; color: var(--ink);
 }
 .auth-oauth:hover { background: var(--paper-2); }
 
 .auth-or {
   display: flex; align-items: center; gap: 12px;
-  margin: 18px 0; color: var(--ink-muted); font-size: 13px;
+  margin: 18px 0; color: var(--ink-muted); font-size: 14px;
 }
 .auth-or::before, .auth-or::after {
   content: ""; flex: 1; height: 1px; background: var(--rule);
 }
 
 .auth-label {
-  display: block; font-size: 14px; font-weight: 500;
+  display: block; font-size: 15px; font-weight: 500;
   color: var(--ink); margin: 0 0 6px;
 }
 .auth-input {
@@ -702,20 +702,20 @@ button.app-navitem {
 .auth-pw .auth-input { padding-right: 70px; }
 .auth-reveal {
   position: absolute; top: 4px; right: 4px; min-height: 40px; border: 0; background: transparent;
-  font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink-soft); padding: 0 10px;
+  font: inherit; font-size: 14.5px; font-weight: 500; color: var(--ink-soft); padding: 0 10px;
 }
 .auth-reveal:hover { color: var(--ink); }
 
 .auth-primary {
   width: 100%; min-height: 48px; margin-top: 4px;
   border: 1px solid var(--ink); border-radius: 2px; background: var(--ink); color: var(--paper);
-  font-size: 15.5px; font-weight: 600; font-family: inherit;
+  font-size: 16.5px; font-weight: 600; font-family: inherit;
 }
 .auth-primary:hover:not(:disabled) { background: #0E1729; }
 .auth-primary:disabled { opacity: .55; cursor: not-allowed; }
 
 .auth-error, .auth-notice, .auth-warn {
-  font-size: 14px; line-height: 1.5; border-radius: 3px;
+  font-size: 15px; line-height: 1.5; border-radius: 3px;
   padding: 10px 12px; margin: 0 0 16px; border: 1px solid;
 }
 .auth-error  { background: rgba(163, 53, 86, .06); color: var(--bad); border-color: rgba(163, 53, 86, .35); }
@@ -727,16 +727,16 @@ button.app-navitem {
 
 .auth-foot {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  margin-top: 18px; font-size: 14px; color: var(--ink-soft);
+  margin-top: 18px; font-size: 15px; color: var(--ink-soft);
 }
 .auth-link {
   border: 0; background: transparent; padding: 0;
-  font: inherit; font-size: 14px; font-weight: 600; color: var(--ink);
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--ink);
   text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--rule);
 }
 .auth-link:hover { text-decoration-color: currentColor; }
 .auth-link:disabled { opacity: .5; text-decoration: none; }
-.auth-legal { margin: 18px 0 0; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.auth-legal { margin: 18px 0 0; font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
 .auth-legal a { color: var(--ink); text-underline-offset: 3px; }
 
 /* The same form, set on the page instead of in a dialog. */
@@ -750,20 +750,22 @@ button.app-navitem {
 /* Header: brand and menu below the rail breakpoint, the sign-in pair beside
    them when signed out. */
 .hdr-login {
-  border: 0; background: transparent; font-size: 15px; font-weight: 500;
+  border: 0; background: transparent; font-size: 16px; font-weight: 500;
   color: var(--ink); padding: 0 14px; min-height: 44px; border-radius: 2px; font-family: inherit;
 }
 .hdr-login:hover { background: var(--paper-2); }
 .hdr-signup {
   border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-family: inherit;
-  font-size: 15px; font-weight: 600; padding: 0 18px; min-height: 44px; border-radius: 2px;
+  font-size: 16px; font-weight: 600; padding: 0 18px; min-height: 44px; border-radius: 2px;
 }
 .hdr-signup:hover { background: #0E1729; }
 
 /* ==========================================================================
    Page header + shared content width.
    ========================================================================== */
-.app-root { --page-max: 1120px; --page-pad: 28px; }
+.app-root { --page-max: 1240px; --page-pad: 28px; }
+/* Declared here, after the base value, so the phone gutter actually wins. */
+@media (max-width: 900px) { .app-root { --page-pad: 18px; } }
 
 .page-w {
   max-width: var(--page-max); margin: 0 auto;
@@ -803,8 +805,9 @@ button.app-navitem {
   .page-head.is-quiet { display: none; }
 }
 
-/* The one tinted band: hero plus the three-cell strip. Everything else on
-   the page sits on white. */
+/* Bands give a long page its blocks. The hero and its three-cell strip sit
+   on paper; later sections alternate white, paper and ink so the scroll reads
+   as distinct chapters rather than one white sheet. */
 .tf .hero-band {
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
@@ -815,14 +818,33 @@ button.app-navitem {
 .tf .meta a { color: var(--ink); text-underline-offset: 3px; }
 .vz .vz-title { font-size: clamp(24px, 3vw, 30px); letter-spacing: -.025em; margin-bottom: 4px; }
 
-/* The page ends on an action, not on the list of what the tool won't do. */
-.tf .close-band {
-  background: var(--paper); border-top: 1px solid var(--rule);
-  padding: 64px 0 72px;
+.tf .band-paper { background: var(--paper); }
+
+/* Ink bands re-point the palette tokens instead of restyling every element:
+   anything inside that reads --ink, --ink-soft or --rule turns light on its
+   own. The primary button is the one thing that must invert explicitly. */
+.tf .band-ink {
+  --ink: #FFFFFF;
+  --ink-soft: rgba(231, 236, 230, .82);
+  --ink-muted: rgba(231, 236, 230, .7);
+  --rule: rgba(231, 236, 230, .2);
+  --rule-soft: rgba(231, 236, 230, .1);
+  --paper: rgba(231, 236, 230, .14);
+  --paper-2: rgba(231, 236, 230, .07);
+  --control: rgba(231, 236, 230, .5);
+  background: #16233B;
+  color: var(--ink);
 }
-.tf .close-band h2 { font-size: clamp(24px, 3.4vw, 34px); max-width: 22ch; }
+.tf .band-ink ::selection { background: rgba(231, 236, 230, .28); color: #fff; }
+.tf .band-ink .btn { background: #fff; color: #16233B; border-color: #fff; }
+.tf .band-ink .btn:hover { background: #E7ECE6; box-shadow: 0 10px 20px -12px rgba(14, 23, 41, .6); }
+.tf .band-ink .btn .btn-free { background: rgba(22, 35, 59, .1); color: #16233B; }
+
+/* The page ends on an action, not on the list of what the tool won't do. */
+.tf .close-band { padding: 80px 0 88px; }
+.tf .close-band h2 { font-size: clamp(28px, 3.8vw, 44px); max-width: 22ch; }
 .tf .close-band .lede { margin-top: 14px; }
-@media (max-width: 560px) { .tf .close-band { padding: 44px 0 52px; } }
+@media (max-width: 560px) { .tf .close-band { padding: 52px 0 60px; } }
 /* ---- profile check: the form ---- */
 .vz .ev h1 { margin-bottom: 8px; }
 .vz .lede-vz {
@@ -1272,10 +1294,7 @@ button.app-navitem {
 
 /* "Soon" marks the screens that exist as design previews but are not wired to
    a backend yet. The rows are inert; the badge is what says so. */
-.app-navitem .lbl {
-  flex: 1 1 auto; min-width: 0; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis;
-}
+.app-navitem .lbl { flex: 1 1 auto; min-width: 0; line-height: 1.3; }
 .app-navitem .soon {
   flex: none; font-size: 12px; font-weight: 500; letter-spacing: .02em;
   color: var(--ink-soft); background: var(--paper-2);
@@ -1328,7 +1347,7 @@ button.app-navitem {
    ========================================================================== */
 .route-wait {
   margin: 0; padding: 72px 28px; text-align: center;
-  font-size: 15px; color: var(--ink-soft); font-family: var(--font);
+  font-size: 16px; color: var(--ink-soft); font-family: var(--font);
 }
 
 /* ==========================================================================
@@ -1338,9 +1357,9 @@ button.app-navitem {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
   gap: 48px; align-items: start; padding-block: 48px 80px;
 }
-.tf .gate h1 { font-size: clamp(30px, 4.4vw, 44px); margin-bottom: 14px; }
+.tf .gate h1 { font-size: clamp(32px, 4.8vw, 50px); margin-bottom: 16px; }
 .tf .gate .lede { margin-bottom: 30px; }
-.tf .gate-h { font-size: 18px; margin: 0 0 12px; }
+.tf .gate-h { font-size: 20px; margin: 0 0 12px; }
 .tf .gate-list { list-style: none; margin: 0; padding: 0; max-width: 56ch; }
 .tf .gate-list li {
   padding: 14px 0; border-top: 1px solid var(--rule); color: var(--ink-soft);
@@ -1356,19 +1375,19 @@ button.app-navitem {
    Reading pages - FAQ, How it works, Terms, Privacy.
    One column at a reading measure, headings that lead, rules not cards.
    ========================================================================== */
-.tf .doc { max-width: calc(720px + 2 * var(--page-pad)); padding-block: 48px 88px; }
-.tf .doc h1 { font-size: clamp(30px, 4.4vw, 46px); margin-bottom: 14px; }
+.tf .doc { max-width: calc(760px + 2 * var(--page-pad)); padding-block: 56px 96px; }
+.tf .doc h1 { font-size: clamp(34px, 4.8vw, 52px); margin-bottom: 16px; }
 .tf .doc > .lede { margin-bottom: 36px; max-width: 60ch; }
 .tf .doc > .meta { margin: 0 0 30px; }
 .tf .doc section { margin-top: 36px; }
-.tf .doc h2 { font-size: 21px; letter-spacing: -.02em; margin-bottom: 10px; }
-.tf .doc p, .tf .doc li { font-size: 16px; line-height: 1.65; color: var(--ink); max-width: 68ch; }
+.tf .doc h2 { font-size: 24px; letter-spacing: -.02em; margin-bottom: 12px; }
+.tf .doc p, .tf .doc li { font-size: 18px; line-height: 1.65; color: var(--ink); max-width: 68ch; }
 .tf .doc a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(22, 35, 59, .35); }
 .tf .doc a:hover { text-decoration-color: currentColor; }
 .tf .doc a.btn { text-decoration: none; color: var(--paper); margin-top: 6px; }
 .tf .doc-qa section { margin-top: 0; padding: 26px 0; border-top: 1px solid var(--rule); }
 .tf .doc-qa section:first-child { border-top: 1px solid var(--ink); }
-.tf .doc-qa h2 { font-size: 19px; }
+.tf .doc-qa h2 { font-size: 21px; }
 .tf .doc-qa p { margin: 0; }
 .tf .doc-end { padding-top: 28px; border-top: 1px solid var(--ink); }
 .tf .doc-list { list-style: none; padding: 0; margin: 0; }
@@ -1391,12 +1410,12 @@ button.app-navitem {
   color: var(--ink-soft); margin-bottom: 8px;
 }
 .tf .doc-toc ol { margin: 0; padding-left: 22px; columns: 2 220px; column-gap: 32px; }
-.tf .doc-toc li { font-size: 15px; line-height: 1.5; padding: 3px 0; break-inside: avoid; }
+.tf .doc-toc li { font-size: 16px; line-height: 1.5; padding: 3px 0; break-inside: avoid; }
 .tf .doc-sec { scroll-margin-top: 24px; }
 .tf .doc-body > * + * { margin-top: 12px; }
 .tf .doc-body p { margin: 0; }
 .tf .doc-bullets { margin: 0; padding-left: 22px; }
 .tf .doc-bullets li { margin-bottom: 6px; }
 .tf .doc-sub { font-weight: 600; }
-.tf .doc-caps { text-transform: uppercase; font-size: 14px; letter-spacing: .02em; }
-.tf .doc-cross { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 15px; }
+.tf .doc-caps { text-transform: uppercase; font-size: 15px; letter-spacing: .02em; }
+.tf .doc-cross { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 16px; }

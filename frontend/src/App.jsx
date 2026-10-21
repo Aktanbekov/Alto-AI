@@ -15,6 +15,8 @@ const FAQPage = lazy(() => import("./pages/FAQPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
+const RefundPolicyPage = lazy(() => import("./pages/RefundPolicyPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const TakeATestPage = lazy(() => import("./pages/TakeATestPage"));
 const VoiceInterviewPage = lazy(() => import("./pages/VoiceInterviewPage"));
@@ -52,10 +54,12 @@ export default function App() {
         <Route path="/signup" element={<AppShell><SignupPage /></AppShell>} />
         <Route path="/forgot-password" element={<AppShell><ForgotPasswordPage /></AppShell>} />
         <Route path="/data" element={<AppShell><DataPage /></AppShell>} />
+        <Route path="/pricing" element={<AppShell><PricingPage /></AppShell>} />
         <Route path="/faq" element={<AppShell><FAQPage /></AppShell>} />
         <Route path="/about" element={<AppShell><AboutPage /></AppShell>} />
         <Route path="/privacy" element={<AppShell><PrivacyPolicyPage /></AppShell>} />
         <Route path="/terms" element={<AppShell><TermsOfServicePage /></AppShell>} />
+        <Route path="/refund-policy" element={<AppShell><RefundPolicyPage /></AppShell>} />
         <Route
           path="/choose-level"
           element={

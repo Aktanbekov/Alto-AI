@@ -17,6 +17,7 @@ const LEARN = [
   { to: "/data", label: "The data", icon: ChartIcon },
   { to: "/about", label: "How it works", icon: CompassIcon },
   { to: "/faq", label: "Questions", icon: BookIcon },
+  { to: "/pricing", label: "Pricing", icon: TagIcon },
 ];
 
 export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onAuth }) {
@@ -142,6 +143,7 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
         <nav className="side-legal" aria-label="Legal">
           <Link to="/terms" onClick={onNavigate}>Terms</Link>
           <Link to="/privacy" onClick={onNavigate}>Privacy</Link>
+          <Link to="/refund-policy" onClick={onNavigate}>Refunds</Link>
         </nav>
         <p className="side-note">Interview data updated monthly</p>
       </div>
@@ -183,6 +185,11 @@ function ChartIcon() {
 function BookIcon() {
   return base(<>
     <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M8 7h8M8 11h5" />
+  </>);
+}
+function TagIcon() {
+  return base(<>
+    <path d="M3 12.2V4a1 1 0 0 1 1-1h8.2a1 1 0 0 1 .7.3l8 8a1 1 0 0 1 0 1.4l-8.2 8.2a1 1 0 0 1-1.4 0l-8-8a1 1 0 0 1-.3-.7z" /><circle cx="8" cy="8" r="1.6" />
   </>);
 }
 function CompassIcon() {

@@ -81,6 +81,15 @@ export const ROUTES = [
     indexable: true,
   },
   {
+    path: "/pricing",
+    title: "Pricing: Free and One-Time F-1 Interview Plans | Altovisas",
+    description:
+      "Start with a free F-1 mock interview, then pay once for more: $15, $25 or $99, with no subscription. See what each plan includes.",
+    changefreq: "monthly",
+    priority: "0.8",
+    indexable: true,
+  },
+  {
     path: "/faq",
     title: "F1 Visa Interview FAQ - Questions Answered | Altovisas",
     description:
@@ -112,6 +121,15 @@ export const ROUTES = [
     title: "Privacy Policy | Altovisas",
     description:
       "What Altovisas collects, how it is used, who processes it, and how to have it deleted.",
+    changefreq: "yearly",
+    priority: "0.3",
+    indexable: true,
+  },
+  {
+    path: "/refund-policy",
+    title: "Refund Policy | Altovisas",
+    description:
+      "Altovisas plans are one-time digital purchases and are not refundable. What that means, the billing mistakes we fix, and your rights under consumer law.",
     changefreq: "yearly",
     priority: "0.3",
     indexable: true,

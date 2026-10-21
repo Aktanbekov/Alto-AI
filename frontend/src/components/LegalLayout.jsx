@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 
 /*
- * Shared layout for the Terms and the Privacy Policy.
+ * Shared layout for the Terms, the Privacy Policy and the Refund Policy.
  *
- * The two documents cross-reference each other constantly and have to stay
+ * The documents cross-reference each other constantly and have to stay
  * visually identical, so they share a layout rather than each keeping its own
  * copy of the same heading block and contents list.
  */
@@ -55,6 +55,8 @@ export default function LegalLayout({ title, updated, summary, toc, children }) 
           <Link to="/terms">Terms of Service</Link>
           <span aria-hidden="true"> · </span>
           <Link to="/privacy">Privacy Policy</Link>
+          <span aria-hidden="true"> · </span>
+          <Link to="/refund-policy">Refund Policy</Link>
         </p>
       </article>
     </div>

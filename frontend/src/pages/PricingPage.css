@@ -1,0 +1,84 @@
+/* /pricing: the plans, then the detail a buyer checks before paying. */
+.tf .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pricing-page .pricing-hero { padding-block: 72px 64px; border-bottom: 1px solid var(--rule); }
+.pricing-page .pricing-hero .lede { max-width: 46ch; margin: 18px 0 0; }
+.pricing-page .pricing { padding-top: 56px; }
+
+/* Comparison: plans across, what they include down. The recommended column
+   carries the same paper wash the eye already links to that card. */
+.pricing-page .compare-scroll { margin-top: 30px; overflow-x: auto; }
+.pricing-page .compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.pricing-page .compare thead th,
+.pricing-page .compare thead td { border-bottom: 1px solid var(--ink); }
+.pricing-page .compare th,
+.pricing-page .compare td { padding: 16px 14px; vertical-align: middle; }
+.pricing-page .compare thead th { text-align: center; vertical-align: bottom; }
+.pricing-page .compare-plan { display: block; font-size: 17px; font-weight: 600; line-height: 1.3; }
+.pricing-page .compare-price { display: block; margin-top: 4px; color: var(--ink-soft); font-size: 15px; font-weight: 400; }
+.pricing-page .compare tbody th {
+  width: 34%;
+  padding-left: 0;
+  text-align: left;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.pricing-page .compare tbody td { text-align: center; font-size: 17px; }
+.pricing-page .compare tbody tr { border-bottom: 1px solid var(--rule); }
+.pricing-page .compare tbody svg { color: var(--ok); vertical-align: middle; }
+.pricing-page .compare .is-rec { background: var(--paper-2); }
+.pricing-page .compare-no {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--control);
+  vertical-align: middle;
+}
+
+.pricing-page .pay h2 { margin-bottom: 6px; }
+.pricing-page .pay a { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Plan questions: two columns of short answers, ruled off like the FAQ. */
+.pricing-page .plan-qs-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 56px;
+  margin-top: 26px;
+  border-top: 1px solid var(--ink);
+}
+.pricing-page .plan-qs-list > div { padding-block: 24px 26px; border-bottom: 1px solid var(--rule); }
+.pricing-page .plan-qs-list h3 { margin-bottom: 8px; }
+.pricing-page .plan-qs-list p { margin: 0; color: var(--ink-soft); max-width: 60ch; }
+.pricing-page .plan-qs-list a { color: var(--ink); font-weight: 500; text-underline-offset: 3px; }
+
+.pricing-page .close-band h2 { max-width: 22ch; }
+
+@media (max-width: 760px) {
+  .pricing-page .plan-qs-list { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .pricing-page .pricing-hero { padding-block: 48px 44px; }
+  .pricing-page .pricing { padding-top: 40px; }
+  .pricing-page .compare th,
+  .pricing-page .compare td { padding: 14px 6px; }
+  .pricing-page .compare tbody th { width: 38%; font-size: 15px; }
+  .pricing-page .compare tbody td { font-size: 15px; }
+  .pricing-page .compare-plan { font-size: 14px; }
+  .pricing-page .compare-price { font-size: 13px; }
+}

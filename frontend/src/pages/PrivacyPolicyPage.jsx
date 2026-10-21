@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
 
 const CONTACT = "altovisas@gmail.com";
-const UPDATED = "30 August 2026";
+const UPDATED = "21 October 2026";
 
 const TOC = [
   { id: "scope", title: "Who this covers" },
@@ -37,7 +37,9 @@ export default function PrivacyPolicyPage() {
             sell your information, we do not run advertising, and we never share anything you
             write with any government or with your university. What you type stays private to
             your account; only anonymous, aggregated counts are used to see how the site is
-            doing. You can delete all of it at any time by emailing {CONTACT}.
+            doing. Your profile and practice answers are scored by three AI providers, one of
+            which processes data in China; section 6 explains what that means. You can delete
+            your data at any time by emailing {CONTACT}.
           </p>
         </Callout>
       }
@@ -63,12 +65,24 @@ export default function PrivacyPolicyPage() {
           <li>
             <strong>Your profile.</strong> What you tell us about your situation so the
             feedback can be about you: university and programme, degree level, academic
-            record including GPA, intended consulate and country, funding and sponsor
-            information, work history, and your plans after study.
+            record including GPA and test scores, intended consulate and country, funding,
+            scholarship and sponsor information, work history, which visa attempt this is,
+            and your plans after study.
           </li>
           <li>
             <strong>Your practice answers.</strong> What you write in response to practice
             questions, and the reports we generate from them.
+          </li>
+          <li>
+            <strong>Purchases.</strong> If you buy a plan: which plan, the price, the date,
+            and the payment reference our payment processor gives us. The processor collects
+            your card or payment details directly; we never receive or store your full card
+            number.
+          </li>
+          <li>
+            <strong>Refusal cover claims.</strong> If you claim the Complete plan&rsquo;s
+            refusal cover, the fact that you told us your visa was refused and the date you
+            told us.
           </li>
           <li>
             <strong>Feedback and surveys.</strong> Ratings, free-text comments, survey
@@ -94,6 +108,12 @@ export default function PrivacyPolicyPage() {
             "reddit", never anything about you personally. See section 7.
           </li>
           <li>
+            <strong>Page analytics.</strong> We count page views with Umami Cloud, an
+            analytics service that sets no cookies. It receives the page address, the site
+            that sent you, your browser, operating system, device type, screen size,
+            language, and approximate location (country or city), and nothing you type.
+          </li>
+          <li>
             <strong>Technical information.</strong> Standard server logs, including IP
             address, user agent, and timestamps, kept for security and abuse prevention.
           </li>
@@ -116,7 +136,10 @@ export default function PrivacyPolicyPage() {
         <List>
           <li>passport, visa, DS-160, or SEVIS numbers;</li>
           <li>national identity numbers, including Social Security numbers;</li>
-          <li>bank account, card, or payment details;</li>
+          <li>
+            bank account or card details (when you buy a plan, you enter these on our
+            payment processor&rsquo;s checkout, not into Altovisas);
+          </li>
           <li>photographs or scans of documents;</li>
           <li>anyone else's personal information.</li>
         </List>
@@ -132,6 +155,11 @@ export default function PrivacyPolicyPage() {
         <List>
           <li>To create and secure your account, and to sign you in.</li>
           <li>To generate the feedback, statistics, and practice questions you asked for.</li>
+          <li>
+            To process purchases, give you the plan you paid for, handle refusal-cover
+            claims and billing questions, and keep the records tax and accounting law
+            requires.
+          </li>
           <li>
             To send transactional email: verification codes, password resets, and important
             notices about the Service. We do not send marketing email unless you ask for it,
@@ -157,7 +185,7 @@ export default function PrivacyPolicyPage() {
         <List>
           <li>
             <strong>Contract</strong> - to provide the Service you asked for: your account,
-            your feedback, your reports.
+            your feedback, your reports, and any plan you buy.
           </li>
           <li>
             <strong>Legitimate interests</strong> - to keep the Service secure, prevent
@@ -170,41 +198,66 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             <strong>Legal obligation</strong> - where the law requires us to keep or disclose
-            something.
+            something, such as tax and accounting records of purchases.
           </li>
         </List>
       </Section>
 
       <Section id="ai" title="6. AI processing">
         <p>
-          To generate your feedback, we send your profile and your practice answers to a
-          third-party AI provider (currently Anthropic, using the Claude API) which processes
-          them on our behalf as our processor and returns a result. We do not send your name,
-          email address, or account identifiers with them.
+          To generate your feedback, we send your profile and your practice answers to three
+          third-party AI providers, which process them on our behalf and return a report.
+          Every check goes to all three. You are shown one report; all three are stored with
+          your account so we can compare the providers&rsquo; quality. We do not send your
+          name, email address, or account identifiers to any of them, but anything you write
+          inside an answer goes as written.
         </p>
+        <List>
+          <li>
+            <strong>Anthropic</strong> (Claude), United States.
+          </li>
+          <li>
+            <strong>OpenAI</strong> (GPT), United States.
+          </li>
+          <li>
+            <strong>DeepSeek</strong> (DeepSeek&rsquo;s API), which processes and stores data
+            in the People&rsquo;s Republic of China.
+          </li>
+        </List>
         <p>
-          Under our commercial terms with that provider, your inputs and outputs are not used
-          to train their models. We do not use your content to train any model of our own
-          either. Providers may retain content briefly for abuse monitoring under their own
-          terms.
+          Anthropic&rsquo;s and OpenAI&rsquo;s commercial API terms do not allow them to use
+          what we send to train their models, though they may keep it for a limited time to
+          monitor abuse. DeepSeek&rsquo;s own terms govern how it handles what it receives,
+          and we cannot make the same commitment for it. We do not use your content to train
+          any model of our own.
         </p>
-        <p>
-          Because your submissions leave our systems to be processed this way, please keep
-          them to what the questions actually ask for.
-        </p>
+        <Callout>
+          <p>
+            Because your answers are read by three outside providers in two countries, keep
+            them to what the questions ask. Leave out names, contact details, and anything you
+            would not want to leave your hands.
+          </p>
+        </Callout>
       </Section>
 
       <Section id="cookies" title="7. Cookies, storage, and link tags">
         <p>We use a small number of cookies and browser-storage entries, all functional:</p>
         <List>
           <li>
-            <strong>Session cookies.</strong> A secure, HTTP-only refresh-token cookie keeps
-            you signed in. A guest cookie lets the free flow work before you have an account.
+            <strong>Cookies.</strong> A secure, HTTP-only refresh-token cookie keeps you
+            signed in for up to 30 days. An HTTP-only guest cookie identifies your browser
+            before you sign in, so free usage is counted fairly. A short-lived cookie remembers
+            which page to return you to during Google sign-in, and expires after five minutes.
           </li>
           <li>
             <strong>Local storage.</strong> A random visitor identifier and a session
-            identifier, used to group your own usage events together, plus your sign-in token
-            and small interface preferences.
+            identifier, used to group your own usage events together, and the link tag
+            described below.
+          </li>
+          <li>
+            <strong>Session storage.</strong> Your sign-in token, and an unfinished profile
+            check or survey, kept in that browser tab so a reload does not lose your work. All
+            of it is cleared when the tab closes or you sign out.
           </li>
           <li>
             <strong>The link tag.</strong> When you arrive from a tagged link, we store its
@@ -216,7 +269,8 @@ export default function PrivacyPolicyPage() {
         <p>
           We do not use third-party advertising cookies, cross-site trackers, or advertising
           pixels, and we do not sell or share personal information for cross-context
-          behavioural advertising. Analytics are first-party and stay on our own servers.
+          behavioural advertising. Our usage events go to our own servers. Page-view counts go
+          to Umami Cloud, which sets no cookies and does not track you across other sites.
         </p>
         <p>
           You can clear or block cookies and local storage in your browser settings. Blocking
@@ -232,10 +286,20 @@ export default function PrivacyPolicyPage() {
           and only as far as they need to:
         </p>
         <List>
-          <li><strong>Anthropic</strong> - AI processing that generates your feedback.</li>
+          <li>
+            <strong>Anthropic, OpenAI, and DeepSeek</strong> - AI processing that generates
+            your feedback (see section 6).
+          </li>
           <li><strong>Google</strong> - optional sign-in, if you use it.</li>
+          <li>
+            <strong>Our payment processor</strong> - taking payment when you buy a plan.
+          </li>
+          <li><strong>Umami</strong> - cookie-free page-view counts.</li>
           <li><strong>Our email provider</strong> - delivery of verification and account email.</li>
-          <li><strong>Our hosting and database providers</strong> - running the Service and storing its data.</li>
+          <li>
+            <strong>Vercel and our database provider</strong> - hosting the Service and storing
+            its data.
+          </li>
         </List>
         <p>
           We may also disclose information if we are legally required to, to enforce our{" "}
@@ -267,6 +331,10 @@ export default function PrivacyPolicyPage() {
           <li>
             <strong>Usage events</strong> - up to 24 months, in a form already stripped of
             personal detail, then deleted or aggregated permanently.
+          </li>
+          <li>
+            <strong>Purchase records</strong> - for as long as tax and accounting law
+            requires, even after your account is deleted.
           </li>
           <li>
             <strong>Server logs</strong> - up to 90 days.
@@ -330,7 +398,9 @@ export default function PrivacyPolicyPage() {
           Email {CONTACT} from your account address and ask us to delete your account. We
           remove your account record, your profile, your practice answers, the reports
           generated for you, and your usage history, within 30 days, subject only to backup
-          rotation and to anything we are legally required to keep.
+          rotation and to anything we are legally required to keep, such as purchase records.
+          Copies held by the AI providers under their own retention terms are not in our
+          control, which is one more reason to keep answers to what the questions ask.
         </p>
         <p>
           Aggregated statistics that can no longer identify you - counts, medians, approval
@@ -340,15 +410,17 @@ export default function PrivacyPolicyPage() {
 
       <Section id="transfers" title="13. International transfers">
         <p>
-          We operate from and store data in the United States, and our service providers are
-          largely U.S.-based. If you use the Service from outside the United States, your
-          information will be transferred there, where data protection law differs from your
-          own.
+          We operate from and store data in the United States, and most of our service
+          providers are U.S.-based. If you use the Service from outside the United States,
+          your information will be transferred there, where data protection law differs from
+          your own. Your profile and practice answers are also sent to DeepSeek in the
+          People&rsquo;s Republic of China to be scored (see section 6).
         </p>
         <p>
           Where we transfer personal information out of the EEA or the UK, we rely on the
-          European Commission's Standard Contractual Clauses, and the UK Addendum where
-          applicable, together with appropriate safeguards in our contracts with providers.
+          safeguards our providers offer for such transfers, such as the European
+          Commission&rsquo;s Standard Contractual Clauses and the UK Addendum, where they
+          offer them.
         </p>
       </Section>
 

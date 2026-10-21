@@ -5,6 +5,8 @@ import { setAccessToken } from "../utils/tokenStorage";
 import { safeRedirect } from "../utils/authRedirect";
 import HomeFindings from "../components/HomeFindings";
 import HomeInterviewPreview from "../components/HomeInterviewPreview";
+import HomeReviews from "../components/HomeReviews";
+import PricingPlans from "../components/PricingPlans";
 import { track } from "../analytics";
 import { CORPUS } from "../seo/site";
 import Arrow from "../components/ui/Arrow";
@@ -112,54 +114,56 @@ export default function HomePage() {
       </section>
 
       {/* -------------------------------------------------------- why us -- */}
-      <section className="wrap section why-us" id="why-us" aria-labelledby="why-us-heading">
-        <div className="grid2">
-          <div className="why-us-intro">
-            <h2 id="why-us-heading">Why us?</h2>
-            <p className="pull">We&rsquo;re not guessing.<br /><mark>We start with evidence.</mark></p>
-            <p className="lede">
-              Your preparation should start with real experience. Altovisas draws on{" "}
-              <strong>{CORPUS.interviews.toLocaleString()} real F-1 interview reports</strong> shared by
-              students, covering what officers asked, how applicants answered and what
-              happened next.
-            </p>
+      <div className="band band-ink">
+        <section className="wrap section why-us" id="why-us" aria-labelledby="why-us-heading">
+          <div className="grid2">
+            <div className="why-us-intro">
+              <h2 id="why-us-heading">Why us?</h2>
+              <p className="pull">We&rsquo;re not guessing.<br /><mark>We start with evidence.</mark></p>
+              <p className="lede">
+                Your preparation should start with real experience. Altovisas draws on{" "}
+                <strong>{CORPUS.interviews.toLocaleString()} real F-1 interview reports</strong> shared by
+                students, covering what officers asked, how applicants answered and what
+                happened next.
+              </p>
+            </div>
+            <ul className="why-us-reasons">
+              <li>
+                <h3>Real interviews behind the advice</h3>
+                <p>
+                  We look at both approvals and refusals to understand the questions
+                  applicants face and where officers ask for more detail.
+                </p>
+              </li>
+              <li>
+                <h3>AI guided by that experience</h3>
+                <p>
+                  Our AI checks your answers against <strong>real interview experiences
+                  and statistics.</strong> You get feedback on weak points and what to
+                  explain more clearly.
+                </p>
+              </li>
+              <li>
+                <h3>Statistics you can explore</h3>
+                <p>
+                  See which questions come up most and how reported experiences differ
+                  by consulate and degree. The numbers behind our approach are open for
+                  you to explore.
+                </p>
+              </li>
+            </ul>
           </div>
-          <ul className="why-us-reasons">
-            <li>
-              <h3>Real interviews behind the advice</h3>
-              <p>
-                We look at both approvals and refusals to understand the questions
-                applicants face and where officers ask for more detail.
-              </p>
-            </li>
-            <li>
-              <h3>AI guided by that experience</h3>
-              <p>
-                Our AI checks your answers against <strong>real interview experiences
-                and statistics.</strong> You get feedback on weak points and what to
-                explain more clearly.
-              </p>
-            </li>
-            <li>
-              <h3>Statistics you can explore</h3>
-              <p>
-                See which questions come up most and how reported experiences differ
-                by consulate and degree. The numbers behind our approach are open for
-                you to explore.
-              </p>
-            </li>
-          </ul>
-        </div>
-        <div className="why-us-source">
-          <p>
-            These are students&rsquo; own reports, not official consular records.
-            They show patterns, not your chances of approval.
-          </p>
-          <Link to="/about" className="why-us-link">
-            How we use the data <Arrow />
-          </Link>
-        </div>
-      </section>
+          <div className="why-us-source">
+            <p>
+              These are students&rsquo; own reports, not official consular records.
+              They show patterns, not your chances of approval.
+            </p>
+            <Link to="/about" className="why-us-link">
+              How we use the data <Arrow />
+            </Link>
+          </div>
+        </section>
+      </div>
 
       {/* ---------------------------------------------------------- data -- */}
       <section className="wrap section data-short" id="the-data">
@@ -170,19 +174,44 @@ export default function HomePage() {
         <HomeFindings />
       </section>
 
-      {/* ------------------------------------------------------ limits --- */}
-      <section className="wrap section limits">
-        <h2>What we won&rsquo;t do</h2>
-        <ul className="no-grid">
-          <li><strong>Write you a script.</strong> Memorised answers are a common refusal signal. The words stay yours.</li>
-          <li><strong>Invent facts.</strong> A false statement at the window can bar you permanently.</li>
-          <li><strong>Promise a visa.</strong> Only the officer decides. Our numbers predict nothing about you.</li>
-          <li><strong>Give legal advice.</strong> We are not lawyers, and not linked to any consulate or government.</li>
-        </ul>
+      {/* ------------------------------------------------------ reviews --
+          Placeholder reviews, not from real applicants yet, so they render in
+          local development only. Swap in real, permissioned reviews in
+          data/reviews.js and drop the DEV check to publish them. */}
+      {import.meta.env.DEV && (
+      <div className="band band-paper">
+        <section className="wrap section reviews" id="reviews" aria-labelledby="reviews-heading">
+          <h2 id="reviews-heading">What applicants say after the check</h2>
+          <p className="lede">
+            Students wrote to us once they had run their profile check. The marked lines are
+            the parts they said helped most.
+          </p>
+          <HomeReviews />
+        </section>
+      </div>
+      )}
+
+      {/* ------------------------------------------------------ pricing -- */}
+      <section className="wrap section pricing" id="pricing" aria-labelledby="pricing-heading">
+        <h2 id="pricing-heading">Choose your prep level.<br /><mark>One-time. No subscription.</mark></h2>
+        <PricingPlans onStart={() => start("pricing")} detailsLink />
       </section>
 
+      {/* ------------------------------------------------------ limits --- */}
+      <div className="band band-paper">
+        <section className="wrap section limits">
+          <h2>What we won&rsquo;t do</h2>
+          <ul className="no-grid">
+            <li><strong>Write you a script.</strong> Memorised answers are a common refusal signal. The words stay yours.</li>
+            <li><strong>Invent facts.</strong> A false statement at the window can bar you permanently.</li>
+            <li><strong>Promise a visa.</strong> Only the officer decides. Our numbers predict nothing about you.</li>
+            <li><strong>Give legal advice.</strong> We are not lawyers, and not linked to any consulate or government.</li>
+          </ul>
+        </section>
+      </div>
+
       {/* ------------------------------------------------------- close --- */}
-      <div className="close-band">
+      <div className="close-band band-ink">
         <div className="wrap">
           <h2>Your next chapter starts with <span className="home-underline">a clearer answer.</span></h2>
           <div className="hero-act">

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
+import { REFUSAL_COVER_INTERVIEWS } from "../constants/pricing";
 
 const CONTACT = "altovisas@gmail.com";
-const UPDATED = "30 August 2026";
+const UPDATED = "21 October 2026";
 
 const TOC = [
   { id: "agreement", title: "The agreement" },
@@ -11,7 +12,7 @@ const TOC = [
   { id: "honesty", title: "Honesty at your interview" },
   { id: "eligibility", title: "Who may use the service" },
   { id: "accounts", title: "Accounts" },
-  { id: "price", title: "Price and availability" },
+  { id: "price", title: "Plans, prices, and payment" },
   { id: "acceptable-use", title: "Acceptable use" },
   { id: "your-content", title: "Your content" },
   { id: "data", title: "Where our data comes from" },
@@ -52,9 +53,9 @@ export default function TermsOfServicePage() {
           These Terms of Service (the "Terms") are a binding agreement between you and
           Altovisas ("Altovisas", "we", "us"), covering altovisas.com and everything on
           it (the "Service"). By creating an account, submitting a profile, or otherwise
-          using the Service, you agree to these Terms and to our{" "}
-          <Link to="/privacy">Privacy Policy</Link>,
-          which is part of this agreement.
+          using the Service, you agree to these Terms, to our{" "}
+          <Link to="/privacy">Privacy Policy</Link>, and to our{" "}
+          <Link to="/refund-policy">Refund Policy</Link>, which are part of this agreement.
         </p>
         <p>
           If you do not agree, do not use the Service. If you are using the Service on
@@ -114,7 +115,8 @@ export default function TermsOfServicePage() {
         <p>
           You accept that any decision you make about travel, tuition deposits, housing,
           employment, deferrals, or your application itself is your own, and that you are
-          not relying on the Service to make it.
+          not relying on the Service to make it. Buying a plan, including the Complete
+          plan&rsquo;s refusal cover described in section 7, does not change any of this.
         </p>
       </Section>
 
@@ -178,19 +180,56 @@ export default function TermsOfServicePage() {
         </p>
       </Section>
 
-      <Section id="price" title="7. Price and availability">
+      <Section id="price" title="7. Plans, prices, and payment">
         <p>
-          The Service is currently provided free of charge. We may introduce paid features
-          in the future; if we do, we will publish the price and the payment and refund
-          terms before you are asked to pay for anything, and nothing you have already
-          received for free will become retroactively chargeable.
+          Altovisas has a free plan and paid plans. The plans, what each includes, and their
+          prices are set out on our <Link to="/pricing">Pricing page</Link>. A plan includes
+          what that page lists for it on the day you buy.
         </p>
+        <List>
+          <li>
+            <strong>One-time payments.</strong> Paid plans are single payments, not
+            subscriptions. Nothing renews, and you are not charged again unless you buy
+            another plan.
+          </li>
+          <li>
+            <strong>Currency.</strong> Prices are in U.S. dollars. Your bank or card issuer
+            may add currency conversion or foreign transaction fees, which are not ours.
+          </li>
+          <li>
+            <strong>Payment processing.</strong> Payments are handled by a third-party
+            payment processor. We do not receive or store your full card number.
+          </li>
+          <li>
+            <strong>Mock interviews.</strong> A mock interview is one round of practice
+            questions answered in your own words, with the feedback generated for it. Mock
+            interviews are tied to your account, have no cash value, and cannot be transferred.
+          </li>
+          <li>
+            <strong>Refusal cover.</strong> If your F-1 visa is refused after you buy the
+            Complete plan, we add {REFUSAL_COVER_INTERVIEWS} more mock interviews to your
+            account at no charge, once for each Complete purchase, when you email us from your
+            account address. Refusal cover is additional practice. It is not a refund, not
+            compensation for the refusal, and not a statement about your chances at a later
+            attempt.
+          </li>
+          <li>
+            <strong>Refunds.</strong> All sales are final. Refunds are covered by our{" "}
+            <Link to="/refund-policy">Refund Policy</Link>, which is part of these Terms: in
+            short, we put right billing mistakes and honour any refund right the law gives you,
+            and otherwise do not refund plans.
+          </li>
+          <li>
+            <strong>Price changes.</strong> We may change prices or plans for future
+            purchases. A change never applies to a plan you have already bought.
+          </li>
+        </List>
         <p>
-          Access may be limited by usage caps, and we may change, suspend, or discontinue
-          any part of the Service at any time. We aim for continuous availability but do not
+          Free access may be limited by usage caps, and we may change, suspend, or
+          discontinue any part of the Service. We aim for continuous availability but do not
           promise it: maintenance, outages, third-party failures, and capacity limits all
-          happen. Because the Service is free, we do not offer service-level commitments,
-          credits, or compensation for downtime or data loss.
+          happen. We do not offer service-level commitments, credits, or compensation for
+          downtime or data loss, except as set out in the Refund Policy.
         </p>
       </Section>
 
@@ -252,11 +291,12 @@ export default function TermsOfServicePage() {
           retained in backups until they expire.
         </p>
         <p>
-          We do not sell Your Content, publish it, or show it to other users. We do not use
-          it to train our own machine-learning models, and the AI provider that processes it
-          on our behalf is contractually barred from training on it. See the{" "}
+          We do not sell Your Content, publish it, or show it to other users, and we do not
+          use it to train machine-learning models of our own. To generate your feedback it is
+          processed by third-party AI providers. The{" "}
           <Link to="/privacy">Privacy Policy</Link>{" "}
-          for the detail, including how to have it deleted.
+          names them, explains what each one&rsquo;s terms allow, and tells you how to have
+          your content deleted.
         </p>
         <p>
           You confirm that you have the right to submit Your Content and that it does not
@@ -337,8 +377,8 @@ export default function TermsOfServicePage() {
 
       <Section id="third-parties" title="13. Third-party services">
         <p>
-          The Service depends on third parties for sign-in, email delivery, hosting, and AI
-          processing. Their failures can become our outages. We are not responsible for
+          The Service depends on third parties for sign-in, payments, email delivery,
+          hosting, analytics, and AI processing. Their failures can become our outages. We are not responsible for
           third-party services, and your use of one may also be governed by its own terms.
           Links to external sites are provided for convenience only and are not an
           endorsement.
@@ -401,10 +441,17 @@ export default function TermsOfServicePage() {
 
       <Section id="termination" title="17. Termination">
         <p>
-          You may stop using the Service and delete your account at any time. We may suspend
-          or terminate your access at any time, with or without notice, if we reasonably
-          believe you have breached these Terms - in particular section 4 or section 8 - or
-          to protect the Service or other users.
+          You may stop using the Service at any time, and ask us to delete your account by
+          emailing {CONTACT}. We may suspend or terminate your access at any time, with or
+          without notice, if we reasonably believe you have breached these Terms - in
+          particular section 4 or section 8 - or to protect the Service or other users.
+        </p>
+        <p>
+          If we terminate your account because you breached these Terms, no refund is due for
+          any plan or unused mock interviews. If we close the Service, or your account for any
+          other reason, the{" "}
+          <Link to="/refund-policy">Refund Policy</Link>{" "}
+          sets out what we refund.
         </p>
         <p>
           On termination, your licence to use the Service ends. Sections 3, 4, 9, 10, 11, 12,
@@ -452,8 +499,9 @@ export default function TermsOfServicePage() {
       <Section id="general" title="20. General terms">
         <List>
           <li>
-            <strong>Entire agreement.</strong> These Terms and the Privacy Policy are the
-            whole agreement between us about the Service and replace anything said before.
+            <strong>Entire agreement.</strong> These Terms, the Privacy Policy, and the Refund
+            Policy are the whole agreement between us about the Service and replace anything
+            said before.
           </li>
           <li>
             <strong>Severability.</strong> If a provision is held unenforceable, it is
