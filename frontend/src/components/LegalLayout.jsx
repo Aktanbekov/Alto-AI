@@ -1,4 +1,24 @@
 import { Link } from "react-router-dom";
+import { useLang, useCopy } from "../i18n";
+
+const COPY = {
+  en: {
+    updated: (d) => `Last updated ${d}`,
+    contents: "Contents",
+    terms: "Terms of Service",
+    privacy: "Privacy Policy",
+    refund: "Refund Policy",
+  },
+  ru: {
+    updated: (d) => `Последнее обновление: ${d}`,
+    contents: "Содержание",
+    terms: "Условия использования",
+    privacy: "Политика конфиденциальности",
+    refund: "Политика возврата",
+    notice: "Это перевод для удобства. Юридическую силу имеет английская версия.",
+    readEnglish: "Открыть английскую версию",
+  },
+};
 
 /*
  * Shared layout for the Terms, the Privacy Policy and the Refund Policy.
@@ -28,17 +48,30 @@ export function Callout({ children }) {
 }
 
 export default function LegalLayout({ title, updated, summary, toc, children }) {
+  const { lang, setLang } = useLang();
+  const c = useCopy(COPY);
   return (
     <div className="tf">
       <article className="page-w doc">
         <h1>{title}</h1>
-        <p className="meta">Last updated {updated}</p>
+        <p className="meta">{c.updated(updated)}</p>
+
+        {/* The Terms say the English text governs, so a translated page says
+            so before anything else, with the way to the governing text. */}
+        {lang !== "en" && c.notice && (
+          <p className="doc-lang-note">
+            {c.notice}{" "}
+            <button type="button" className="doc-lang-switch" lang="en" onClick={() => setLang("en")}>
+              {c.readEnglish}
+            </button>
+          </p>
+        )}
 
         {summary}
 
         {toc?.length > 0 && (
           <nav aria-labelledby="doc-toc" className="doc-toc">
-            <h2 id="doc-toc">Contents</h2>
+            <h2 id="doc-toc">{c.contents}</h2>
             <ol>
               {toc.map((item) => (
                 <li key={item.id}>
@@ -52,11 +85,11 @@ export default function LegalLayout({ title, updated, summary, toc, children }) 
         {children}
 
         <p className="doc-cross">
-          <Link to="/terms">Terms of Service</Link>
+          <Link to="/terms">{c.terms}</Link>
           <span aria-hidden="true"> · </span>
-          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/privacy">{c.privacy}</Link>
           <span aria-hidden="true"> · </span>
-          <Link to="/refund-policy">Refund Policy</Link>
+          <Link to="/refund-policy">{c.refund}</Link>
         </p>
       </article>
     </div>

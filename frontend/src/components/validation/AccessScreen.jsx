@@ -1,6 +1,26 @@
 import { useEffect } from "react";
 import { track } from "../../analytics";
 import WaitlistCard from "./WaitlistCard";
+import { useCopy } from "../../i18n";
+
+const COPY = {
+  en: {
+    title: "You’ve used your free rounds",
+    doneSub: "That includes the three extra rounds from the survey.",
+    sub: "Everyone gets two free rounds of three questions. There are two ways to keep going.",
+    receipt: "Survey done - thank you. Your three extra rounds have been used.",
+    survey: "Answer a 2-minute survey for 3 more rounds",
+    support: "Seven short questions about how you are preparing. No payment, nothing to sign up for.",
+  },
+  ru: {
+    title: "Бесплатные раунды закончились",
+    doneSub: "Включая три дополнительных раунда за опрос.",
+    sub: "Каждый получает два бесплатных раунда по три вопроса. Продолжить можно двумя способами.",
+    receipt: "Опрос пройден — спасибо. Три дополнительных раунда уже использованы.",
+    survey: "Пройдите опрос за 2 минуты и получите ещё 3 раунда",
+    support: "Семь коротких вопросов о том, как вы готовитесь. Без оплаты и без регистрации.",
+  },
+};
 
 /*
  * Where someone lands once their free sets are spent.
@@ -13,6 +33,7 @@ import WaitlistCard from "./WaitlistCard";
  */
 export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }) {
   const done = access.survey_completed;
+  const c = useCopy(COPY);
 
   useEffect(() => {
     track("access_screen_viewed", {
@@ -24,25 +45,17 @@ export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }
   return (
     <div className="ev-result">
       <div className="vz-card vac">
-        <h2>You&rsquo;ve used your free rounds</h2>
-        <p className="sub">
-          {done
-            ? "That includes the three extra rounds from the survey."
-            : "Everyone gets two free rounds of three questions. There are two ways to keep going."}
-        </p>
+        <h2>{c.title}</h2>
+        <p className="sub">{done ? c.doneSub : c.sub}</p>
 
         {done ? (
-          <p className="vac-receipt" role="status">
-            Survey done - thank you. Your three extra rounds have been used.
-          </p>
+          <p className="vac-receipt" role="status">{c.receipt}</p>
         ) : (
           <div className="vac-primary">
             <button type="button" className="ev-submit" onClick={onStartSurvey}>
-              Answer a 2-minute survey for 3 more rounds
+              {c.survey}
             </button>
-            <p className="vac-support">
-              Seven short questions about how you are preparing. No payment, nothing to sign up for.
-            </p>
+            <p className="vac-support">{c.support}</p>
           </div>
         )}
       </div>

@@ -94,10 +94,13 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	}
 	req := body.ProfileRequest
 	setIndex := clampSetIndex(body.SetIndex)
+	// The report comes back in the site language the student chose. Anything
+	// unsupported is dropped here so the sidecar answers in its default.
+	req.Language = visallm.NormalizeLanguage(req.Language)
 
 	// Model choice is not the caller's. Clear it before runAll selects the fixed
-	// three-provider set, so a crafted body cannot choose which vendor we pay or
-	// suppress two of the reports.
+	// model set, so a crafted body cannot choose which vendor receives a
+	// student's answers.
 	req.Model = ""
 
 	if len(req.PlannedAnswers) == 0 {
@@ -180,8 +183,8 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	for i := range results {
 		if runErrs[i] != nil {
 			h.recordPartialFailure(runErrs[i], email)
-			// Keep the failed tab so the response is visibly three-way rather than
-			// silently becoming a two-model answer, but hide operator details.
+			// Keep the failed row so the response shape is stable, but hide
+			// operator details.
 			results[i].Error = "This provider could not return a report. Please use the other available reports."
 			continue
 		}
@@ -195,8 +198,8 @@ func (h *EvaluateHandler) Evaluate(c *gin.Context) {
 	aggregate.Model = strings.Join(models, ",")
 	h.persist(c, req, *primary, results, aggregate, latency, userID, setIndex)
 
-	// All three still run and are stored, so the admin comparison keeps its
-	// data. Only admins see them side by side: a student handed three verdicts
+	// Every configured model runs and is stored, so the admin comparison keeps
+	// its data. Only admins see them side by side: a student handed verdicts
 	// that can disagree has to arbitrate between vendors, which is not their
 	// job. Everyone else gets the first report in the fixed model order, so a
 	// provider that is down falls through to the next one instead of a gap.
@@ -380,7 +383,7 @@ func (h *EvaluateHandler) persist(
 	userID string,
 	setIndex int,
 ) {
-	// Keep the same three-result envelope the student received. `ev` below is
+	// Keep the same results envelope the student received. `ev` below is
 	// the first successful report (normally Opus), used only for denormalised
 	// analytics fields that need one stable baseline.
 	raw, _ := json.Marshal(gin.H{"results": results})

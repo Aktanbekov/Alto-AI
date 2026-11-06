@@ -1,6 +1,26 @@
 import { SMALL_N } from "./useChartWidth";
 import { useTooltip } from "./useTooltip";
 import Tooltip from "./Tooltip";
+import { useLang, useCopy, formatNumber, plural } from "../../i18n";
+
+const COPY = {
+  en: {
+    empty: "No data for this breakdown.",
+    share: (v) => `Approval share: ${v}%`,
+    decided: (n) => `${n} decided interviews`,
+    small: "Small sample - read with caution",
+    posts: (n) => plural("en", n, ["post", "posts"]),
+  },
+  ru: {
+    empty: "Для этого разреза нет данных.",
+    share: (v) => `Доля одобрений: ${v}%`,
+    decided: (n) => `Собеседований с итогом: ${n}`,
+    small: "Маленькая группа — делайте выводы осторожно",
+    // No unit in Russian: the word does not fit the count column, so the
+    // chart's caption says what the number is instead.
+    posts: () => "",
+  },
+};
 
 /*
  * Horizontal approval-rate bars. Rows with fewer than SMALL_N decided records
@@ -12,8 +32,10 @@ import Tooltip from "./Tooltip";
 // much evidence a row stands on is the point (the consulate chart).
 export default function BarChart({ rows, showCount = false }) {
   const { tip, bind } = useTooltip();
+  const { lang } = useLang();
+  const c = useCopy(COPY);
 
-  if (!rows?.length) return <p className="sub">No data for this breakdown.</p>;
+  if (!rows?.length) return <p className="sub">{c.empty}</p>;
 
   return (
     <div>
@@ -26,9 +48,9 @@ export default function BarChart({ rows, showCount = false }) {
             <span
               className="track"
               {...bind(r.label, [
-                `Approval share: ${(value * 100).toFixed(1)}%`,
-                `${r.n_decided?.toLocaleString() ?? "?"} decided interviews`,
-                small ? "Small sample - read with caution" : "",
+                c.share((value * 100).toFixed(1)),
+                c.decided(r.n_decided != null ? formatNumber(lang, r.n_decided) : "?"),
+                small ? c.small : "",
               ])}
             >
               <span
@@ -39,7 +61,10 @@ export default function BarChart({ rows, showCount = false }) {
             <span className="val">
               {(value * 100).toFixed(1)}%
               {showCount && r.n_decided != null && (
-                <span className="cnt">{r.n_decided.toLocaleString()}</span>
+                <span className="cnt">
+                  {formatNumber(lang, r.n_decided)}
+                  {c.posts(r.n_decided) && ` ${c.posts(r.n_decided)}`}
+                </span>
               )}
             </span>
           </div>

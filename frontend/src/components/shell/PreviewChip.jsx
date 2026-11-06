@@ -1,7 +1,11 @@
 // These screens are ported from the design prototype and are not wired to a
 // backend yet. The chip says so on the page rather than letting the UI imply
 // working functionality.
-export default function PreviewChip({ children = "Preview · not wired up yet" }) {
+import { useLang } from "../../i18n";
+
+export default function PreviewChip({ children }) {
+  const { lang } = useLang();
+  const label = children || (lang === "ru" ? "Превью · пока не работает" : "Preview · not wired up yet");
   return (
     <span
       className="tiny"
@@ -11,7 +15,7 @@ export default function PreviewChip({ children = "Preview · not wired up yet" }
         letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 22,
       }}
     >
-      {children}
+      {label}
     </span>
   );
 }

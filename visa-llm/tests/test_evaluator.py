@@ -11,6 +11,7 @@ import pytest
 from visa_llm.evaluator.evaluate import build_messages, load_profile
 from visa_llm.evaluator.prompts import (
     format_city_mix,
+    format_language,
     format_retrieved,
     format_statistics,
     format_student,
@@ -133,6 +134,31 @@ def test_students_at_different_consulates_share_one_cached_prefix():
     assert "Most common question types at Chennai" in content
     assert content.index("CONSULATE STATISTICS") < content.index("RETRIEVED COMPARABLE")
     assert "CONSULATE STATISTICS" not in mumbai_msgs[0]["content"]
+
+
+def test_russian_report_is_asked_for_in_the_user_turn_only():
+    retrieved = pd.DataFrame([{"record_id": "r1", "outcome": "approved", "similarity": 0.6}])
+    profile = StudentProfile(consulate_city="Chennai")
+    en_system, en_msgs = build_messages(profile, STATS, retrieved, None)
+    ru_system, ru_msgs = build_messages(profile, STATS, retrieved, None, "ru")
+
+    # The cached prefix is shared across languages, or Russian readers would
+    # pay for a second cache write and split the hit rate in two.
+    assert ru_system == en_system
+    content = ru_msgs[0]["content"]
+    assert "OUTPUT LANGUAGE: RUSSIAN" in content
+    # The instruction comes after the task, as the last thing the model reads.
+    assert content.index("# TASK") < content.index("OUTPUT LANGUAGE: RUSSIAN")
+    # The interview is in English, so officer wording must stay English.
+    assert "example_question" in content
+    assert "OUTPUT LANGUAGE" not in en_msgs[0]["content"]
+
+
+def test_english_and_unknown_languages_add_nothing():
+    assert format_language(None) == ""
+    assert format_language("en") == ""
+    assert format_language("xx") == ""
+    assert "RUSSIAN" in format_language("RU")
 
 
 def test_load_profile_roundtrip(tmp_path: Path):

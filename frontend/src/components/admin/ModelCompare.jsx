@@ -1,14 +1,12 @@
 /*
- * Three models' answers to the same profile, side by side.
+ * The configured models' answers to the same profile, side by side.
  *
- * The comparison this screen exists to support is "is the model we pay for
- * worth it", which is a question about four things at once: what each model
- * concluded, how long it took, what it cost, and whether it worked at all. So
- * the headline row carries all four, and the full reports sit behind tabs -
- * three reports rendered at once is more text than anyone compares.
+ * Scoring now runs on Anthropic only, so this shows a single model; it still
+ * renders any number the server returns. The headline row carries what the
+ * model concluded, how long it took, what it cost, and whether it worked, and
+ * the full reports sit behind tabs.
  *
- * A model that failed keeps its card and its tab. Dropping it would quietly
- * turn a three-way comparison into a two-way one, and "DeepSeek could not
+ * A model that failed keeps its card and its tab: "the model could not
  * answer" is a finding, not an absence of one.
  */
 
@@ -16,8 +14,6 @@ import { useState } from "react";
 
 const LABELS = {
   opus: "Claude Opus 5",
-  terra: "GPT-5.6 Terra",
-  deepseek: "DeepSeek V4 Pro",
   report: "AI report",
 };
 

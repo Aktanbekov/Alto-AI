@@ -1,37 +1,102 @@
 import { NavLink, Link } from "react-router-dom";
+import { useCopy } from "../../i18n";
+import LanguageSwitch from "../../i18n/LanguageSwitch";
 
 // The four destinations from the design brief. "Profile check" is the working
 // evaluator, and the name the home page, the page itself and the search
 // listing all use; the other three are prototype screens with no backend yet,
 // which is what their "Soon" badge says.
 const NAV = [
-  { to: "/check-profile", label: "Profile check", icon: ClipboardIcon },
-  { to: "/voice-interview", label: "Voice Interview", icon: MicIcon, soon: true },
-  { to: "/case-builder", label: "Custom Case Builder", icon: BlocksIcon, soon: true },
-  { to: "/answers", label: "Questions/Answers", icon: ChatIcon, soon: true },
+  { to: "/check-profile", key: "check", icon: ClipboardIcon },
+  { to: "/voice-interview", key: "voice", icon: MicIcon, soon: true },
+  { to: "/case-builder", key: "builder", icon: BlocksIcon, soon: true },
+  { to: "/answers", key: "answers", icon: ChatIcon, soon: true },
 ];
 
 // Only pages that exist. The preview screens are reachable from Explore, marked Soon, and nowhere
 // else - a second, unmarked link to them reads as a working feature.
 const LEARN = [
-  { to: "/data", label: "The data", icon: ChartIcon },
-  { to: "/about", label: "How it works", icon: CompassIcon },
-  { to: "/faq", label: "Questions", icon: BookIcon },
-  { to: "/pricing", label: "Pricing", icon: TagIcon },
+  { to: "/data", key: "data", icon: ChartIcon },
+  { to: "/about", key: "about", icon: CompassIcon },
+  { to: "/faq", key: "faq", icon: BookIcon },
+  { to: "/pricing", key: "pricing", icon: TagIcon },
 ];
 
+const COPY = {
+  en: {
+    sections: "Sections",
+    explore: "Explore",
+    learn: "Learn",
+    account: "Account",
+    soon: "Soon",
+    comingSoon: "coming soon",
+    labels: {
+      check: "Profile check",
+      voice: "Voice Interview",
+      builder: "Custom Case Builder",
+      answers: "Questions/Answers",
+      data: "The data",
+      about: "How it works",
+      faq: "Questions",
+      pricing: "Pricing",
+    },
+    why: "The profile check needs a free account. It counts your free rounds and remembers where you got to.",
+    signup: "Create free account",
+    login: "Log in",
+    signedIn: "Signed in",
+    admin: "Admin panel",
+    logout: "Log out",
+    legal: "Legal",
+    terms: "Terms",
+    privacy: "Privacy",
+    refunds: "Refunds",
+    note: "Interview data updated monthly",
+  },
+  ru: {
+    sections: "Разделы",
+    explore: "Инструменты",
+    learn: "Узнать больше",
+    account: "Аккаунт",
+    soon: "Скоро",
+    comingSoon: "скоро",
+    labels: {
+      check: "Проверка профиля",
+      voice: "Голосовое собеседование",
+      builder: "Конструктор кейса",
+      answers: "Вопросы и ответы",
+      data: "Данные",
+      about: "Как это работает",
+      faq: "Частые вопросы",
+      pricing: "Тарифы",
+    },
+    why: "Для проверки профиля нужен бесплатный аккаунт. Он считает ваши бесплатные раунды и запоминает, где вы остановились.",
+    signup: "Создать аккаунт бесплатно",
+    login: "Войти",
+    signedIn: "Вы вошли",
+    admin: "Админ-панель",
+    logout: "Выйти",
+    legal: "Документы",
+    terms: "Условия",
+    privacy: "Конфиденциальность",
+    refunds: "Возвраты",
+    note: "Данные о собеседованиях обновляются ежемесячно",
+  },
+};
+
 export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onAuth }) {
+  const c = useCopy(COPY);
   return (
-    <aside id="app-side" className={`app-side${open ? " is-open" : ""}`} aria-label="Sections">
+    <aside id="app-side" className={`app-side${open ? " is-open" : ""}`} aria-label={c.sections}>
       <NavLink to="/" className="brand" onClick={onNavigate}>
         <img src="/logo.svg" alt="" width="30" height="30" />
         Altovisas
       </NavLink>
 
-      <div className="side-label">Explore</div>
+      <div className="side-label">{c.explore}</div>
       <nav className="app-nav">
         {NAV.map((item) => {
           const Icon = item.icon;
+          const label = c.labels[item.key];
 
           // Not-yet-built screens render as inert rows rather than links, so
           // the badge and the behaviour agree - nothing to click, nowhere to go.
@@ -41,11 +106,11 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
                 key={item.to}
                 className="app-navitem is-soon"
                 aria-disabled="true"
-                title={`${item.label} - coming soon`}
+                title={`${label} - ${c.comingSoon}`}
               >
                 <Icon />
-                <span className="lbl">{item.label}</span>
-                <span className="soon">Soon</span>
+                <span className="lbl">{label}</span>
+                <span className="soon">{c.soon}</span>
               </span>
             );
           }
@@ -58,33 +123,25 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
               className={({ isActive }) => `app-navitem${isActive ? " is-active" : ""}`}
             >
               <Icon />
-              <span className="lbl">{item.label}</span>
+              <span className="lbl">{label}</span>
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="side-label">Learn</div>
+      <div className="side-label">{c.learn}</div>
       <nav className="app-nav">
         {LEARN.map((item) => {
           const Icon = item.icon;
-          if (item.href) {
-            return (
-              <Link key={item.label} to={item.href} className="app-navitem" onClick={onNavigate}>
-                <Icon />
-                {item.label}
-              </Link>
-            );
-          }
           return (
             <NavLink
-              key={item.label}
+              key={item.key}
               to={item.to}
               onClick={onNavigate}
               className={({ isActive }) => `app-navitem${isActive ? " is-active" : ""}`}
             >
               <Icon />
-              {item.label}
+              {c.labels[item.key]}
             </NavLink>
           );
         })}
@@ -94,26 +151,23 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
           has room for the brand and the menu button only. */}
       {!user && onAuth && (
         <div className="side-account side-guest">
-          <div className="side-label">Account</div>
-          <p className="side-why">
-            The profile check needs a free account. It counts your free rounds
-            and remembers where you got to.
-          </p>
+          <div className="side-label">{c.account}</div>
+          <p className="side-why">{c.why}</p>
           <button type="button" className="side-cta" onClick={() => onAuth("signup")}>
-            Create free account
+            {c.signup}
           </button>
           <button type="button" className="app-navitem" onClick={() => onAuth("login")}>
             <EnterIcon />
-            <span className="lbl">Log in</span>
+            <span className="lbl">{c.login}</span>
           </button>
         </div>
       )}
 
       {user && (
         <div className="side-account">
-          <div className="side-label">Account</div>
+          <div className="side-label">{c.account}</div>
           <div className="side-who">
-            <p className="side-name">{user.name || "Signed in"}</p>
+            <p className="side-name">{user.name || c.signedIn}</p>
             {user.email && <p className="side-mail">{user.email}</p>}
           </div>
 
@@ -124,7 +178,7 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
               className={({ isActive }) => `app-navitem${isActive ? " is-active" : ""}`}
             >
               <ShieldIcon />
-              <span className="lbl">Admin panel</span>
+              <span className="lbl">{c.admin}</span>
             </NavLink>
           )}
 
@@ -134,18 +188,21 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
             onClick={() => { onNavigate?.(); onLogout?.(); }}
           >
             <ExitIcon />
-            <span className="lbl">Log out</span>
+            <span className="lbl">{c.logout}</span>
           </button>
         </div>
       )}
 
       <div className="side-foot">
-        <nav className="side-legal" aria-label="Legal">
-          <Link to="/terms" onClick={onNavigate}>Terms</Link>
-          <Link to="/privacy" onClick={onNavigate}>Privacy</Link>
-          <Link to="/refund-policy" onClick={onNavigate}>Refunds</Link>
+        {/* Signed in on a wide screen the header row collapses, and the
+            switch with it - so the rail carries its own. */}
+        {user && <LanguageSwitch className="side-lang" />}
+        <nav className="side-legal" aria-label={c.legal}>
+          <Link to="/terms" onClick={onNavigate}>{c.terms}</Link>
+          <Link to="/privacy" onClick={onNavigate}>{c.privacy}</Link>
+          <Link to="/refund-policy" onClick={onNavigate}>{c.refunds}</Link>
         </nav>
-        <p className="side-note">Interview data updated monthly</p>
+        <p className="side-note">{c.note}</p>
       </div>
     </aside>
   );

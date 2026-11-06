@@ -2,6 +2,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthForm from "./AuthForm";
 import { useShell } from "../shell/shellContext";
 import { safeRedirect } from "../../utils/authRedirect";
+import { useLang, serverMessage } from "../../i18n";
 
 /*
  * /login and /signup: the shared form, set on the page inside the site shell
@@ -16,6 +17,7 @@ export default function AuthScreen({ mode }) {
   const { setUser } = useShell();
   const redirect = safeRedirect(params.get("redirect"));
   const oauthError = params.get("error");
+  const { lang } = useLang();
 
   return (
     <div className="tf">
@@ -23,7 +25,7 @@ export default function AuthScreen({ mode }) {
         <div className="auth-page-in">
           {oauthError && (
             <p className="auth-error" role="alert">
-              {decodeURIComponent(oauthError)}
+              {serverMessage(lang, decodeURIComponent(oauthError))}
             </p>
           )}
           <div className="auth-panel">

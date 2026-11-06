@@ -1,22 +1,20 @@
 package interview
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/anthropics/anthropic-sdk-go"
 )
 
 // VisaAnalyzer handles AI-powered analysis of visa interview answers
 type VisaAnalyzer struct {
-	apiKey     string
-	apiURL     string
-	httpClient *http.Client
+	apiKey string
+	client anthropic.Client
 	// Cache the system prompt to avoid regenerating it (V1)
 	systemPrompt string
 	// V2 prompts
@@ -28,11 +26,7 @@ type VisaAnalyzer struct {
 // NewVisaAnalyzer creates a new VisaAnalyzer instance
 func NewVisaAnalyzer(apiKey string) *VisaAnalyzer {
 	if apiKey == "" {
-		// Try to get from environment
-		apiKey = os.Getenv("OPENAI_API_KEY")
-		if apiKey == "" {
-			apiKey = os.Getenv("GPT_API_KEY")
-		}
+		apiKey = os.Getenv("ANTHROPIC_API_KEY")
 	}
 
 	systemPrompt := `You are an experienced U.S. F-1 visa consular officer evaluating a student's interview answer. Evaluate the answer exactly as a real visa officer would, focusing on evidence, specificity, and potential red flags.
@@ -252,14 +246,11 @@ CRITICAL: Do not invent contradictions. Only flag genuine inconsistencies.`
 
 	return &VisaAnalyzer{
 		apiKey:            apiKey,
-		apiURL:            "https://api.openai.com/v1/chat/completions",
+		client:            newClaudeClient(apiKey),
 		systemPrompt:      systemPrompt,
 		lightweightPrompt: lightweightPrompt,
 		deepBatchPrompt:   deepBatchPrompt,
 		consistencyPrompt: consistencyPrompt,
-		httpClient: &http.Client{
-			Timeout: 120 * time.Second,
-		},
 	}
 }
 
@@ -379,28 +370,13 @@ func (va *VisaAnalyzer) GenerateSessionSummary(analyses []AnalysisRecord) (*Sess
 	}, nil
 }
 
-// GPTMessage represents a message in the GPT conversation
+// GPTMessage is one chat message: role "system", "user" or "assistant".
 type GPTMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
 func (va *VisaAnalyzer) callGPTAPI(sessionMessages []GPTMessage, category, question, answer string) (*AnalysisResponse, error) {
-	type GPTRequest struct {
-		Model       string       `json:"model"`
-		MaxTokens   int          `json:"max_tokens"`
-		Messages    []GPTMessage `json:"messages"`
-		Temperature float64      `json:"temperature"`
-	}
-
-	type GPTChoice struct {
-		Message GPTMessage `json:"message"`
-	}
-
-	type GPTResponse struct {
-		Choices []GPTChoice `json:"choices"`
-	}
-
 	// Build current user message: include Category when provided
 	var userContent string
 	if strings.TrimSpace(category) != "" {
@@ -415,51 +391,10 @@ func (va *VisaAnalyzer) callGPTAPI(sessionMessages []GPTMessage, category, quest
 		Content: userContent,
 	})
 
-	gptReq := GPTRequest{
-		Model:       "gpt-3.5-turbo",
-		MaxTokens:   1000,
-		Temperature: 0.3,
-		Messages:    sessionMessages,
-	}
-
-	reqBody, err := json.Marshal(gptReq)
+	content, err := va.callClaude(sessionMessages, anthropic.BetaOutputConfigEffortMedium)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+		return nil, err
 	}
-
-	req, err := http.NewRequest("POST", va.apiURL, bytes.NewBuffer(reqBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+va.apiKey)
-
-	resp, err := va.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
-	}
-
-	var gptResp GPTResponse
-	if err := json.Unmarshal(body, &gptResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	if len(gptResp.Choices) == 0 {
-		return nil, fmt.Errorf("empty response from API")
-	}
-
-	content := gptResp.Choices[0].Message.Content
 	content = strings.TrimSpace(content)
 
 	// Remove markdown code fences
@@ -538,7 +473,7 @@ func (va *VisaAnalyzer) AnalyzeLightweight(question, answer, questionType string
 		{Role: "user", Content: userContent},
 	}
 
-	content, err := va.callRawAPI(messages, "gpt-4o-mini", 200, 0.2)
+	content, err := va.callRawAPI(messages, anthropic.BetaOutputConfigEffortLow)
 	if err != nil {
 		return nil, fmt.Errorf("lightweight analysis failed: %w", err)
 	}
@@ -597,15 +532,7 @@ func (va *VisaAnalyzer) EvaluateSessionBatch(session *Session) ([]DeepAnswerAnal
 		{Role: "user", Content: sb.String()},
 	}
 
-	maxTokens := 500 * len(session.Answers)
-	if maxTokens < 2000 {
-		maxTokens = 2000
-	}
-	if maxTokens > 8000 {
-		maxTokens = 8000
-	}
-
-	content, err := va.callRawAPI(messages, "gpt-4o-mini", maxTokens, 0.3)
+	content, err := va.callRawAPI(messages, anthropic.BetaOutputConfigEffortMedium)
 	if err != nil {
 		return nil, fmt.Errorf("deep batch evaluation failed: %w", err)
 	}
@@ -683,7 +610,7 @@ func (va *VisaAnalyzer) CheckSessionConsistency(session *Session) (*ConsistencyR
 		{Role: "user", Content: sb.String()},
 	}
 
-	content, err := va.callRawAPI(messages, "gpt-4o-mini", 1000, 0.2)
+	content, err := va.callRawAPI(messages, anthropic.BetaOutputConfigEffortMedium)
 	if err != nil {
 		return nil, fmt.Errorf("consistency check failed: %w", err)
 	}
@@ -703,67 +630,8 @@ func (va *VisaAnalyzer) CheckSessionConsistency(session *Session) (*ConsistencyR
 
 // callRawAPI is a generic API caller that returns the raw content string.
 // Used by V2 methods to decouple API calling from response parsing.
-func (va *VisaAnalyzer) callRawAPI(messages []GPTMessage, model string, maxTokens int, temperature float64) (string, error) {
-	type GPTRequest struct {
-		Model       string       `json:"model"`
-		MaxTokens   int          `json:"max_tokens"`
-		Messages    []GPTMessage `json:"messages"`
-		Temperature float64      `json:"temperature"`
-	}
-
-	type GPTChoice struct {
-		Message GPTMessage `json:"message"`
-	}
-
-	type GPTResponse struct {
-		Choices []GPTChoice `json:"choices"`
-	}
-
-	gptReq := GPTRequest{
-		Model:       model,
-		MaxTokens:   maxTokens,
-		Temperature: temperature,
-		Messages:    messages,
-	}
-
-	reqBody, err := json.Marshal(gptReq)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequest("POST", va.apiURL, bytes.NewBuffer(reqBody))
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+va.apiKey)
-
-	resp, err := va.httpClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to send request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
-	}
-
-	var gptResp GPTResponse
-	if err := json.Unmarshal(body, &gptResp); err != nil {
-		return "", fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	if len(gptResp.Choices) == 0 {
-		return "", fmt.Errorf("empty response from API")
-	}
-
-	return gptResp.Choices[0].Message.Content, nil
+func (va *VisaAnalyzer) callRawAPI(messages []GPTMessage, effort anthropic.BetaOutputConfigEffort) (string, error) {
+	return va.callClaude(messages, effort)
 }
 
 // extractJSON finds the first JSON object in a string, handling markdown fences

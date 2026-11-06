@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { getMe } from "../api";
 import { setupTokenRefresh, stopTokenRefresh } from "../utils/tokenRefresh";
 import { SIGNED_OUT_EVENT } from "../utils/tokenStorage";
+import { useLang } from "../i18n";
 
 type CurrentUser = {
     email: string;
@@ -36,6 +37,7 @@ export default function ProtectedRoute({
     // undefined while checking, null when signed out.
     const [user, setUser] = useState<CurrentUser | null | undefined>(undefined);
     const location = useLocation();
+    const { lang } = useLang();
 
     useEffect(() => {
         getMe().then((data) => {
@@ -63,7 +65,9 @@ export default function ProtectedRoute({
         // Usually a few hundred milliseconds. A quiet line rather than a
         // full-screen animation, so the page does not flash a second design.
         return (
-            <p className="route-wait" role="status">Checking your sign-in…</p>
+            <p className="route-wait" role="status">
+                {lang === "ru" ? "Проверяем вход…" : "Checking your sign-in…"}
+            </p>
         );
     }
     if (!user) {

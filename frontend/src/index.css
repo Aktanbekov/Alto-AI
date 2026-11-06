@@ -457,7 +457,6 @@ button {
 .vz .vzbar .val { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: .88rem; white-space: nowrap; }
 .vz .vzbar.counted { grid-template-columns: 112px 1fr 118px; }
 .vz .vzbar .cnt { color: var(--ink-muted); margin-left: 8px; }
-.vz .vzbar .cnt::after { content: " posts"; }
 
 /* Stacked outcome bar */
 .vz .vzprop { display: flex; height: 30px; border-radius: 4px; overflow: hidden; gap: 2px; }
@@ -543,7 +542,7 @@ button {
   margin-top: 18px; padding: 14px 12px 4px;
   border-top: 1px solid var(--rule);
 }
-.app-side .side-legal { display: block; margin-bottom: 8px; }
+.app-side .side-legal { display: flex; flex-wrap: wrap; margin-bottom: 8px; }
 .app-side .side-legal a {
   font-size: 14px; color: var(--ink-soft); text-decoration: underline;
   text-underline-offset: 3px; line-height: 1.9;
@@ -788,6 +787,26 @@ button.app-navitem {
 .page-spacer { flex: 1 1 auto; }
 .page-account { display: flex; align-items: center; gap: 8px; flex: none; }
 
+/* RU / EN. Two square-cornered keys in one ruled box, the pressed one in ink -
+   the same language as the sign-up button beside it, at a smaller size. */
+.lang-switch {
+  display: inline-flex; flex: none;
+  border: 1px solid var(--rule); border-radius: 2px; background: #fff;
+}
+.lang-switch button {
+  min-width: 44px; min-height: 44px; padding: 0 10px;
+  border: 0; background: transparent; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: .06em;
+  color: var(--ink-soft);
+}
+.lang-switch button + button { border-left: 1px solid var(--rule); }
+.lang-switch button:hover { background: var(--paper-2); color: var(--ink); }
+.lang-switch button[aria-pressed="true"] { background: var(--ink); color: var(--paper); cursor: default; }
+.app-side .side-lang { margin: 0 0 14px; }
+@media (max-width: 560px) {
+  .page-account .lang-switch button { min-width: 40px; padding: 0 8px; }
+}
+
 @media (max-width: 900px) {
   .page-head-in { min-height: 60px; }
   .page-brand { display: inline-flex; }
@@ -943,6 +962,9 @@ button.app-navitem {
 .vz .pc-cover strong { color: var(--ink); font-weight: 600; }
 
 .vz .ev-q-share { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-muted); }
+/* The question's Russian reading, under the English one the officer will ask. */
+.vz .pc-q-tr { margin: 0 0 4px; font-size: 16px; color: var(--ink-soft); line-height: 1.45; }
+.vz .pc-answer-head .pc-q-tr { margin: 4px 0 0; font-size: 15px; }
 
 .vz .ev-submit {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
@@ -1401,6 +1423,13 @@ button.app-navitem {
 }
 .tf .doc-callout p:last-child { margin-bottom: 0; }
 .tf .doc-callout-h { font-weight: 600; margin-bottom: 6px; }
+/* A translated legal page names the governing English text before anything else. */
+.tf .doc .doc-lang-note { margin: -4px 0 22px; font-size: 16px; color: var(--ink-soft); }
+.tf .doc-lang-switch {
+  border: 0; background: none; padding: 0; font: inherit; color: var(--ink); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(22, 35, 59, .35);
+}
+.tf .doc-lang-switch:hover { text-decoration-color: currentColor; }
 .tf .doc-toc {
   border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule);
   padding: 16px 0 12px; margin-bottom: 8px;

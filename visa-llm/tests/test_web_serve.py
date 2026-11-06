@@ -72,3 +72,18 @@ def test_profile_maps_to_student_profile():
     profile = req.to_profile()
     assert profile.consulate_city == "Chennai"
     assert profile.planned_answers == [{"question": "Why UTD?", "answer": "STEM."}]
+
+
+def test_request_accepts_a_report_language_and_keeps_it_out_of_the_profile():
+    req = ProfileRequest(
+        language="ru",
+        planned_answers=[{"question": "Why UTD?", "answer": "STEM."}],
+    )
+    assert req.language == "ru"
+    # StudentProfile has no language field; passing it through would raise.
+    assert not hasattr(req.to_profile(), "language")
+
+
+def test_request_rejects_an_unsupported_language():
+    with pytest.raises(Exception):
+        ProfileRequest(language="de", planned_answers=[{"question": "q", "answer": "a"}])

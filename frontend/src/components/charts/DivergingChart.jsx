@@ -1,6 +1,26 @@
 import { useTooltip } from "./useTooltip";
 import Tooltip from "./Tooltip";
 import { questionLabel } from "../../data/questionLabels";
+import { useLang, useCopy, formatNumber } from "../../i18n";
+
+const COPY = {
+  en: {
+    empty: "No question types met the sample threshold.",
+    lower: "Lower approval",
+    higher: "Higher approval",
+    points: (pp) => `${pp} points vs the whole corpus`,
+    asked: (n) => `Asked in ${n} interviews`,
+    when: (v) => `Approval share when asked: ${v}%`,
+  },
+  ru: {
+    empty: "Ни один тип вопроса не набрал достаточно собеседований.",
+    lower: "Ниже доля одобрений",
+    higher: "Выше доля одобрений",
+    points: (pp) => `${pp} п. п. по сравнению со всеми данными`,
+    asked: (n) => `Задавали в ${n} собеседованиях`,
+    when: (v) => `Доля одобрений, когда спрашивали: ${v}%`,
+  },
+};
 
 // The longest bar takes this share of the row, so its value label still fits
 // between the bar's end and the edge of the plot on a phone.
@@ -15,23 +35,25 @@ const REACH = 40;
  */
 export default function DivergingChart({ rows }) {
   const { tip, bind } = useTooltip();
+  const { lang } = useLang();
+  const c = useCopy(COPY);
 
-  if (!rows?.length) return <p className="sub">No question types met the sample threshold.</p>;
+  if (!rows?.length) return <p className="sub">{c.empty}</p>;
 
   const maxAbs = Math.max(...rows.map((r) => Math.abs(r.delta_vs_base))) || 1;
 
   return (
     <div>
       <div className="vzdv-head" aria-hidden="true">
-        <span>Lower approval</span>
-        <span>Higher approval</span>
+        <span>{c.lower}</span>
+        <span>{c.higher}</span>
       </div>
       <div className="vzdv">
         {rows.map((r) => {
           const pp = r.delta_vs_base * 100;
           const width = (Math.abs(r.delta_vs_base) / maxAbs) * REACH;
           const neg = r.delta_vs_base < 0;
-          const label = questionLabel(r.question_type);
+          const label = questionLabel(r.question_type, lang);
           // Just past the bar's own end, on the side it grows towards.
           const at = `calc(50% + ${width}% + 6px)`;
           return (
@@ -41,10 +63,10 @@ export default function DivergingChart({ rows }) {
                 className="db"
                 style={{ width: `${width}%` }}
                 {...bind(label, [
-                  `${pp >= 0 ? "+" : ""}${pp.toFixed(1)} points vs the whole corpus`,
-                  `Asked in ${r.asked_in?.toLocaleString() ?? "?"} interviews`,
+                  c.points(`${pp >= 0 ? "+" : ""}${pp.toFixed(1)}`),
+                  c.asked(r.asked_in != null ? formatNumber(lang, r.asked_in) : "?"),
                   r.approval_rate_when_asked != null
-                    ? `Approval share when asked: ${(r.approval_rate_when_asked * 100).toFixed(1)}%`
+                    ? c.when((r.approval_rate_when_asked * 100).toFixed(1))
                     : "",
                 ])}
               />

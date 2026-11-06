@@ -1,14 +1,19 @@
 import { REVIEWS } from "../data/reviews";
+import { useLang } from "../i18n";
 
 const STAR = "M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 5.9L12 16.7l-5.3 2.9 1.1-5.9-4.4-4.2 6-.8L12 3.2z";
 
-const month = new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" });
+const MONTH = {
+  en: new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" }),
+  ru: new Intl.DateTimeFormat("ru", { month: "long", year: "numeric", timeZone: "UTC" }),
+};
 
 // Five square tiles with the star knocked out of each, the way review sites
 // draw a rating, set in ink instead of a brand red.
-function Stars({ value }) {
+function Stars({ value, lang }) {
+  const label = lang === "ru" ? `${value} из 5 звёзд` : `${value} out of 5 stars`;
   return (
-    <span className="stars" role="img" aria-label={`${value} out of 5 stars`}>
+    <span className="stars" role="img" aria-label={label}>
       {[1, 2, 3, 4, 5].map((n) => (
         <span className={n <= value ? "star is-on" : "star"} key={n} aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d={STAR} /></svg>
@@ -27,6 +32,8 @@ const initials = (name) =>
   name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
 export default function HomeReviews() {
+  const { lang } = useLang();
+  const month = MONTH[lang] || MONTH.en;
   return (
     <ul className="reviews-list">
       {REVIEWS.map((r, i) => (
@@ -43,7 +50,7 @@ export default function HomeReviews() {
               </span>
             </figcaption>
             <div className="review-rating">
-              <Stars value={r.rating} />
+              <Stars value={r.rating} lang={lang} />
               <time dateTime={r.date}>{month.format(new Date(`${r.date}-01T00:00:00Z`))}</time>
             </div>
             <blockquote className="review-text">

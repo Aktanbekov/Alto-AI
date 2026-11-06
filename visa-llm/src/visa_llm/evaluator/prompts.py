@@ -9,9 +9,13 @@ the answers) goes into the user message, after the last cache breakpoint.
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
+
+# The languages a report can be written in. English is the default and needs
+# no instruction: the system prompt and schema are already written in it.
+Language = Literal["en", "ru"]
 
 SYSTEM_PROMPT = """\
 You are an interview-preparation analyst for F-1 student visa applicants. You \
@@ -274,3 +278,38 @@ facts they did not give you.
 - Before returning, reread every sentence the student will see and ask whether \
 someone with no statistics training understands it. Rewrite the ones that fail.
 """
+
+
+# Appended to the user turn, never to the system prompt: the system blocks are
+# the cached prefix shared by every student, and a per-language variant there
+# would split the cache in two. One more short block in the uncached tail costs
+# a few dozen tokens.
+LANGUAGE_INSTRUCTIONS: dict[str, str] = {
+    "ru": """\
+# OUTPUT LANGUAGE: RUSSIAN
+
+The student reads this report in Russian. Write every field the student sees in \
+natural, plain Russian: summary, strengths, risks, suggested_revision, \
+why_likely, how_to_prepare, factor, evidence and caveat. Address the student \
+politely as «вы».
+
+The visa interview itself is held in English, so keep these in English:
+- answer_feedback.question: copy each question exactly as the student received it.
+- likely_questions.example_question: the English wording an officer is likely to use.
+- Any phrase you suggest the student could say at the window. Quote it in \
+English inside quotation marks and explain around it in Russian.
+
+Leave readiness, verdict, severity, question_type and comparable_interviews \
+exactly as the schema defines them; they are not shown to the student as text.
+
+The plain-language rules hold in Russian too: short sentences, everyday words, \
+one idea per sentence. Do not use statistical vocabulary such as «корреляция», \
+«выборка», «дельта», «базовый уровень» or «статистически». Write percentages \
+as «15%» and say what they mean right after.
+""",
+}
+
+
+def format_language(language: str | None) -> str:
+    """The output-language block for the user turn, or "" for English."""
+    return LANGUAGE_INSTRUCTIONS.get((language or "en").lower(), "")

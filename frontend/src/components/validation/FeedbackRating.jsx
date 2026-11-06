@@ -1,6 +1,28 @@
 import { useState, useEffect } from "react";
 import { sendQuickFeedback } from "../../api";
 import { track } from "../../analytics";
+import { useLang, useCopy, serverMessage } from "../../i18n";
+
+const COPY = {
+  en: {
+    failed: "Could not save that. Try again.",
+    thanks: "Thank you for your feedback.",
+    question: "How useful was this feedback?",
+    aria: (n) => `${n} out of 5${n === 1 ? ", not useful" : ""}${n === 5 ? ", very useful" : ""}`,
+    low: "Not useful",
+    high: "Very useful",
+    skip: "Skip",
+  },
+  ru: {
+    failed: "Не удалось сохранить. Попробуйте ещё раз.",
+    thanks: "Спасибо за отзыв.",
+    question: "Насколько полезным был разбор?",
+    aria: (n) => `${n} из 5${n === 1 ? ", бесполезно" : ""}${n === 5 ? ", очень полезно" : ""}`,
+    low: "Бесполезно",
+    high: "Очень полезно",
+    skip: "Пропустить",
+  },
+};
 
 /*
  * The prompt under the first report: one question, five buttons, and a way out.
@@ -13,6 +35,8 @@ import { track } from "../../analytics";
 export default function FeedbackRating({ setIndex, onDone }) {
   const [state, setState] = useState("asking"); // asking | saving | done
   const [error, setError] = useState("");
+  const { lang } = useLang();
+  const c = useCopy(COPY);
 
   useEffect(() => { track("first_feedback_shown", { set_index: setIndex }); }, [setIndex]);
 
@@ -26,7 +50,7 @@ export default function FeedbackRating({ setIndex, onDone }) {
       onDone?.();
     } catch (err) {
       // Recoverable: they keep the buttons and can try again or move on.
-      setError(err.message || "Could not save that. Try again.");
+      setError(serverMessage(lang, err.message) || c.failed);
       setState("asking");
     }
   };
@@ -34,7 +58,7 @@ export default function FeedbackRating({ setIndex, onDone }) {
   if (state === "done") {
     return (
       <div className="vz-card vfb" role="status">
-        <p className="vfb-thanks">Thank you for your feedback.</p>
+        <p className="vfb-thanks">{c.thanks}</p>
       </div>
     );
   }
@@ -43,7 +67,7 @@ export default function FeedbackRating({ setIndex, onDone }) {
 
   return (
     <div className="vz-card vfb">
-      <h2 className="vfb-q" id="rating-label">How useful was this feedback?</h2>
+      <h2 className="vfb-q" id="rating-label">{c.question}</h2>
 
       <div className="vfb-scale" role="group" aria-labelledby="rating-label">
         {[1, 2, 3, 4, 5].map((n) => (
@@ -53,15 +77,15 @@ export default function FeedbackRating({ setIndex, onDone }) {
             className="vfb-num"
             disabled={busy}
             onClick={() => send({ rating: n }, "first_feedback_submitted")}
-            aria-label={`${n} out of 5${n === 1 ? ", not useful" : ""}${n === 5 ? ", very useful" : ""}`}
+            aria-label={c.aria(n)}
           >
             {n}
           </button>
         ))}
       </div>
       <div className="vfb-ends" aria-hidden="true">
-        <span>Not useful</span>
-        <span>Very useful</span>
+        <span>{c.low}</span>
+        <span>{c.high}</span>
       </div>
 
       {error && <p className="vfb-err">{error}</p>}
@@ -72,7 +96,7 @@ export default function FeedbackRating({ setIndex, onDone }) {
         disabled={busy}
         onClick={() => send({ skipped: true }, "first_feedback_skipped")}
       >
-        Skip
+        {c.skip}
       </button>
     </div>
   );

@@ -3,6 +3,52 @@ import { Link } from "react-router-dom";
 import { getCorpusStats } from "../api";
 import { questionLabel } from "../data/questionLabels";
 import Arrow from "./ui/Arrow";
+import { useLang, useCopy } from "../i18n";
+
+const COPY = {
+  en: {
+    loading: "Loading the numbers…",
+    moneyTitle: "Money comes up first.",
+    askedTitle: "What officers ask most.",
+    moneyText: "The most common questions are all about who pays for your degree.",
+    askedText: "The questions that came up most often across all the interviews.",
+    askedNote: "Share of interviews where it was asked",
+    attemptHarder: "A second attempt is harder.",
+    attemptSame: "First and second attempts.",
+    attemptText: (a, b) => `${a} of first-attempt posts report an approval, against ${b} on a second attempt.`,
+    first: "First attempt",
+    second: "Second attempt",
+    approvalNote: "Share of posts reporting an approval",
+    degreeHarder: "Bachelor's applicants are refused more often.",
+    degreeSame: "Bachelor's and Master's.",
+    degreeText: (m, b) => `${m} of Master's posts report an approval, against ${b} of Bachelor's.`,
+    masters: "Master's",
+    bachelors: "Bachelor's",
+    foot: "These describe students who chose to post about their interview, not official approval rates.",
+    more: "See all the numbers",
+  },
+  ru: {
+    loading: "Загружаем цифры…",
+    moneyTitle: "Сначала — о деньгах.",
+    askedTitle: "О чём офицеры спрашивают чаще всего.",
+    moneyText: "Самые частые вопросы — о том, кто платит за вашу учёбу.",
+    askedText: "Вопросы, которые звучали чаще всего во всех собеседованиях.",
+    askedNote: "Доля собеседований, где задавали этот вопрос",
+    attemptHarder: "Вторая попытка сложнее.",
+    attemptSame: "Первая и вторая попытки.",
+    attemptText: (a, b) => `Об одобрении пишут ${a} заявителей с первой попытки и ${b} — со второй.`,
+    first: "Первая попытка",
+    second: "Вторая попытка",
+    approvalNote: "Доля рассказов с одобрением",
+    degreeHarder: "Поступающим в бакалавриат отказывают чаще.",
+    degreeSame: "Бакалавриат и магистратура.",
+    degreeText: (m, b) => `Об одобрении пишут ${m} поступающих в магистратуру и ${b} — в бакалавриат.`,
+    masters: "Магистратура",
+    bachelors: "Бакалавриат",
+    foot: "Это данные о студентах, которые сами решили рассказать о своём собеседовании, а не официальная статистика одобрений.",
+    more: "Все цифры",
+  },
+};
 
 const pct = (x) => `${Math.round(x * 100)}%`;
 
@@ -40,6 +86,8 @@ function Bars({ rows }) {
 export default function HomeFindings() {
   const [stats, setStats] = useState(null);
   const [failed, setFailed] = useState(false);
+  const { lang } = useLang();
+  const c = useCopy(COPY);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +98,7 @@ export default function HomeFindings() {
   }, []);
 
   if (failed) return null;
-  if (!stats) return <p className="meta" role="status">Loading the numbers…</p>;
+  if (!stats) return <p className="meta" role="status">{c.loading}</p>;
 
   const findings = [];
 
@@ -62,12 +110,10 @@ export default function HomeFindings() {
     const money = asked.slice(0, 3).every((q) => MONEY.has(q.question_type));
     findings.push({
       key: "asked",
-      title: money ? "Money comes up first." : "What officers ask most.",
-      text: money
-        ? "The most common questions are all about who pays for your degree."
-        : "The questions that came up most often across all the interviews.",
-      rows: asked.map((q) => ({ label: questionLabel(q.question_type), value: q.share_of_interviews })),
-      note: "Share of interviews where it was asked",
+      title: money ? c.moneyTitle : c.askedTitle,
+      text: money ? c.moneyText : c.askedText,
+      rows: asked.map((q) => ({ label: questionLabel(q.question_type, lang), value: q.share_of_interviews })),
+      note: c.askedNote,
     });
   }
 
@@ -77,13 +123,13 @@ export default function HomeFindings() {
     const harder = second.approval_rate < first.approval_rate - 0.05;
     findings.push({
       key: "attempt",
-      title: harder ? "A second attempt is harder." : "First and second attempts.",
-      text: `${pct(first.approval_rate)} of first-attempt posts report an approval, against ${pct(second.approval_rate)} on a second attempt.`,
+      title: harder ? c.attemptHarder : c.attemptSame,
+      text: c.attemptText(pct(first.approval_rate), pct(second.approval_rate)),
       rows: [
-        { label: "First attempt", value: first.approval_rate },
-        { label: "Second attempt", value: second.approval_rate },
+        { label: c.first, value: first.approval_rate },
+        { label: c.second, value: second.approval_rate },
       ],
-      note: "Share of posts reporting an approval",
+      note: c.approvalNote,
     });
   }
 
@@ -93,13 +139,13 @@ export default function HomeFindings() {
     const harder = bachelors.approval_rate < masters.approval_rate - 0.05;
     findings.push({
       key: "degree",
-      title: harder ? "Bachelor's applicants are refused more often." : "Bachelor's and Master's.",
-      text: `${pct(masters.approval_rate)} of Master's posts report an approval, against ${pct(bachelors.approval_rate)} of Bachelor's.`,
+      title: harder ? c.degreeHarder : c.degreeSame,
+      text: c.degreeText(pct(masters.approval_rate), pct(bachelors.approval_rate)),
       rows: [
-        { label: "Master's", value: masters.approval_rate },
-        { label: "Bachelor's", value: bachelors.approval_rate },
+        { label: c.masters, value: masters.approval_rate },
+        { label: c.bachelors, value: bachelors.approval_rate },
       ],
-      note: "Share of posts reporting an approval",
+      note: c.approvalNote,
     });
   }
 
@@ -118,10 +164,9 @@ export default function HomeFindings() {
         ))}
       </div>
       <p className="findings-foot">
-        These describe students who chose to post about their interview, not official
-        approval rates.{" "}
+        {c.foot}{" "}
         <Link to="/data" className="more">
-          See all the numbers <Arrow />
+          {c.more} <Arrow />
         </Link>
       </p>
     </>

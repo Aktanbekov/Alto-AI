@@ -1,9 +1,23 @@
 import { useTooltip } from "./useTooltip";
 import Tooltip from "./Tooltip";
+import { useLang, useCopy, formatNumber } from "../../i18n";
+
+const COPY = {
+  en: {
+    interviews: (n) => `${n} interviews`,
+    ofCorpus: (p) => `${p}% of corpus`,
+  },
+  ru: {
+    interviews: (n) => `Собеседований: ${n}`,
+    ofCorpus: (p) => `${p}% всех данных`,
+  },
+};
 
 // Outcome mix as one stacked bar, in visa_llm's palette.
 export default function ProportionBar({ segments }) {
   const { tip, bind } = useTooltip();
+  const { lang } = useLang();
+  const c = useCopy(COPY);
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
 
   return (
@@ -18,8 +32,8 @@ export default function ProportionBar({ segments }) {
             key={s.label}
             style={{ width: `${(s.value / total) * 100}%`, background: s.color }}
             {...bind(s.label, [
-              `${s.value.toLocaleString()} interviews`,
-              `${((s.value / total) * 100).toFixed(1)}% of corpus`,
+              c.interviews(formatNumber(lang, s.value)),
+              c.ofCorpus(((s.value / total) * 100).toFixed(1)),
             ])}
           />
         ))}
@@ -28,7 +42,7 @@ export default function ProportionBar({ segments }) {
         {segments.map((s) => (
           <span key={s.label}>
             <i style={{ background: s.color }} />
-            {s.label} - {s.value.toLocaleString()} ({((s.value / total) * 100).toFixed(1)}%)
+            {s.label} - {formatNumber(lang, s.value)} ({((s.value / total) * 100).toFixed(1)}%)
           </span>
         ))}
       </div>

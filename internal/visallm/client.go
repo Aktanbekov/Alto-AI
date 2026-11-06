@@ -71,6 +71,11 @@ type ProfileRequest struct {
 	TestScores       map[string]string `json:"test_scores,omitempty"`
 	PlannedAnswers   []PlannedAnswer   `json:"planned_answers"`
 
+	// The language the student-facing parts of the report are written in: "en"
+	// or "ru". Empty means English. Handlers pass it through NormalizeLanguage
+	// first, so the sidecar never sees a value it does not support.
+	Language string `json:"language,omitempty"`
+
 	// Which model scores this run. The public and admin comparison handlers set
 	// this server-side while fanning the profile out to the fixed provider set.
 	//
@@ -78,6 +83,25 @@ type ProfileRequest struct {
 	// providers. Left caller-controlled, this field would let anyone pick which
 	// vendor we pay for.
 	Model string `json:"model,omitempty"`
+}
+
+// Languages the sidecar can write a report in. The site defaults to Russian;
+// the sidecar's own default, for a request that names none, is English.
+var supportedLanguages = map[string]bool{"en": true, "ru": true}
+
+// NormalizeLanguage returns a supported language code for the report, or ""
+// for anything else. A browser that sends "ru-RU" or "RU" still gets Russian;
+// an unknown value falls back to the sidecar default rather than failing the
+// request, because the student's answers matter more than the label on them.
+func NormalizeLanguage(lang string) string {
+	code := strings.ToLower(strings.TrimSpace(lang))
+	if i := strings.IndexAny(code, "-_"); i > 0 {
+		code = code[:i]
+	}
+	if supportedLanguages[code] {
+		return code
+	}
+	return ""
 }
 
 type AnswerFeedback struct {

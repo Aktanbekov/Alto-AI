@@ -14,6 +14,7 @@ from .prompts import (
     SYSTEM_PROMPT,
     TASK_INSTRUCTION,
     format_city_mix,
+    format_language,
     format_retrieved,
     format_statistics,
     format_student,
@@ -44,6 +45,7 @@ def build_messages(
     stats: dict[str, Any],
     retrieved: pd.DataFrame,
     full_df: pd.DataFrame | None,
+    language: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Return (system_blocks, messages).
 
@@ -51,6 +53,9 @@ def build_messages(
     statistics are byte-identical for every student, so every evaluation from
     every consulate shares one cached prefix. All three providers cache on
     prefix, so this ordering is what makes caching work for each of them.
+
+    The report language goes last in the user turn for the same reason: it is
+    per-student, so it must not touch the cached system blocks.
 
     Nothing per-student is cached. The retrieved block changes with every set
     of answers - retrieval embeds the answers, and each record's header carries
@@ -70,6 +75,7 @@ def build_messages(
         format_retrieved(retrieved, full_df),
         format_student(profile),
         TASK_INSTRUCTION,
+        format_language(language),
     ]
     user_text = "\n\n".join(part for part in parts if part)
     return system_blocks, [{"role": "user", "content": user_text}]
@@ -82,8 +88,13 @@ def evaluate(
     parquet_path: Path | None = None,
     k: int = DEFAULT_K,
     model: str = MODEL,
+    language: str | None = None,
 ) -> tuple[Evaluation, dict[str, Any]]:
-    """Retrieve comparables, call the chosen model, validate the result."""
+    """Retrieve comparables, call the chosen model, validate the result.
+
+    `language` is the language the student reads the report in ("en" or
+    "ru"); None means English.
+    """
     stats = json.loads(Path(stats_path).read_text())
     index = InterviewIndex(Path(index_dir))
     retrieved = index.search(profile, k=k)
@@ -92,7 +103,7 @@ def evaluate(
     if parquet_path is not None and Path(parquet_path).exists():
         full_df = add_record_id(pd.read_parquet(parquet_path))
 
-    system_blocks, messages = build_messages(profile, stats, retrieved, full_df)
+    system_blocks, messages = build_messages(profile, stats, retrieved, full_df, language)
 
     # The retrieval and the prompt above are provider-independent on purpose:
     # every model in the comparison sees the same corpus context and the same
@@ -109,6 +120,7 @@ def evaluate(
         if "record_id" in retrieved.columns
         else [],
         "pool_size": int(retrieved["pool_size"].iloc[0]) if len(retrieved) else 0,
+        "language": language or "en",
     }
     return evaluation, meta
 

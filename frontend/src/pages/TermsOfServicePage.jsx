@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
 import { REFUSAL_COVER_INTERVIEWS } from "../constants/pricing";
+import { useLang } from "../i18n";
+import TermsOfServiceRu from "./legal/TermsOfServiceRu";
 
 const CONTACT = "altovisas@gmail.com";
 const UPDATED = "21 October 2026";
@@ -30,6 +32,8 @@ const TOC = [
 ];
 
 export default function TermsOfServicePage() {
+  const { lang } = useLang();
+  if (lang === "ru") return <TermsOfServiceRu />;
   return (
     <LegalLayout
       title="Terms of Service"
@@ -293,10 +297,10 @@ export default function TermsOfServicePage() {
         <p>
           We do not sell Your Content, publish it, or show it to other users, and we do not
           use it to train machine-learning models of our own. To generate your feedback it is
-          processed by third-party AI providers. The{" "}
+          processed by a third-party AI provider. The{" "}
           <Link to="/privacy">Privacy Policy</Link>{" "}
-          describes them, explains what their terms allow, and tells you how to have your
-          content deleted.
+          describes it, explains what its terms allow, and tells you how to have your content
+          deleted.
         </p>
         <p>
           You confirm that you have the right to submit Your Content and that it does not

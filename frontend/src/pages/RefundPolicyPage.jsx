@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
 import { REFUSAL_COVER_INTERVIEWS } from "../constants/pricing";
+import { useLang } from "../i18n";
+import RefundPolicyRu from "./legal/RefundPolicyRu";
 
 const CONTACT = "altovisas@gmail.com";
 const UPDATED = "21 October 2026";
@@ -20,6 +22,8 @@ const TOC = [
 ];
 
 export default function RefundPolicyPage() {
+  const { lang } = useLang();
+  if (lang === "ru") return <RefundPolicyRu />;
   return (
     <LegalLayout
       title="Refund Policy"

@@ -1,16 +1,47 @@
 import { useState, useEffect } from "react";
 import { sendDetailFeedback } from "../../api";
 import { track } from "../../analytics";
+import { useLang, useCopy, serverMessage } from "../../i18n";
 
 // The options are stored as stable keys, not as the labels - the wording can be
-// rewritten without orphaning every answer collected under the old phrasing.
-const OPTIONS = [
-  { value: "answer_analysis", label: "Answer analysis" },
-  { value: "suggested_answer", label: "Suggested answer" },
-  { value: "risk_detection", label: "Risk detection" },
-  { value: "score", label: "Score" },
-  { value: "none", label: "None of these" },
-];
+// rewritten (or translated) without orphaning every answer collected under the
+// old phrasing.
+const OPTIONS = ["answer_analysis", "suggested_answer", "risk_detection", "score", "none"];
+
+const COPY = {
+  en: {
+    options: {
+      answer_analysis: "Answer analysis",
+      suggested_answer: "Suggested answer",
+      risk_detection: "Risk detection",
+      score: "Score",
+      none: "None of these",
+    },
+    failed: "Could not save that. Try again.",
+    thanks: "Thank you for your feedback.",
+    question: "What was the most useful part?",
+    missing: "What felt inaccurate, confusing, or missing?",
+    saving: "Saving…",
+    submit: "Submit feedback",
+    skip: "Skip",
+  },
+  ru: {
+    options: {
+      answer_analysis: "Разбор ответов",
+      suggested_answer: "Советы по ответу",
+      risk_detection: "Поиск рисков",
+      score: "Оценка",
+      none: "Ничего из этого",
+    },
+    failed: "Не удалось сохранить. Попробуйте ещё раз.",
+    thanks: "Спасибо за отзыв.",
+    question: "Что было полезнее всего?",
+    missing: "Что показалось неточным, непонятным или чего не хватило?",
+    saving: "Сохраняем…",
+    submit: "Отправить отзыв",
+    skip: "Пропустить",
+  },
+};
 
 const MAX_TEXT = 1000;
 
@@ -26,6 +57,8 @@ export default function FeedbackCard({ setIndex, onDone }) {
   const [text, setText] = useState("");
   const [state, setState] = useState("asking"); // asking | saving | done
   const [error, setError] = useState("");
+  const { lang } = useLang();
+  const c = useCopy(COPY);
 
   useEffect(() => { track("second_feedback_shown", { set_index: setIndex }); }, [setIndex]);
 
@@ -39,7 +72,7 @@ export default function FeedbackCard({ setIndex, onDone }) {
       // The access screen follows either way - submitted or skipped.
       onDone?.();
     } catch (err) {
-      setError(err.message || "Could not save that. Try again.");
+      setError(serverMessage(lang, err.message) || c.failed);
       setState("asking");
     }
   };
@@ -47,7 +80,7 @@ export default function FeedbackCard({ setIndex, onDone }) {
   if (state === "done") {
     return (
       <div className="vz-card vfb" role="status">
-        <p className="vfb-thanks">Thank you for your feedback.</p>
+        <p className="vfb-thanks">{c.thanks}</p>
       </div>
     );
   }
@@ -57,25 +90,25 @@ export default function FeedbackCard({ setIndex, onDone }) {
 
   return (
     <div className="vz-card vfb">
-      <h2 className="vfb-q" id="most-useful-label">What was the most useful part?</h2>
+      <h2 className="vfb-q" id="most-useful-label">{c.question}</h2>
       <div className="vfb-options" role="radiogroup" aria-labelledby="most-useful-label">
-        {OPTIONS.map((o) => (
+        {OPTIONS.map((value) => (
           <button
-            key={o.value}
+            key={value}
             type="button"
             role="radio"
-            aria-checked={mostUseful === o.value}
-            className={`vfb-option${mostUseful === o.value ? " on" : ""}`}
+            aria-checked={mostUseful === value}
+            className={`vfb-option${mostUseful === value ? " on" : ""}`}
             disabled={busy}
-            onClick={() => setMostUseful(o.value)}
+            onClick={() => setMostUseful(value)}
           >
-            {o.label}
+            {c.options[value]}
           </button>
         ))}
       </div>
 
       <label className="vfb-text">
-        <span className="fl">What felt inaccurate, confusing, or missing?</span>
+        <span className="fl">{c.missing}</span>
         <textarea
           rows={3}
           value={text}
@@ -102,7 +135,7 @@ export default function FeedbackCard({ setIndex, onDone }) {
             )
           }
         >
-          {busy ? "Saving…" : "Submit feedback"}
+          {busy ? c.saving : c.submit}
         </button>
         <button
           type="button"
@@ -110,7 +143,7 @@ export default function FeedbackCard({ setIndex, onDone }) {
           disabled={busy}
           onClick={() => send({ skipped: true }, "second_feedback_skipped")}
         >
-          Skip
+          {c.skip}
         </button>
       </div>
     </div>

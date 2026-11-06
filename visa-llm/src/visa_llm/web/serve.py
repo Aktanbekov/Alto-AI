@@ -13,6 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from ..evaluator.prompts import Language
 from ..evaluator.providers import DEFAULT_PROVIDER, PROVIDERS, cost_of, resolve
 from ..evaluator.schema import Evaluation
 from ..rag.retrieve import StudentProfile
@@ -66,13 +67,17 @@ class ProfileRequest(BaseModel):
     # Which model scores this. Omitted by real users, who always get the
     # production provider; the admin comparison names one per call.
     model: str | None = Field(default=None, max_length=64)
+    # The language the student reads the report in. Omitted means English.
+    # Like `model`, it shapes the answer rather than describing the student.
+    language: Language | None = None
 
     def to_profile(self) -> StudentProfile:
         data = self.model_dump()
         answers = data.pop("planned_answers", [])
-        # `model` is a routing instruction, not part of the student's profile -
-        # StudentProfile has no such field and would reject it.
+        # `model` and `language` are instructions, not part of the student's
+        # profile - StudentProfile has no such fields and would reject them.
         data.pop("model", None)
+        data.pop("language", None)
         return StudentProfile(**data, planned_answers=answers)
 
 
@@ -141,14 +146,13 @@ def create_app(processed_dir: Path, web_dir: Path):
                 stats_path=processed_dir / "stats.json",
                 parquet_path=processed_dir / "interviews.parquet",
                 model=req.model or DEFAULT_PROVIDER,
+                language=req.language,
             )
         except Exception as exc:  # surface the real cause, not a generic 500
             message = str(exc)
             # Billing and auth failures are the common ones and are actionable;
-            # they should not read as "the app is broken". Since more than one
-            # vendor can raise them, the message has to name the one that
-            # actually failed - telling an operator to top up Anthropic because
-            # DeepSeek is empty sends them to the wrong console.
+            # they should not read as "the app is broken", so the message names
+            # the provider and the key that failed.
             try:
                 provider = resolve(req.model or DEFAULT_PROVIDER)
                 vendor, env_key = provider.label, provider.env_key

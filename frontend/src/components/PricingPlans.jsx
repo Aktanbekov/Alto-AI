@@ -1,9 +1,35 @@
 import { Link } from "react-router-dom";
-import { APPLICANTS_PREPPED, PRICING_PLANS, checkoutPath } from "../constants/pricing";
+import { APPLICANTS_PREPPED, pricingPlans, checkoutPath } from "../constants/pricing";
 import { CORPUS } from "../seo/site";
 import { track } from "../analytics";
+import { useLang, useCopy, formatNumber } from "../i18n";
 import Arrow from "./ui/Arrow";
 import "./PricingPlans.css";
+
+const COPY = {
+  en: {
+    prepped: "applicants prepped",
+    noSub: "No subscription. Pay once.",
+    builtOn: (n) => <>Built on <strong>{n}</strong> interview reports</>,
+    free: "Free",
+    oneTime: "one-time",
+    noCard: "no card needed",
+    perInterview: (x) => `$${x} per interview`,
+    foot: "Prices in US dollars. You pay once, and nothing renews.",
+    details: "What each plan includes",
+  },
+  ru: {
+    prepped: "заявителей уже подготовились",
+    noSub: "Без подписки. Платите один раз.",
+    builtOn: (n) => <>Основано на <strong>{n}</strong> отчётах о собеседованиях</>,
+    free: "Бесплатно",
+    oneTime: "разово",
+    noCard: "карта не нужна",
+    perInterview: (x) => `$${x} за собеседование`,
+    foot: "Цены в долларах США. Вы платите один раз, ничего не продлевается.",
+    details: "Что входит в каждый тариф",
+  },
+};
 
 // Line icons in the same 1.6 stroke as the rest of the set.
 const ICONS = {
@@ -25,7 +51,6 @@ function Icon({ name, size = 20 }) {
   );
 }
 
-const perInterview = (p) => `$${(p.price / p.interviews).toFixed(2)} per interview`;
 
 /*
  * Four one-time plans, side by side. Each card is a subgrid row set, so the
@@ -34,6 +59,9 @@ const perInterview = (p) => `$${(p.price / p.interviews).toFixed(2)} per intervi
  * the home page passes `detailsLink` to point at the full page.
  */
 export default function PricingPlans({ onStart, detailsLink = false }) {
+  const { lang } = useLang();
+  const c = useCopy(COPY);
+  const plans = pricingPlans(lang);
   const choose = (plan) => track("pricing_plan_click", { plan: plan.id, price: plan.price });
 
   return (
@@ -41,14 +69,14 @@ export default function PricingPlans({ onStart, detailsLink = false }) {
       <ul className="price-trust">
         {/* A placeholder figure, so it shows in local development only. */}
         {import.meta.env.DEV && (
-          <li><Icon name="check" size={18} /><span><strong>{APPLICANTS_PREPPED}</strong> applicants prepped</span></li>
+          <li><Icon name="check" size={18} /><span><strong>{APPLICANTS_PREPPED}</strong> {c.prepped}</span></li>
         )}
-        <li><Icon name="once" size={18} /><span>No subscription. Pay once.</span></li>
-        <li><Icon name="report" size={18} /><span>Built on <strong>{CORPUS.interviews.toLocaleString()}</strong> interview reports</span></li>
+        <li><Icon name="once" size={18} /><span>{c.noSub}</span></li>
+        <li><Icon name="report" size={18} /><span>{c.builtOn(formatNumber(lang, CORPUS.interviews))}</span></li>
       </ul>
 
       <ul className="price-tiers">
-        {PRICING_PLANS.map((p) => (
+        {plans.map((p) => (
           <li key={p.id} className={`tier tier-${p.id}${p.badge ? " has-badge" : ""}`}>
             {p.badge && (
               <p className="tier-badge">
@@ -64,10 +92,10 @@ export default function PricingPlans({ onStart, detailsLink = false }) {
 
             <div className="tier-price">
               <p className="tier-amount">
-                <span className="tier-figure">{p.price ? `$${p.price}` : "Free"}</span>
-                <span className="tier-term">{p.price ? "one-time" : "no card needed"}</span>
+                <span className="tier-figure">{p.price ? `$${p.price}` : c.free}</span>
+                <span className="tier-term">{p.price ? c.oneTime : c.noCard}</span>
               </p>
-              {p.price > 0 && <p className="tier-unit">{perInterview(p)}</p>}
+              {p.price > 0 && <p className="tier-unit">{c.perInterview((p.price / p.interviews).toFixed(2))}</p>}
             </div>
 
             <div className="tier-body">
@@ -109,9 +137,9 @@ export default function PricingPlans({ onStart, detailsLink = false }) {
       </ul>
 
       <p className="price-foot">
-        Prices in US dollars. You pay once, and nothing renews.{" "}
+        {c.foot}{" "}
         {detailsLink && (
-          <Link to="/pricing" className="more">What each plan includes <Arrow /></Link>
+          <Link to="/pricing" className="more">{c.details} <Arrow /></Link>
         )}
       </p>
     </>

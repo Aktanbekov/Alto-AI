@@ -5,7 +5,7 @@ import {
 } from "../api";
 import { useCurrentUser } from "../components/ProtectedRoute";
 import { TEST_PROFILE, testAnswerFor } from "../data/testProfile";
-import { askAs } from "../data/questionPhrasing";
+import { askAs, askAsRu } from "../data/questionPhrasing";
 import ModelCompare from "../components/admin/ModelCompare";
 import { track, trackScrollDepth, gpaBandOf } from "../analytics";
 import FeedbackRating from "../components/validation/FeedbackRating";
@@ -15,14 +15,14 @@ import SurveyFlow from "../components/validation/SurveyFlow";
 import { questionLabel } from "../data/questionLabels";
 import { SMALL_N } from "../components/charts/useChartWidth";
 import Arrow from "../components/ui/Arrow";
+import { useLang, useCopy, plural, formatNumber, serverMessage } from "../i18n";
 
 /*
  * The profile evaluator, ported from visa-llm's own Evaluate view.
  *
- * It posts to /api/v1/evaluate, which fans the same grounded prompt out to
- * three providers through the visa-llm sidecar. Every report receives the same
- * retrieved interviews and precomputed corpus statistics; a student is sent
- * one of them, an admin all three.
+ * It posts to /api/v1/evaluate, which scores the grounded prompt with
+ * Anthropic through the visa-llm sidecar, using the retrieved interviews and
+ * precomputed corpus statistics.
  */
 
 // Questions come three at a time from the corpus bank, walked in order of how
@@ -155,21 +155,203 @@ function roundQuestions(pool, round) {
 // undergraduate does not, so the field is hidden rather than left confusing.
 const POSTGRAD = new Set(["Masters", "MBA", "PhD"]);
 
-const SCALES = [
-  { value: "", label: "Choose a scale" },
-  { value: "4", label: "Out of 4.0 (US and similar)" },
-  { value: "4.3", label: "Out of 4.3" },
-  { value: "5", label: "Out of 5.0" },
-  { value: "10", label: "Out of 10 (India CGPA)" },
-  { value: "100", label: "Percentage (out of 100)" },
-];
-
-const ATTEMPTS = [
-  { value: "1", label: "First attempt" },
-  { value: "2", label: "Second attempt" },
-  { value: "3", label: "Third attempt" },
-  { value: "4", label: "Fourth or later" },
-];
+/*
+ * Every word this page shows, in both languages. The values sent to the
+ * server (degree, scale, attempt) never change with the language - only what
+ * the reader sees beside them.
+ */
+const COPY = {
+  en: {
+    scales: [
+      { value: "", label: "Choose a scale" },
+      { value: "4", label: "Out of 4.0 (US and similar)" },
+      { value: "4.3", label: "Out of 4.3" },
+      { value: "5", label: "Out of 5.0" },
+      { value: "10", label: "Out of 10 (India CGPA)" },
+      { value: "100", label: "Percentage (out of 100)" },
+    ],
+    attempts: [
+      { value: "1", label: "First attempt" },
+      { value: "2", label: "Second attempt" },
+      { value: "3", label: "Third attempt" },
+      { value: "4", label: "Fourth or later" },
+    ],
+    degrees: { Bachelor: "Bachelor's", Masters: "Master's", MBA: "MBA", PhD: "PhD" },
+    gpaScale:
+      "Choose what your grades are out of. A number on its own is ambiguous - 3.5 out of 4 " +
+      "is strong, 3.5 out of 10 is not. Or clear the grades box.",
+    offline: "We couldn't reach Altovisas. Check your connection and try again - your answers are still here.",
+    failed: "Something went wrong while checking your answers. Try again in a moment.",
+    coverCity: (n, name) => <><strong>{n} interviews</strong> from {name} in the data.</>,
+    coverNoCity: (city) => <>No interviews from {city} in the data yet. </>,
+    coverCountry: (n, name) => <><strong>{n} interviews</strong> from {name} overall.</>,
+    coverThin: " That is a thin comparison - read the numbers in your report with that in mind.",
+    coverNone: (name) =>
+      `Few or no interviews from ${name} in the data yet. Your answers are still ` +
+      "checked, but the comparisons lean on other consulates, mostly in India.",
+    compareEmpty: "Fill in at least one answer before comparing models.",
+    answerOne: "Answer at least one of the three questions, then check again.",
+    nextThree: "Next three questions",
+    changeAnswer: "Change an answer and check again",
+    lastRound:
+      "That was the last round of questions. Start again from the top whenever you want another pass.",
+    adminIntro: "Admin view: every model's report on the same answers. Students see one.",
+    noReport: "The report didn’t come back.",
+    noReportStill: "Your answers are still here -",
+    goBack: "go back and check again",
+    stepStudy: "Your study",
+    stepInterview: "Your interview",
+    stepQuestion: (i, n) => `Question ${i} of ${n}`,
+    admin: "Admin",
+    fill: "Fill with test data",
+    scoring: "Scoring…",
+    scoreFree: "Score without a round",
+    adminNote: "Fill drops in a sample applicant. Score runs this round with Claude Opus — no practice round spent, nothing stored.",
+    stepOf: (i, n) => `Step ${i} of ${n}`,
+    roundN: (n) => `Round ${n} · `,
+    progress: "Progress",
+    studyTitle: "First, your study",
+    studySub: "This is how we find interviews like yours. Skip anything you don’t know.",
+    degreeQ: "What degree are you applying for?",
+    university: "University",
+    universityHint: "e.g. Arizona State University",
+    course: "What you will study",
+    courseHint: "e.g. MS in Computer Science",
+    major: "What you studied before",
+    majorHint: "e.g. B.Tech in Mechanical Engineering",
+    gpa: "Your grades",
+    gpaHint: "e.g. 8.2",
+    outOf: "Out of",
+    interviewTitle: "Your interview and funding",
+    interviewSub: "The consulate decides which officers’ questions we compare you with.",
+    consulate: "Which consulate is your interview at?",
+    consulateHint: "e.g. Chennai",
+    funding: "Who is paying for your degree?",
+    fundingHint: "e.g. My father's business savings and an education loan",
+    more: "Add more detail",
+    optional: "(optional)",
+    work: "Work experience",
+    workHint: "e.g. 2 years as a data analyst, or none",
+    firstAttempt: "Is this your first attempt?",
+    country: "Consulate country",
+    countryAuto: (c) => `We'll use ${c} unless you change it`,
+    countryHint: "e.g. India",
+    askedIn: (p) => `Asked in ${p}% of the interviews in the data`,
+    answerTip: "Write what you would really say at the window. Two or three sentences is plenty. You can leave a question blank.",
+    check: "Check my answers",
+    nextQ: "Next question",
+    cont: "Continue",
+    back: "Back",
+    edit: "Edit your details",
+    statusChecking: "Checking that scoring is up…",
+    statusDown: "Scoring is down right now. Your answers stay in this browser until it's back.",
+    statusUnlimited: "Your admin account has unlimited practice rounds.",
+    statusLeft: (n) => `A new round uses one of your free rounds. You have ${n} left.`,
+    statusSaved: "Your answers are saved in this browser as you type.",
+    title: "Profile check",
+    lede: "A few details about you, then three questions officers ask most. We show where an officer would push back.",
+    downTitle: "Scoring is down right now.",
+    downBody: "You can still fill this in; your answers stay in this browser, and you can check them when it’s back.",
+    adminDetail: "Admin detail:",
+  },
+  ru: {
+    scales: [
+      { value: "", label: "Выберите шкалу" },
+      { value: "4", label: "Из 4.0 (США и похожие)" },
+      { value: "4.3", label: "Из 4.3" },
+      { value: "5", label: "Из 5 (пятибалльная)" },
+      { value: "10", label: "Из 10 (CGPA, Индия)" },
+      { value: "100", label: "Проценты (из 100)" },
+    ],
+    attempts: [
+      { value: "1", label: "Первая попытка" },
+      { value: "2", label: "Вторая попытка" },
+      { value: "3", label: "Третья попытка" },
+      { value: "4", label: "Четвёртая или позже" },
+    ],
+    degrees: { Bachelor: "Бакалавриат", Masters: "Магистратура", MBA: "MBA", PhD: "PhD" },
+    gpaScale:
+      "Выберите, из скольки баллов ваша оценка. Одно число ничего не говорит: 3.5 из 4 — " +
+      "это высокая оценка, а 3.5 из 10 — нет. Или очистите поле с оценками.",
+    offline: "Не удалось связаться с Altovisas. Проверьте подключение и попробуйте ещё раз — ваши ответы никуда не делись.",
+    failed: "При проверке ответов что-то пошло не так. Попробуйте ещё раз через минуту.",
+    coverCity: (n, name, count) => (
+      <>{name}: в данных <strong>{n} {plural("ru", count, ["собеседование", "собеседования", "собеседований"])}</strong>.</>
+    ),
+    coverNoCity: (city) => <>{city}: собеседований в данных пока нет. </>,
+    coverCountry: (n, name, count) => (
+      <>{name} в целом: <strong>{n} {plural("ru", count, ["собеседование", "собеседования", "собеседований"])}</strong>.</>
+    ),
+    coverThin: " Сравнивать особо не с чем — учитывайте это, читая цифры в отчёте.",
+    coverNone: (name) =>
+      `${name}: собеседований в данных пока мало или нет совсем. Ваши ответы всё равно ` +
+      "проверят, но сравнение будет опираться на другие консульства, в основном в Индии.",
+    compareEmpty: "Заполните хотя бы один ответ, прежде чем сравнивать модели.",
+    answerOne: "Ответьте хотя бы на один из трёх вопросов и проверьте снова.",
+    nextThree: "Следующие три вопроса",
+    changeAnswer: "Изменить ответ и проверить снова",
+    lastRound:
+      "Это был последний раунд вопросов. Начните сначала, когда захотите пройти ещё раз.",
+    adminIntro: "Вид администратора: отчёты всех моделей по одним и тем же ответам. Студенты видят один.",
+    noReport: "Отчёт не пришёл.",
+    noReportStill: "Ваши ответы на месте —",
+    goBack: "вернитесь и проверьте снова",
+    stepStudy: "Ваша учёба",
+    stepInterview: "Ваше собеседование",
+    stepQuestion: (i, n) => `Вопрос ${i} из ${n}`,
+    admin: "Админ",
+    fill: "Заполнить тестовыми данными",
+    scoring: "Проверяем…",
+    scoreFree: "Проверить без траты раунда",
+    adminNote: "«Заполнить» подставляет пример заявителя. «Проверить» прогоняет этот раунд через Claude Opus — раунд не тратится, ничего не сохраняется.",
+    stepOf: (i, n) => `Шаг ${i} из ${n}`,
+    roundN: (n) => `Раунд ${n} · `,
+    progress: "Прогресс",
+    studyTitle: "Сначала — о вашей учёбе",
+    studySub: "По этим данным мы находим собеседования, похожие на ваше. Пропустите то, чего не знаете.",
+    degreeQ: "На какую ступень вы поступаете?",
+    university: "Университет",
+    universityHint: "например, Arizona State University",
+    course: "Что вы будете изучать",
+    courseHint: "например, MS in Computer Science",
+    major: "Что вы изучали раньше",
+    majorHint: "например, бакалавриат по машиностроению",
+    gpa: "Ваши оценки",
+    gpaHint: "например, 4.6",
+    outOf: "Из скольки",
+    interviewTitle: "Собеседование и оплата учёбы",
+    interviewSub: "От консульства зависит, с вопросами каких офицеров мы вас сравниваем.",
+    consulate: "В каком консульстве ваше собеседование?",
+    consulateHint: "например, Tashkent",
+    funding: "Кто оплачивает вашу учёбу?",
+    fundingHint: "например, сбережения отца от бизнеса и кредит на обучение",
+    more: "Добавить подробности",
+    optional: "(необязательно)",
+    work: "Опыт работы",
+    workHint: "например, 2 года аналитиком данных, или нет",
+    firstAttempt: "Это ваша первая попытка?",
+    country: "Страна консульства",
+    countryAuto: (c) => `Укажем ${c}, если вы не измените`,
+    countryHint: "например, Uzbekistan",
+    askedIn: (p) => `Этот вопрос задавали в ${p}% собеседований из наших данных`,
+    answerTip: "Отвечайте по-английски — собеседование проходит на английском. Напишите то, что вы действительно скажете у окошка: двух-трёх предложений достаточно. Вопрос можно пропустить.",
+    check: "Проверить ответы",
+    nextQ: "Следующий вопрос",
+    cont: "Продолжить",
+    back: "Назад",
+    edit: "Изменить данные",
+    statusChecking: "Проверяем, доступен ли сервис…",
+    statusDown: "Проверка сейчас не работает. Ваши ответы сохранятся в этом браузере, пока она не заработает.",
+    statusUnlimited: "У вашего админ-аккаунта неограниченное число раундов.",
+    statusLeft: (n) => `Новый раунд расходует один из бесплатных раундов. Осталось: ${n}.`,
+    statusSaved: "Ответы сохраняются в этом браузере по мере ввода.",
+    title: "Проверка профиля",
+    lede: "Немного о вас, а затем три вопроса, которые офицеры задают чаще всего. Мы покажем, где офицер может засомневаться.",
+    downTitle: "Проверка сейчас не работает.",
+    downBody: "Форму всё равно можно заполнить: ответы сохранятся в этом браузере, и вы проверите их, когда сервис заработает.",
+    adminDetail: "Для администратора:",
+  },
+};
 
 // Consulate city -> country, so nobody is asked for both. Matched on the
 // lower-cased city; anything not listed can still be typed under "Add more
@@ -192,12 +374,8 @@ const CITY_COUNTRY = {
 };
 const countryFor = (city) => CITY_COUNTRY[city.trim().toLowerCase()] || "";
 
-const DEGREES = [
-  { value: "Bachelor", label: "Bachelor's" },
-  { value: "Masters", label: "Master's" },
-  { value: "MBA", label: "MBA" },
-  { value: "PhD", label: "PhD" },
-];
+// The values the server stores; their labels are in COPY.degrees.
+const DEGREES = ["Bachelor", "Masters", "MBA", "PhD"];
 
 // The two short profile steps that come before the questions.
 const PROFILE_STEPS = 2;
@@ -254,17 +432,17 @@ const FALLBACK_POOL = spreadTopics(FALLBACK_QUESTIONS, PER_ROUND);
 
 const draftKey = (row) => row.question_type || row.question;
 
-const GPA_SCALE_MESSAGE =
-  "Choose what your grades are out of. A number on its own is ambiguous - 3.5 out of 4 " +
-  "is strong, 3.5 out of 10 is not. Or clear the grades box.";
-
 // What a failed request should say. The server's own messages are already
-// written for students; a dropped connection only has the browser's.
-function plainError(err) {
+// written for students (in English; serverMessage translates the known ones);
+// a dropped connection only has the browser's.
+function plainError(err, lang, c) {
   if (err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(err?.message || "")) {
-    return "We couldn't reach Altovisas. Check your connection and try again - your answers are still here.";
+    return c.offline;
   }
-  return err?.message || "Something went wrong while checking your answers. Try again in a moment.";
+  if (lang === "ru" && (err?.status === 502 || err?.status === 503)) {
+    return serverMessage(lang, "Scoring is temporarily unavailable");
+  }
+  return serverMessage(lang, err?.message) || c.failed;
 }
 
 /*
@@ -289,36 +467,35 @@ function coverageFor(stats, city, country) {
 }
 
 function CoverageNote({ coverage }) {
+  const { lang } = useLang();
+  const c = useCopy(COPY);
   if (!coverage) return null;
-  const n = coverage.n_decided?.toLocaleString();
+  const n = formatNumber(lang, coverage.n_decided);
   if (coverage.kind === "city") {
     return (
       <p className="pc-cover" role="status">
-        <strong>{n} interviews</strong> from {coverage.name} in the data.
-        {coverage.n_decided < SMALL_N && " That is a thin comparison - read the numbers in your report with that in mind."}
+        {c.coverCity(n, coverage.name, coverage.n_decided)}
+        {coverage.n_decided < SMALL_N && c.coverThin}
       </p>
     );
   }
   if (coverage.kind === "country") {
     return (
       <p className="pc-cover" role="status">
-        {coverage.city ? <>No interviews from {coverage.city} in the data yet. </> : null}
-        <strong>{n} interviews</strong> from {coverage.name} overall.
-        {coverage.n_decided < SMALL_N && " That is a thin comparison - read the numbers in your report with that in mind."}
+        {coverage.city ? c.coverNoCity(coverage.city) : null}
+        {c.coverCountry(n, coverage.name, coverage.n_decided)}
+        {coverage.n_decided < SMALL_N && c.coverThin}
       </p>
     );
   }
-  return (
-    <p className="pc-cover" role="status">
-      Few or no interviews from {coverage.name} in the data yet. Your answers are still
-      checked, but the comparisons lean on other consulates, mostly in India.
-    </p>
-  );
+  return <p className="pc-cover" role="status">{c.coverNone(coverage.name)}</p>;
 }
 
 export default function CheckProfilePage() {
   // The route is behind ProtectedRoute, so the account is known at mount.
   const user = useCurrentUser();
+  const { lang } = useLang();
+  const c = useCopy(COPY);
   const owner = (user?.email || "").toLowerCase();
   // Read once per mount, before the state below is seeded from it.
   const resume = useRef(readResume(owner));
@@ -369,7 +546,7 @@ export default function CheckProfilePage() {
   // testing a scoring change means retyping eleven fields and three answers
   // otherwise. Everyone else never learns it exists.
   const [isAdmin, setIsAdmin] = useState(false);
-  // Set while a three-model run is in flight, then holds its rows.
+  // Set while an admin scoring run is in flight, then holds its rows.
   const [comparing, setComparing] = useState(false);
   const [comparison, setComparison] = useState(null);
 
@@ -584,8 +761,15 @@ export default function CheckProfilePage() {
     .map((a) => ({ question: askAs(a, profile.degree_level).trim(), answer: a.answer.trim() }))
     .filter((a) => a.question && a.answer);
 
+  // What the report quotes back: the planned answers plus each question's
+  // Russian reading. Kept apart from the payload so the server never sees it.
+  const withReadings = (planned) => planned.map((p) => {
+    const row = answers.find((a) => askAs(a, profile.degree_level).trim() === p.question);
+    return { ...p, question_ru: row ? askAsRu(row, profile.degree_level) : "" };
+  });
+
   /*
-   * Admin only: score this round with all three models at once.
+   * Admin only: score this round without spending a practice round.
    *
    * Separate from submit() rather than a flag on it, because almost none of
    * what submit does applies here - no analytics funnel (this is not someone
@@ -596,7 +780,7 @@ export default function CheckProfilePage() {
   const runComparison = async () => {
     const planned = plannedAnswers();
     if (!planned.length) {
-      setError("Fill in at least one answer before comparing models.");
+      setError(c.compareEmpty);
       return;
     }
     setError("");
@@ -609,11 +793,11 @@ export default function CheckProfilePage() {
         attempt_number: Number(profile.attempt_number) || 1,
         planned_answers: planned,
       });
-      setSubmitted(planned);
+      setSubmitted(withReadings(planned));
       setComparison(res.results || []);
       scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      setError(plainError(err));
+      setError(plainError(err, lang, c));
     } finally {
       setComparing(false);
     }
@@ -631,13 +815,13 @@ export default function CheckProfilePage() {
     const planned = plannedAnswers();
 
     if (!planned.length) {
-      setError("Answer at least one of the three questions, then check again.");
+      setError(c.answerOne);
       setStep(PROFILE_STEPS);
       return;
     }
     // A bare number is unusable: 3.5 is strong out of 4 and weak out of 10.
     if (profile.gpa.trim() && !profile.gpa_scale) {
-      setStepError(GPA_SCALE_MESSAGE);
+      setStepError(c.gpaScale);
       setStep(0);
       return;
     }
@@ -668,7 +852,7 @@ export default function CheckProfilePage() {
     track("test_complete", { total_seconds: elapsed });
 
     setBusy(true);
-    setSubmitted(planned);
+    setSubmitted(withReadings(planned));
     scrollTo({ top: 0, behavior: "smooth" });
     try {
       const payload = {
@@ -692,7 +876,7 @@ export default function CheckProfilePage() {
         refreshAccess();
         return;
       }
-      setError(plainError(err));
+      setError(plainError(err, lang, c));
     } finally {
       setBusy(false);
     }
@@ -745,19 +929,16 @@ export default function CheckProfilePage() {
     nextAction = (
       <div className="pc-next">
         <button type="button" className="ev-submit" onClick={nextRound}>
-          Next three questions <Arrow />
+          {c.nextThree} <Arrow />
         </button>
         <button type="button" className="pc-quiet" onClick={editRound}>
-          Change an answer and check again
+          {c.changeAnswer}
         </button>
       </div>
     );
   } else {
     nextAction = (
-      <p className="sub">
-        That was the last round of questions. Start again from the top whenever you
-        want another pass.
-      </p>
+      <p className="sub">{c.lastRound}</p>
     );
   }
 
@@ -812,7 +993,7 @@ export default function CheckProfilePage() {
       <ModelCompare
         results={result}
         showMetrics={false}
-        intro="Admin view: every model's report on the same answers. Students see one."
+        intro={c.adminIntro}
         renderReport={(ev) => <>{reportFor(ev)}<div className="pc-after no-print">{afterReport}</div></>}
       />
     ) : result[0]?.evaluation ? (
@@ -822,8 +1003,8 @@ export default function CheckProfilePage() {
       </>
     ) : (
       <div className="caveat bad" role="alert">
-        <strong>The report didn&rsquo;t come back.</strong> Your answers are still here -{" "}
-        <button type="button" className="pc-inline" onClick={editRound}>go back and check again</button>.
+        <strong>{c.noReport}</strong> {c.noReportStill}{" "}
+        <button type="button" className="pc-inline" onClick={editRound}>{c.goBack}</button>.
       </div>
     );
   } else if (outOfSets) {
@@ -839,9 +1020,9 @@ export default function CheckProfilePage() {
     const qIndex = step - PROFILE_STEPS;
     const row = qIndex >= 0 ? answers[qIndex] : null;
     const last = step >= totalSteps - 1;
-    const stepName = step === 0 ? "Your study"
-      : step === 1 ? "Your interview"
-        : `Question ${qIndex + 1} of ${answers.length}`;
+    const stepName = step === 0 ? c.stepStudy
+      : step === 1 ? c.stepInterview
+        : c.stepQuestion(qIndex + 1, answers.length);
     const extraOpen = Boolean(
       profile.work_experience || profile.consulate_country || profile.attempt_number !== "1"
     );
@@ -849,7 +1030,7 @@ export default function CheckProfilePage() {
     const goNext = (e) => {
       e.preventDefault();
       if (step === 0 && profile.gpa.trim() && !profile.gpa_scale) {
-        setStepError(GPA_SCALE_MESSAGE);
+        setStepError(c.gpaScale);
         return;
       }
       setStepError("");
@@ -867,9 +1048,9 @@ export default function CheckProfilePage() {
         {/* type="button" matters: inside a form, a bare button submits. */}
         {isAdmin && (
           <div className="ev-devbar">
-            <span className="ev-devbar-tag">Admin</span>
+            <span className="ev-devbar-tag">{c.admin}</span>
             <button type="button" className="ev-devfill" onClick={fillWithTestData}>
-              Fill with test data
+              {c.fill}
             </button>
             <button
               type="button"
@@ -877,24 +1058,20 @@ export default function CheckProfilePage() {
               onClick={runComparison}
               disabled={comparing}
             >
-              {comparing ? "Scoring with all three…" : "Compare 3 models"}
+              {comparing ? c.scoring : c.scoreFree}
             </button>
-            <span className="ev-devbar-note">
-              Fill drops in a sample applicant. Compare scores this round with
-              Claude Opus, GPT-5.6 Terra and DeepSeek V4 Pro at once &mdash; three model calls, no
-              practice round spent, nothing stored.
-            </span>
+            <span className="ev-devbar-note">{c.adminNote}</span>
           </div>
         )}
 
         <div className="pc-progress">
           <p className="pc-step-of">
-            <span>Step {step + 1} of {totalSteps}</span>
+            <span>{c.stepOf(step + 1, totalSteps)}</span>
             <span aria-hidden="true"> · </span>
-            <span>{round > 0 ? `Round ${round + 1} · ` : ""}{stepName}</span>
+            <span>{round > 0 ? c.roundN(round + 1) : ""}{stepName}</span>
           </p>
           <div
-            className="pc-track" role="progressbar" aria-label="Progress"
+            className="pc-track" role="progressbar" aria-label={c.progress}
             aria-valuemin={1} aria-valuemax={totalSteps} aria-valuenow={step + 1}
           >
             <span style={{ width: `${((step + 1) / totalSteps) * 100}%` }} />
@@ -904,41 +1081,39 @@ export default function CheckProfilePage() {
         <div className="pc-panel">
           {step === 0 && (
             <>
-              <h2 id="pc-step-h" tabIndex={-1}>First, your study</h2>
-              <p className="sub">
-                This is how we find interviews like yours. Skip anything you don&rsquo;t know.
-              </p>
+              <h2 id="pc-step-h" tabIndex={-1}>{c.studyTitle}</h2>
+              <p className="sub">{c.studySub}</p>
 
               <fieldset className="pc-choice">
-                <legend className="fl">What degree are you applying for?</legend>
+                <legend className="fl">{c.degreeQ}</legend>
                 <div className="pc-seg">
                   {DEGREES.map((d) => (
-                    <label key={d.value} className={profile.degree_level === d.value ? "on" : ""}>
+                    <label key={d} className={profile.degree_level === d ? "on" : ""}>
                       <input
-                        type="radio" name="degree_level" value={d.value}
-                        checked={profile.degree_level === d.value}
+                        type="radio" name="degree_level" value={d}
+                        checked={profile.degree_level === d}
                         onChange={set("degree_level")}
                       />
-                      {d.label}
+                      {c.degrees[d]}
                     </label>
                   ))}
                 </div>
               </fieldset>
 
               <div className="pc-fields">
-                <Field id="university" label="University" hint="e.g. Arizona State University"
+                <Field id="university" label={c.university} hint={c.universityHint}
                   value={profile.university} onChange={set("university")} autoComplete="organization" />
-                <Field id="course" label="What you will study" hint="e.g. MS in Computer Science"
+                <Field id="course" label={c.course} hint={c.courseHint}
                   value={profile.course} onChange={set("course")} />
                 {showPrior && (
-                  <Field id="major" label="What you studied before" hint="e.g. B.Tech in Mechanical Engineering"
+                  <Field id="major" label={c.major} hint={c.majorHint}
                     value={profile.major} onChange={set("major")} />
                 )}
                 <div className="pc-pair">
-                  <Field id="gpa" label="Your grades" hint="e.g. 8.2" inputMode="decimal"
+                  <Field id="gpa" label={c.gpa} hint={c.gpaHint} inputMode="decimal"
                     value={profile.gpa} onChange={set("gpa")} />
-                  <Select id="gpa_scale" label="Out of" value={profile.gpa_scale}
-                    onChange={set("gpa_scale")} options={SCALES} />
+                  <Select id="gpa_scale" label={c.outOf} value={profile.gpa_scale}
+                    onChange={set("gpa_scale")} options={c.scales} />
                 </div>
               </div>
             </>
@@ -946,20 +1121,18 @@ export default function CheckProfilePage() {
 
           {step === 1 && (
             <>
-              <h2 id="pc-step-h" tabIndex={-1}>Your interview and funding</h2>
-              <p className="sub">
-                The consulate decides which officers&rsquo; questions we compare you with.
-              </p>
+              <h2 id="pc-step-h" tabIndex={-1}>{c.interviewTitle}</h2>
+              <p className="sub">{c.interviewSub}</p>
 
               <div className="pc-fields">
                 <div>
-                  <Field id="consulate_city" label="Which consulate is your interview at?"
-                    hint="e.g. Chennai" list="pc-cities"
+                  <Field id="consulate_city" label={c.consulate}
+                    hint={c.consulateHint} list="pc-cities"
                     value={profile.consulate_city} onChange={set("consulate_city")} />
                   <CoverageNote coverage={coverage} />
                 </div>
-                <Field id="funding_source" label="Who is paying for your degree?"
-                  hint="e.g. My father's business savings and an education loan"
+                <Field id="funding_source" label={c.funding}
+                  hint={c.fundingHint}
                   value={profile.funding_source} onChange={set("funding_source")} />
               </div>
               <datalist id="pc-cities">
@@ -967,17 +1140,17 @@ export default function CheckProfilePage() {
               </datalist>
 
               <details className="pc-more" open={extraOpen}>
-                <summary>Add more detail <span>(optional)</span></summary>
+                <summary>{c.more} <span>{c.optional}</span></summary>
                 <div className="pc-fields">
-                  <Field id="work_experience" label="Work experience"
-                    hint="e.g. 2 years as a data analyst, or none"
+                  <Field id="work_experience" label={c.work}
+                    hint={c.workHint}
                     value={profile.work_experience} onChange={set("work_experience")} />
-                  <Select id="attempt_number" label="Is this your first attempt?"
-                    value={profile.attempt_number} onChange={set("attempt_number")} options={ATTEMPTS} />
-                  <Field id="consulate_country" label="Consulate country"
+                  <Select id="attempt_number" label={c.firstAttempt}
+                    value={profile.attempt_number} onChange={set("attempt_number")} options={c.attempts} />
+                  <Field id="consulate_country" label={c.country}
                     hint={countryFor(profile.consulate_city)
-                      ? `We'll use ${countryFor(profile.consulate_city)} unless you change it`
-                      : "e.g. India"}
+                      ? c.countryAuto(countryFor(profile.consulate_city))
+                      : c.countryHint}
                     value={profile.consulate_country} onChange={set("consulate_country")}
                     autoComplete="country-name" />
                 </div>
@@ -987,13 +1160,16 @@ export default function CheckProfilePage() {
 
           {row && (
             <>
-              <label className="pc-q" htmlFor={`pc-a${qIndex}`}>
+              <label className="pc-q" htmlFor={`pc-a${qIndex}`} lang="en">
                 {askAs(row, profile.degree_level)}
               </label>
+              {/* The officer asks in English, so the English question is the
+                  one to answer; the Russian line is only a reading aid. */}
+              {lang === "ru" && askAsRu(row, profile.degree_level) && (
+                <p className="pc-q-tr">{askAsRu(row, profile.degree_level)}</p>
+              )}
               {row.share != null && (
-                <p className="ev-q-share">
-                  Asked in {Math.round(row.share * 100)}% of the interviews in the data
-                </p>
+                <p className="ev-q-share">{c.askedIn(Math.round(row.share * 100))}</p>
               )}
               <textarea
                 id={`pc-a${qIndex}`}
@@ -1003,10 +1179,7 @@ export default function CheckProfilePage() {
                 onChange={setAnswer(qIndex)}
                 aria-describedby={`pc-a${qIndex}-tip`}
               />
-              <p className="fh" id={`pc-a${qIndex}-tip`}>
-                Write what you would really say at the window. Two or three sentences is plenty.
-                You can leave a question blank.
-              </p>
+              <p className="fh" id={`pc-a${qIndex}-tip`}>{c.answerTip}</p>
             </>
           )}
         </div>
@@ -1017,15 +1190,15 @@ export default function CheckProfilePage() {
 
         <div className="pc-nav">
           <button className="ev-submit" disabled={last && !status.available}>
-            {last ? "Check my answers" : row ? "Next question" : "Continue"}
+            {last ? c.check : row ? c.nextQ : c.cont}
             {!last && <Arrow />}
           </button>
           {step > 0 && (
-            <button type="button" className="pc-quiet" onClick={goBack}>Back</button>
+            <button type="button" className="pc-quiet" onClick={goBack}>{c.back}</button>
           )}
           {step >= PROFILE_STEPS && (
             <button type="button" className="pc-quiet pc-edit" onClick={() => setStep(0)}>
-              Edit your details
+              {c.edit}
             </button>
           )}
         </div>
@@ -1033,14 +1206,14 @@ export default function CheckProfilePage() {
         {last && (
           <p className="sub pc-status" aria-live="polite">
             {status.checking
-              ? "Checking that scoring is up…"
+              ? c.statusChecking
               : !status.available
-                ? "Scoring is down right now. Your answers stay in this browser until it's back."
+                ? c.statusDown
                 : access?.unlimited
-                  ? "Your admin account has unlimited practice rounds."
+                  ? c.statusUnlimited
                   : roundsLeft != null
-                  ? `A new round uses one of your free rounds. You have ${roundsLeft} left.`
-                  : "Your answers are saved in this browser as you type."}
+                  ? c.statusLeft(roundsLeft)
+                  : c.statusSaved}
           </p>
         )}
       </form>
@@ -1050,17 +1223,13 @@ export default function CheckProfilePage() {
   return (
     <div className="vz">
       <div className="page-w ev">
-        <h1>Profile check</h1>
-        <p className="lede-vz">
-          A few details about you, then three questions officers ask most. We show where
-          an officer would push back.
-        </p>
+        <h1>{c.title}</h1>
+        <p className="lede-vz">{c.lede}</p>
 
         {!status.checking && !status.available && (
           <div className="caveat bad" role="alert">
-            <strong>Scoring is down right now.</strong> You can still fill this in; your
-            answers stay in this browser, and you can check them when it&rsquo;s back.
-            {isAdmin && status.detail && <span className="pc-admin"> Admin detail: {status.detail}</span>}
+            <strong>{c.downTitle}</strong> {c.downBody}
+            {isAdmin && status.detail && <span className="pc-admin"> {c.adminDetail} {status.detail}</span>}
           </div>
         )}
 
@@ -1099,23 +1268,48 @@ function Select({ id, label, value, onChange, options }) {
  * on screen with a busy button at its foot, so there is one thing to look at:
  * what is being compared, and the answers being compared, read back.
  */
+const SCORING_COPY = {
+  en: {
+    title: "Checking your answers",
+    body: (where, n) => (
+      <>
+        Comparing them with interviews from {where || "applicants like you"}
+        {n ? ` - ${n} in the data` : ""}, and with the questions officers ask there. It
+        takes a little while; keep this tab open.
+      </>
+    ),
+  },
+  ru: {
+    title: "Проверяем ваши ответы",
+    body: (where, n) => (
+      <>
+        {where
+          ? `Сравниваем их с собеседованиями (${where}${n ? `: ${n} в данных` : ""}) `
+          : "Сравниваем их с собеседованиями заявителей, похожих на вас, "}
+        и с вопросами, которые там задают офицеры. Это займёт немного времени — не
+        закрывайте вкладку.
+      </>
+    ),
+  },
+};
+
 function Scoring({ planned, profile, coverage }) {
+  const { lang } = useLang();
+  const c = useCopy(SCORING_COPY);
   const where = profile.consulate_city.trim() || profile.consulate_country.trim();
   return (
     <section className="pc-scoring" aria-live="polite" aria-busy="true">
       <svg className="pc-rosette" viewBox="0 0 400 240" aria-hidden="true">
         <use href="#guil" />
       </svg>
-      <h2>Checking your answers</h2>
+      <h2>{c.title}</h2>
       <p className="sub">
-        Comparing them with interviews from {where || "applicants like you"}
-        {coverage?.n_decided ? ` - ${coverage.n_decided.toLocaleString()} in the data` : ""}, and
-        with the questions officers ask there. It takes a little while; keep this tab open.
+        {c.body(where, coverage?.n_decided ? formatNumber(lang, coverage.n_decided) : "")}
       </p>
       <ol className="pc-readback">
         {planned.map((a) => (
           <li key={a.question}>
-            <span className="q">{a.question}</span>
+            <span className="q" lang="en">{a.question}</span>
             <span className="a">{a.answer}</span>
           </li>
         ))}
@@ -1139,9 +1333,22 @@ const ID = "[0-9a-f]{12}";
 const NUM = "\\d+(?:,\\d{3})*";
 const rx = (body) => new RegExp(body, "g");
 
-function scrub(text) {
+// What a stripped interview id becomes, in the report's language.
+const ID_PHRASES = {
+  en: {
+    both: "Two comparable interviews", three: "three comparable interviews",
+    two: "two comparable interviews", one: "one comparable interview",
+  },
+  ru: {
+    both: "Два похожих собеседования", three: "три похожих собеседования",
+    two: "два похожих собеседования", one: "одно похожее собеседование",
+  },
+};
+
+function scrub(text, lang = "en") {
   if (typeof text !== "string" || !text) return text;
   let t = text;
+  const ids = ID_PHRASES[lang] || ID_PHRASES.en;
 
   // Sample counts in n= notation, whether or not they share a parenthetical.
   t = t.replace(rx(`\\(\\s*n\\s*=\\s*${NUM}\\s*,\\s+`), "(");
@@ -1157,10 +1364,10 @@ function scrub(text) {
   t = t.replace(rx("\\(Approval([^)]*)\\)\\."), "Approval$1.");
 
   // Interview ids, counted so the surrounding sentence still parses.
-  t = t.replace(rx(`\\bBoth\\s+${ID}\\s+and\\s+${ID}\\b`), "Two comparable interviews");
-  t = t.replace(rx(`\\b${ID}(,\\s*${ID})+\\s+and\\s+${ID}\\b`), "three comparable interviews");
-  t = t.replace(rx(`\\b${ID}\\s+and\\s+${ID}\\b`), "two comparable interviews");
-  t = t.replace(rx(`\\b${ID}\\b`), "one comparable interview");
+  t = t.replace(rx(`\\bBoth\\s+${ID}\\s+and\\s+${ID}\\b`), ids.both);
+  t = t.replace(rx(`\\b${ID}(,\\s*${ID})+\\s+(?:and|и)\\s+${ID}\\b`), ids.three);
+  t = t.replace(rx(`\\b${ID}\\s+(?:and|и)\\s+${ID}\\b`), ids.two);
+  t = t.replace(rx(`\\b${ID}\\b`), ids.one);
   // "In record <id>" leaves a stray "record" once the id is a phrase.
   t = t.replace(rx("\\b(?:record|post|interview)s?\\s+(one|two|three) comparable"), "$1 comparable");
 
@@ -1168,12 +1375,18 @@ function scrub(text) {
   // second attempt, approved)". It is filing metadata, not something a reader
   // needs, and it is the densest part of the sentence.
   t = t.replace(rx("(comparable interviews?)\\s*\\([^()]*\\)"), "$1");
+  t = t.replace(/(похож\p{L}* собеседовани\p{L}*)\s*\([^()]*\)/gu, "$1");
 
   // Internal question-type keys read as code. "why_university" -> "why university".
   t = t.replace(rx("\\b[a-z]{2,}(?:_[a-z]{2,}){1,3}\\b"), (m) => m.replace(/_/g, " "));
 
   // The corpus's source platform. The site names the data as public student
   // write-ups; the model sometimes names the platform instead.
+  if (lang === "ru") {
+    t = t.replace(/(?<!\p{L})(в|из|на)\s+Telegram(?:[-\s](?:канал|групп|чат)\p{L}*)?/giu,
+      (_, prep) => (prep.toLowerCase() === "из" ? "из открытых публикаций" : "в открытых публикациях"));
+    t = t.replace(/Telegram(?:[-\s](?:канал|групп|чат)\p{L}*)?/giu, "открытые публикации");
+  }
   t = t.replace(/\bposted (?:to|on|in) Telegram\b/gi, "posted publicly online");
   t = t.replace(/\bTelegram (channels?|groups?|chats?|posts?|reviews?)\b/gi, "online $1");
   t = t.replace(/\bfrom Telegram\b/gi, "from public posts");
@@ -1185,19 +1398,63 @@ function scrub(text) {
   return t.trim();
 }
 
-const scrubList = (xs) => (xs || []).map(scrub);
+const TONES = {
+  readiness: { strong: "ok", moderate: "", needs_work: "bad" },
+  verdict: { strong: "ok", adequate: "", weak: "bad" },
+};
 
-const READINESS = {
-  strong: { word: "Holding up", tone: "ok" },
-  moderate: { word: "Partly ready", tone: "" },
-  needs_work: { word: "Needs work", tone: "bad" },
+const REPORT_COPY = {
+  en: {
+    readiness: { strong: "Holding up", moderate: "Partly ready", needs_work: "Needs work" },
+    verdict: { strong: "Holds up", adequate: "Could be stronger", weak: "Weak" },
+    severity: { high: "High risk", medium: "Medium risk", low: "Low risk" },
+    head: (n) => `Profile check · round ${n}`,
+    checked: "Answers checked",
+    rework: "Answers to rework",
+    from: (where) => `Interviews from ${where}`,
+    refused: "Of those, reported a refusal",
+    answersTitle: "Your answers, one by one",
+    said: "You said",
+    mayHear: "An officer may hear",
+    works: "What works",
+    fix: "How to fix it",
+    likelyTitle: "What an officer is likely to ask you next",
+    askedIn: (share) => ` · asked in ${share} of comparable interviews`,
+    prepare: "To prepare:",
+    risksTitle: "Risks in your profile",
+    rehearseTitle: "Rehearse these",
+    rehearseSub: "Say each answer out loud, in your own words, then try the follow-up. Don’t memorise a script: officers hear one immediately.",
+    thenReady: "Then be ready for:",
+    print: "Print or save as PDF",
+    howToRead: "How to read this.",
+    howToReadTail: "The interviews behind it were posted by applicants themselves, so the numbers describe who chose to post, not official approval rates.",
+  },
+  ru: {
+    readiness: { strong: "В целом готовы", moderate: "Частично готовы", needs_work: "Нужна доработка" },
+    verdict: { strong: "Убедительно", adequate: "Можно сильнее", weak: "Слабо" },
+    severity: { high: "Высокий риск", medium: "Средний риск", low: "Низкий риск" },
+    head: (n) => `Проверка профиля · раунд ${n}`,
+    checked: "Проверено ответов",
+    rework: "Ответов на доработку",
+    from: (where) => `Собеседований: ${where}`,
+    refused: "Из них с отказом",
+    answersTitle: "Ваши ответы по порядку",
+    said: "Вы сказали",
+    mayHear: "Что может услышать офицер",
+    works: "Что работает",
+    fix: "Как исправить",
+    likelyTitle: "О чём офицер, скорее всего, спросит дальше",
+    askedIn: (share) => ` · задавали в ${share} похожих собеседований`,
+    prepare: "Как подготовиться:",
+    risksTitle: "Риски в вашем профиле",
+    rehearseTitle: "Отрепетируйте",
+    rehearseSub: "Проговорите каждый ответ вслух своими словами, затем ответьте на уточняющий вопрос. Не заучивайте текст: офицеры сразу это слышат.",
+    thenReady: "Затем будьте готовы к вопросу:",
+    print: "Распечатать или сохранить в PDF",
+    howToRead: "Как это читать.",
+    howToReadTail: "Собеседования, на которых основан отчёт, опубликовали сами заявители, поэтому цифры описывают тех, кто решил написать, а не официальную долю одобрений.",
+  },
 };
-const VERDICT = {
-  strong: { word: "Holds up", tone: "ok" },
-  adequate: { word: "Could be stronger", tone: "" },
-  weak: { word: "Weak", tone: "bad" },
-};
-const SEVERITY = { high: "High risk", medium: "Medium risk", low: "Low risk" };
 
 // The model echoes each question back; match it to what was sent so the report
 // can quote the applicant's own words. Position is the fallback.
@@ -1213,10 +1470,24 @@ function ownAnswer(submitted, fb, i) {
  * come next. It prints cleanly, because people rehearse from paper.
  */
 function Evaluation({ ev, round, submitted, profile, coverage }) {
+  const { lang } = useLang();
+  const c = useCopy(REPORT_COPY);
+  const clean = (t) => scrub(t, lang);
+  const scrubList = (xs) => (xs || []).map(clean);
   const feedback = ev.answer_feedback || [];
   const likely = ev.likely_questions || [];
   const risks = ev.risk_factors || [];
-  const readiness = READINESS[ev.readiness] || { word: (ev.readiness || "").replace("_", " "), tone: "" };
+  const readiness = {
+    word: c.readiness[ev.readiness] || (ev.readiness || "").replace("_", " "),
+    tone: TONES.readiness[ev.readiness] || "",
+  };
+  // The Russian reading of a question the student answered, matched back
+  // through the round's own phrasing. Empty when there is none to offer.
+  const translate = (question) => {
+    if (lang !== "ru") return "";
+    const hit = submitted.find((s) => s.question.trim().toLowerCase() === (question || "").trim().toLowerCase());
+    return hit?.question_ru || "";
+  };
   const rework = feedback.filter((f) => f.verdict !== "strong").length;
   const where = coverage?.kind === "city" || coverage?.kind === "country" ? coverage.name : "";
 
@@ -1233,23 +1504,23 @@ function Evaluation({ ev, round, submitted, profile, coverage }) {
         </svg>
         <div className="pc-doc-in">
           <div className="pc-doc-head">
-            <span>Profile check · round {round + 1}</span>
+            <span>{c.head(round + 1)}</span>
             <span>{[profile.consulate_city, profile.degree_level].filter(Boolean).join(" · ")}</span>
           </div>
           <h2 id="pc-report-title" className={`pc-verdict ${readiness.tone}`}>{readiness.word}</h2>
-          <p className="pc-summary">{scrub(ev.summary)}</p>
+          <p className="pc-summary">{clean(ev.summary)}</p>
           <dl className="pc-doc-meta">
-            <div><dt>Answers checked</dt><dd>{feedback.length}</dd></div>
-            <div><dt>Answers to rework</dt><dd>{rework}</dd></div>
+            <div><dt>{c.checked}</dt><dd>{feedback.length}</dd></div>
+            <div><dt>{c.rework}</dt><dd>{rework}</dd></div>
             {where && (
               <div>
-                <dt>Interviews from {where}</dt>
-                <dd>{coverage.n_decided.toLocaleString()}</dd>
+                <dt>{c.from(where)}</dt>
+                <dd>{formatNumber(lang, coverage.n_decided)}</dd>
               </div>
             )}
             {where && coverage.rejected != null && coverage.n_decided > 0 && (
               <div>
-                <dt>Of those, reported a refusal</dt>
+                <dt>{c.refused}</dt>
                 <dd>{((coverage.rejected / coverage.n_decided) * 100).toFixed(1)}%</dd>
               </div>
             )}
@@ -1259,38 +1530,45 @@ function Evaluation({ ev, round, submitted, profile, coverage }) {
 
       {feedback.length > 0 && (
         <section className="pc-sec">
-          <h3>Your answers, one by one</h3>
+          <h3>{c.answersTitle}</h3>
           {feedback.map((f, i) => {
-            const verdict = VERDICT[f.verdict] || { word: f.verdict, tone: "" };
+            const verdict = {
+              word: c.verdict[f.verdict] || f.verdict,
+              tone: TONES.verdict[f.verdict] || "",
+            };
             const said = ownAnswer(submitted, f, i);
+            const questionRu = translate(f.question);
             return (
               <div className="pc-answer" key={i}>
                 <div className="pc-answer-head">
-                  <h4>{f.question}</h4>
+                  <div>
+                    <h4 lang="en">{f.question}</h4>
+                    {questionRu && <p className="pc-q-tr">{questionRu}</p>}
+                  </div>
                   <span className={`pc-pill ${verdict.tone}`}>{verdict.word}</span>
                 </div>
                 {said && (
                   <blockquote className="pc-said">
-                    <span className="pc-k">You said</span>
+                    <span className="pc-k">{c.said}</span>
                     {said}
                   </blockquote>
                 )}
                 {f.risks?.length > 0 && (
                   <div className="pc-row">
-                    <span className="pc-k">An officer may hear</span>
+                    <span className="pc-k">{c.mayHear}</span>
                     <ul>{scrubList(f.risks).map((s, j) => <li key={j}>{s}</li>)}</ul>
                   </div>
                 )}
                 {f.strengths?.length > 0 && (
                   <div className="pc-row">
-                    <span className="pc-k">What works</span>
+                    <span className="pc-k">{c.works}</span>
                     <ul>{scrubList(f.strengths).map((s, j) => <li key={j}>{s}</li>)}</ul>
                   </div>
                 )}
                 {f.suggested_revision && (
                   <div className="pc-fix">
-                    <span className="pc-k">How to fix it</span>
-                    <p>{scrub(f.suggested_revision)}</p>
+                    <span className="pc-k">{c.fix}</span>
+                    <p>{clean(f.suggested_revision)}</p>
                   </div>
                 )}
               </div>
@@ -1301,16 +1579,16 @@ function Evaluation({ ev, round, submitted, profile, coverage }) {
 
       {likely.length > 0 && (
         <section className="pc-sec">
-          <h3>What an officer is likely to ask you next</h3>
+          <h3>{c.likelyTitle}</h3>
           {likely.map((q, i) => (
             <div className="pc-likely" key={i}>
-              <p className="pc-quote">&ldquo;{scrub(q.example_question)}&rdquo;</p>
+              <p className="pc-quote" lang="en">&ldquo;{clean(q.example_question)}&rdquo;</p>
               <p className="pc-likely-meta">
-                {questionLabel(q.question_type)}
-                {q.asked_in_share ? ` · asked in ${q.asked_in_share} of comparable interviews` : ""}
+                {questionLabel(q.question_type, lang)}
+                {q.asked_in_share ? c.askedIn(q.asked_in_share) : ""}
               </p>
-              <p>{scrub(q.why_likely)}</p>
-              <p><strong>To prepare:</strong> {scrub(q.how_to_prepare)}</p>
+              <p>{clean(q.why_likely)}</p>
+              <p><strong>{c.prepare}</strong> {clean(q.how_to_prepare)}</p>
             </div>
           ))}
         </section>
@@ -1318,16 +1596,16 @@ function Evaluation({ ev, round, submitted, profile, coverage }) {
 
       {risks.length > 0 && (
         <section className="pc-sec">
-          <h3>Risks in your profile</h3>
+          <h3>{c.risksTitle}</h3>
           {risks.map((r, i) => (
             <div className="pc-risk" key={i}>
               <div className="pc-answer-head">
-                <h4>{scrub(r.factor)}</h4>
+                <h4>{clean(r.factor)}</h4>
                 <span className={`pc-pill ${r.severity === "high" ? "bad" : ""}`}>
-                  {SEVERITY[r.severity] || r.severity}
+                  {c.severity[r.severity] || r.severity}
                 </span>
               </div>
-              <p>{scrub(r.evidence)}</p>
+              <p>{clean(r.evidence)}</p>
             </div>
           ))}
         </section>
@@ -1335,33 +1613,28 @@ function Evaluation({ ev, round, submitted, profile, coverage }) {
 
       {(likely.length > 0 || feedback.some((f) => f.suggested_revision)) && (
         <section className="pc-sec pc-rehearse">
-          <h3>Rehearse these</h3>
-          <p className="sub">
-            Say each answer out loud, in your own words, then try the follow-up. Don&rsquo;t
-            memorise a script: officers hear one immediately.
-          </p>
+          <h3>{c.rehearseTitle}</h3>
+          <p className="sub">{c.rehearseSub}</p>
           <ol>
             {feedback.filter((f) => f.verdict !== "strong" && f.suggested_revision).map((f, i) => (
               <li key={`fix-${i}`}>
-                <strong>{f.question}</strong> {scrub(f.suggested_revision)}
+                <strong lang="en">{f.question}</strong> {clean(f.suggested_revision)}
               </li>
             ))}
             {likely.map((q, i) => (
               <li key={`next-${i}`}>
-                <strong>Then be ready for:</strong> &ldquo;{scrub(q.example_question)}&rdquo;
+                <strong>{c.thenReady}</strong> <span lang="en">&ldquo;{clean(q.example_question)}&rdquo;</span>
               </li>
             ))}
           </ol>
           <button type="button" className="pc-quiet no-print" onClick={print}>
-            Print or save as PDF
+            {c.print}
           </button>
         </section>
       )}
 
       <p className="pc-note">
-        <strong>How to read this.</strong> {scrub(ev.caveat)} The interviews behind it were
-        posted by applicants themselves, so the numbers describe who chose to post, not
-        official approval rates.
+        <strong>{c.howToRead}</strong> {clean(ev.caveat)} {c.howToReadTail}
       </p>
     </article>
   );

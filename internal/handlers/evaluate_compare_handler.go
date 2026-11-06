@@ -14,16 +14,14 @@ import (
 )
 
 /*
- * Scoring one set of answers with several models at once, for admins.
+ * Scoring one set of answers with the configured models, for admins.
  *
- * This exists to answer "is the model we pay for actually better than the
- * cheaper ones" with the product's own prompt and the product's own corpus,
- * rather than with a benchmark that resembles neither. The sidecar keeps the
- * retrieval and the instruction identical across the three runs, so what comes
- * back differs only by model.
+ * Built to compare models on the product's own prompt and corpus. Answers are
+ * now scored by Anthropic only, so compareModels holds a single model; add a
+ * key back here (and its disclosure in the Privacy Policy) to compare again.
  *
- * The same three-provider runner now powers the student path. This admin route
- * remains separate because:
+ * The same runner powers the student path. This admin route remains separate
+ * because:
  *   - it does not consume or check the free-set allowance, because an
  *     evaluation nobody reads as advice should not cost a student anything;
  *   - it stores nothing. A comparison is a measurement of ours, not a report
@@ -31,14 +29,14 @@ import (
  *     corrupt both the admin's own set counts and the report-quality analytics.
  */
 
-// compareModels are the providers a comparison runs, in the order the screen
-// shows them. The keys are the sidecar's, not the vendors' model ids.
-var compareModels = []string{"opus", "terra", "deepseek"}
+// compareModels are the models every check runs, in the order the screen shows
+// them. The keys are the sidecar's, not the vendors' model ids. Anthropic only:
+// student answers must not be sent to any other provider.
+var compareModels = []string{"opus"}
 
 // ModelResult is one model's attempt at the same profile. Exactly one of
 // Evaluation or Error is meaningful: a provider that failed still occupies its
-// row, because "DeepSeek could not answer" is itself a comparison result and
-// hiding it would silently turn a three-way test into a two-way one.
+// row, because "a model could not answer" is itself a comparison result.
 type ModelResult struct {
 	Model      string              `json:"model"`
 	Evaluation *visallm.Evaluation `json:"evaluation,omitempty"`
@@ -64,6 +62,7 @@ func (h *EvaluateHandler) Compare(c *gin.Context) {
 		return
 	}
 	req := body.ProfileRequest
+	req.Language = visallm.NormalizeLanguage(req.Language)
 	if len(req.PlannedAnswers) == 0 {
 		response.Error(c, http.StatusBadRequest, "add at least one question and answer")
 		return
@@ -111,7 +110,7 @@ func (h *EvaluateHandler) runOne(ctx context.Context, req visallm.ProfileRequest
 	return out, nil
 }
 
-// runAll fans one immutable profile out to all three providers. Results and
+// runAll fans one immutable profile out to every model in compareModels. Results and
 // errors retain model order, so a partial outage cannot relabel a neighbour's
 // report and the caller can choose its own error policy (detailed for admins,
 // neutral for students).

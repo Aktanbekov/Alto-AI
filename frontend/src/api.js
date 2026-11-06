@@ -1,5 +1,6 @@
 import { trackingHeaders } from "./analytics";
 import { API_BASE as API } from "./utils/apiBase";
+import { getLang } from "./i18n";
 
 import { getAccessToken, setAccessToken, clearAccessToken } from "./utils/tokenStorage";
 
@@ -290,13 +291,17 @@ export async function getEvaluateStatus() {
 //
 // `profile.set_index` tells the server which set of three this is, so scoring
 // the same set again after a refresh is not counted as reaching for a new one.
+//
+// `language` is the site language at the moment of the click. The report is
+// written in it; the interview questions and any wording meant to be said at
+// the window stay in English, because the interview itself is in English.
 export async function evaluateProfile(profile) {
   const res = await fetchWithAuth(`${API}/api/v1/evaluate`, {
     method: "POST",
     // The visitor headers let the server attribute report_generated, which
     // carries token counts and latency the browser cannot know.
     headers: { "Content-Type": "application/json", ...trackingHeaders() },
-    body: JSON.stringify(profile),
+    body: JSON.stringify({ language: getLang(), ...profile }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -389,7 +394,7 @@ export function compareModels(profile) {
   return adminRequest("/evaluate-compare", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...trackingHeaders() },
-    body: JSON.stringify(profile),
+    body: JSON.stringify({ language: getLang(), ...profile }),
   });
 }
 

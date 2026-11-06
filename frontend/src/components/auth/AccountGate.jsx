@@ -1,5 +1,35 @@
 import AuthForm from "./AuthForm";
 import { useShell } from "../shell/shellContext";
+import { useCopy } from "../../i18n";
+
+const COPY = {
+  en: {
+    title: "Profile check",
+    lede: "You answer three questions officers ask most, in your own words. We compare them with real interviews from applicants like you and show where an officer is likely to push back.",
+    whyTitle: "Why it needs an account",
+    why: [
+      ["Your free rounds are counted on it.", "Everyone gets two rounds of three questions, free."],
+      ["Your progress is kept.", "Come back another day and you carry on from the round you reached, not from question one."],
+      ["What you type stays private to your account.", "You can have all of it deleted at any time."],
+    ],
+    meta: "The account is free. No card, no payment.",
+    formTitle: "Create your free account",
+    formSub: "Then you go straight to your first round.",
+  },
+  ru: {
+    title: "Проверка профиля",
+    lede: "Вы своими словами отвечаете на три вопроса, которые офицеры задают чаще всего. Мы сравниваем ответы с реальными собеседованиями похожих заявителей и показываем, где офицер может засомневаться.",
+    whyTitle: "Зачем нужен аккаунт",
+    why: [
+      ["На нём считаются бесплатные раунды.", "Каждый получает два бесплатных раунда по три вопроса."],
+      ["Прогресс сохраняется.", "Вернитесь в другой день — и продолжите с того раунда, где остановились, а не с первого вопроса."],
+      ["Всё, что вы вводите, видно только в вашем аккаунте.", "Вы можете удалить всё в любой момент."],
+    ],
+    meta: "Аккаунт бесплатный. Без карты и без оплаты.",
+    formTitle: "Создайте бесплатный аккаунт",
+    formSub: "После этого вы сразу перейдёте к первому раунду.",
+  },
+};
 
 /*
  * What a signed-out visitor sees at /check-profile instead of a redirect.
@@ -11,34 +41,24 @@ import { useShell } from "../shell/shellContext";
  */
 export default function AccountGate({ onAuthed }) {
   const { setUser } = useShell();
+  const c = useCopy(COPY);
 
   return (
     <div className="tf">
       <div className="page-w gate">
         <div className="gate-copy">
-          <h1>Profile check</h1>
-          <p className="lede">
-            You answer three questions officers ask most, in your own words. We compare
-            them with real interviews from applicants like you and show where an officer
-            is likely to push back.
-          </p>
+          <h1>{c.title}</h1>
+          <p className="lede">{c.lede}</p>
 
-          <h2 className="gate-h">Why it needs an account</h2>
+          <h2 className="gate-h">{c.whyTitle}</h2>
           <ul className="gate-list">
-            <li>
-              <strong>Your free rounds are counted on it.</strong> Everyone gets two rounds
-              of three questions, free.
-            </li>
-            <li>
-              <strong>Your progress is kept.</strong> Come back another day and you carry
-              on from the round you reached, not from question one.
-            </li>
-            <li>
-              <strong>What you type stays private to your account.</strong> You can have
-              all of it deleted at any time.
-            </li>
+            {c.why.map(([head, text]) => (
+              <li key={head}>
+                <strong>{head}</strong> {text}
+              </li>
+            ))}
           </ul>
-          <p className="meta">The account is free. No card, no payment.</p>
+          <p className="meta">{c.meta}</p>
         </div>
 
         <div className="auth-panel gate-panel">
@@ -47,8 +67,8 @@ export default function AccountGate({ onAuthed }) {
             redirect="/check-profile"
             idPrefix="gate"
             autoFocus={false}
-            title="Create your free account"
-            sub="Then you go straight to your first round."
+            title={c.formTitle}
+            sub={c.formSub}
             onAuthed={(user) => {
               setUser(user);
               onAuthed?.(user);

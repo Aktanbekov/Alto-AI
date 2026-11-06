@@ -2,6 +2,66 @@ import { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { forgotPassword, resetPassword } from "../api";
 import { keepRedirect } from "../utils/authRedirect";
+import { useLang, useCopy, serverMessage } from "../i18n";
+
+const COPY = {
+  en: {
+    sent: "If an account exists for this email, we've sent it a 6-digit reset code.",
+    sendFailed: "We couldn't send a reset code. Try again in a moment.",
+    mismatch: "The two passwords don't match. Type the same password in both fields.",
+    short: "Use a password of at least 6 characters.",
+    badCode: "That code didn't work. Check it, or ask for a new one.",
+    setTitle: "Set a new password",
+    setSub: (email) => <>Enter the code sent to <strong>{email}</strong>, then choose a new password.</>,
+    code: "Reset code",
+    newPw: "New password",
+    hidePw: "Hide password",
+    showPw: "Show password",
+    hide: "Hide",
+    show: "Show",
+    pwHint: "At least 6 characters.",
+    confirm: "Confirm new password",
+    saving: "Saving…",
+    save: "Save new password",
+    otherEmail: "Use a different email",
+    backToLogin: "Back to log in",
+    resetTitle: "Reset your password",
+    resetSub: "Enter the email you signed up with and we’ll send you a 6-digit code.",
+    email: "Email address",
+    sending: "Sending…",
+    send: "Send reset code",
+    remembered: "Remembered it?",
+    login: "Log in",
+  },
+  ru: {
+    sent: "Если аккаунт с этим email существует, мы отправили на него 6-значный код для сброса.",
+    sendFailed: "Не удалось отправить код для сброса. Попробуйте ещё раз чуть позже.",
+    mismatch: "Пароли не совпадают. Введите один и тот же пароль в оба поля.",
+    short: "Пароль должен быть не короче 6 символов.",
+    badCode: "Код не подошёл. Проверьте его или запросите новый.",
+    setTitle: "Задайте новый пароль",
+    setSub: (email) => <>Введите код, отправленный на <strong>{email}</strong>, и придумайте новый пароль.</>,
+    code: "Код для сброса",
+    newPw: "Новый пароль",
+    hidePw: "Скрыть пароль",
+    showPw: "Показать пароль",
+    hide: "Скрыть",
+    show: "Показать",
+    pwHint: "Не короче 6 символов.",
+    confirm: "Повторите новый пароль",
+    saving: "Сохраняем…",
+    save: "Сохранить пароль",
+    otherEmail: "Указать другой email",
+    backToLogin: "Вернуться ко входу",
+    resetTitle: "Восстановление пароля",
+    resetSub: "Введите email, с которым вы регистрировались, и мы пришлём 6-значный код.",
+    email: "Email",
+    sending: "Отправляем…",
+    send: "Отправить код",
+    remembered: "Вспомнили пароль?",
+    login: "Войти",
+  },
+};
 
 /*
  * Two steps on one page: ask for a code, then set a new password with it.
@@ -20,6 +80,9 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const { lang } = useLang();
+  const c = useCopy(COPY);
+  const said = (err, fallback) => serverMessage(lang, err?.message) || fallback;
 
   const handleRequest = async (e) => {
     e.preventDefault();
@@ -28,10 +91,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       await forgotPassword(email);
-      setNotice("If an account exists for this email, we've sent it a 6-digit reset code.");
+      setNotice(c.sent);
       setStep("reset");
     } catch (err) {
-      setError(err.message || "We couldn't send a reset code. Try again in a moment.");
+      setError(said(err, c.sendFailed));
     } finally {
       setLoading(false);
     }
@@ -41,11 +104,11 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("The two passwords don't match. Type the same password in both fields.");
+      setError(c.mismatch);
       return;
     }
     if (password.length < 6) {
-      setError("Use a password of at least 6 characters.");
+      setError(c.short);
       return;
     }
     setLoading(true);
@@ -53,7 +116,7 @@ export default function ForgotPasswordPage() {
       await resetPassword(email, code, password);
       navigate(keepRedirect("/login", search));
     } catch (err) {
-      setError(err.message || "That code didn't work. Check it, or ask for a new one.");
+      setError(said(err, c.badCode));
     } finally {
       setLoading(false);
     }
@@ -73,13 +136,11 @@ export default function ForgotPasswordPage() {
           <div className="auth-panel">
             {step === "reset" ? (
               <>
-                <h1 className="auth-title">Set a new password</h1>
-                <p className="auth-sub">
-                  Enter the code sent to <strong>{email}</strong>, then choose a new password.
-                </p>
+                <h1 className="auth-title">{c.setTitle}</h1>
+                <p className="auth-sub">{c.setSub(email)}</p>
                 {status}
                 <form onSubmit={handleReset}>
-                  <label className="auth-label" htmlFor="reset-code">Reset code</label>
+                  <label className="auth-label" htmlFor="reset-code">{c.code}</label>
                   <input
                     id="reset-code" className="auth-input auth-code" inputMode="numeric"
                     autoComplete="one-time-code" maxLength={6} value={code}
@@ -87,7 +148,7 @@ export default function ForgotPasswordPage() {
                     placeholder="000000" required autoFocus
                   />
 
-                  <label className="auth-label" htmlFor="reset-password">New password</label>
+                  <label className="auth-label" htmlFor="reset-password">{c.newPw}</label>
                   <div className="auth-pw">
                     <input
                       id="reset-password" className="auth-input" type={show ? "text" : "password"}
@@ -97,16 +158,16 @@ export default function ForgotPasswordPage() {
                     />
                     <button
                       type="button" className="auth-reveal" onClick={() => setShow((v) => !v)}
-                      aria-label={show ? "Hide password" : "Show password"}
+                      aria-label={show ? c.hidePw : c.showPw}
                     >
-                      {show ? "Hide" : "Show"}
+                      {show ? c.hide : c.show}
                     </button>
                   </div>
                   <p className="auth-legal" id="reset-hint" style={{ margin: "-8px 0 14px" }}>
-                    At least 6 characters.
+                    {c.pwHint}
                   </p>
 
-                  <label className="auth-label" htmlFor="reset-confirm">Confirm new password</label>
+                  <label className="auth-label" htmlFor="reset-confirm">{c.confirm}</label>
                   <input
                     id="reset-confirm" className="auth-input" type={show ? "text" : "password"}
                     value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
@@ -114,7 +175,7 @@ export default function ForgotPasswordPage() {
                   />
 
                   <button className="auth-primary" disabled={loading || code.length !== 6}>
-                    {loading ? "Saving…" : "Save new password"}
+                    {loading ? c.saving : c.save}
                   </button>
                 </form>
                 <div className="auth-foot">
@@ -122,33 +183,31 @@ export default function ForgotPasswordPage() {
                     type="button" className="auth-link"
                     onClick={() => { setStep("request"); setError(""); setNotice(""); }}
                   >
-                    Use a different email
+                    {c.otherEmail}
                   </button>
-                  <Link className="auth-link" to={keepRedirect("/login", search)}>Back to log in</Link>
+                  <Link className="auth-link" to={keepRedirect("/login", search)}>{c.backToLogin}</Link>
                 </div>
               </>
             ) : (
               <>
-                <h1 className="auth-title">Reset your password</h1>
-                <p className="auth-sub">
-                  Enter the email you signed up with and we&rsquo;ll send you a 6-digit code.
-                </p>
+                <h1 className="auth-title">{c.resetTitle}</h1>
+                <p className="auth-sub">{c.resetSub}</p>
                 {status}
                 <form onSubmit={handleRequest}>
-                  <label className="auth-label" htmlFor="reset-email">Email address</label>
+                  <label className="auth-label" htmlFor="reset-email">{c.email}</label>
                   <input
                     id="reset-email" className="auth-input" type="email"
                     value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com" autoComplete="email" required autoFocus
                   />
                   <button className="auth-primary" disabled={loading}>
-                    {loading ? "Sending…" : "Send reset code"}
+                    {loading ? c.sending : c.send}
                   </button>
                 </form>
                 <div className="auth-foot">
                   <span>
-                    Remembered it?{" "}
-                    <Link className="auth-link" to={keepRedirect("/login", search)}>Log in</Link>
+                    {c.remembered}{" "}
+                    <Link className="auth-link" to={keepRedirect("/login", search)}>{c.login}</Link>
                   </span>
                 </div>
               </>

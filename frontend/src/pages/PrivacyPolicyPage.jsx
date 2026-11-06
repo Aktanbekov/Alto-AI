@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
+import { useLang } from "../i18n";
+import PrivacyPolicyRu from "./legal/PrivacyPolicyRu";
 
 const CONTACT = "altovisas@gmail.com";
 const UPDATED = "21 October 2026";
@@ -24,6 +26,8 @@ const TOC = [
 ];
 
 export default function PrivacyPolicyPage() {
+  const { lang } = useLang();
+  if (lang === "ru") return <PrivacyPolicyRu />;
   return (
     <LegalLayout
       title="Privacy Policy"
@@ -37,8 +41,8 @@ export default function PrivacyPolicyPage() {
             sell your information, we do not run advertising, and we never share anything you
             write with any government or with your university. What you type stays private to
             your account; only anonymous, aggregated counts are used to see how the site is
-            doing. Your profile and practice answers are scored by outside AI providers, one of
-            which processes data in China; section 6 explains what that means. You can delete
+            doing. Your profile and practice answers are scored by an outside AI provider in the
+            United States; section 6 explains how. You can delete
             your data at any time by emailing {CONTACT}.
           </p>
         </Callout>
@@ -205,24 +209,21 @@ export default function PrivacyPolicyPage() {
 
       <Section id="ai" title="6. AI processing">
         <p>
-          To generate your feedback, we send your profile and your practice answers to
-          third-party AI providers, which process them on our behalf and return a report.
-          Each check goes to more than one provider. You are shown one report; the others are
-          stored with your account so we can compare quality. We do not send your name, email
-          address, or account identifiers to any of them, but anything you write inside an
-          answer goes as written.
+          To generate your feedback, in the profile check and in practice interviews, we send
+          your profile and your answers to one third-party AI provider, based in the United
+          States, which processes them on our behalf and returns a report. We do not send your
+          name, email address, or account identifiers, but anything you write inside an answer
+          goes as written.
         </p>
         <p>
-          Most of these providers are in the United States. One processes and stores data in
-          the People&rsquo;s Republic of China. Some providers&rsquo; terms do not allow them
-          to use what we send to train their models, though they may keep it for a limited
-          time to monitor abuse; not every provider makes that commitment, so we cannot promise
-          it for all of them. We do not use your content to train any model of our own.
+          That provider&rsquo;s commercial terms do not allow it to use what we send to train
+          its models, though it may keep it for a limited time to monitor abuse. We do not use
+          your content to train any model of our own.
         </p>
         <Callout>
           <p>
-            Because your answers are read by outside providers in more than one country, keep
-            them to what the questions ask. Leave out names, contact details, and anything you
+            Because your answers are read by an outside provider, keep them to what the
+            questions ask. Leave out names, contact details, and anything you
             would not want to leave your hands.
           </p>
         </Callout>
@@ -239,8 +240,8 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             <strong>Local storage.</strong> A random visitor identifier and a session
-            identifier, used to group your own usage events together, and the link tag
-            described below.
+            identifier, used to group your own usage events together, the link tag
+            described below, and the site language you chose.
           </li>
           <li>
             <strong>Session storage.</strong> Your sign-in token, and an unfinished profile
@@ -275,7 +276,7 @@ export default function PrivacyPolicyPage() {
           and only as far as they need to:
         </p>
         <List>
-          <li><strong>AI providers</strong> - scoring your answers (see section 6).</li>
+          <li><strong>Our AI provider</strong> - scoring your answers (see section 6).</li>
           <li><strong>An analytics service</strong> - cookie-free page-view counts.</li>
           <li><strong>Google</strong> - optional sign-in, if you use it.</li>
           <li>
@@ -385,7 +386,7 @@ export default function PrivacyPolicyPage() {
           remove your account record, your profile, your practice answers, the reports
           generated for you, and your usage history, within 30 days, subject only to backup
           rotation and to anything we are legally required to keep, such as purchase records.
-          Copies held by the AI providers under their own retention terms are not in our
+          Copies held by the AI provider under its own retention terms are not in our
           control, which is one more reason to keep answers to what the questions ask.
         </p>
         <p>
@@ -399,8 +400,7 @@ export default function PrivacyPolicyPage() {
           We operate from and store data in the United States, and most of our service
           providers are U.S.-based. If you use the Service from outside the United States,
           your information will be transferred there, where data protection law differs from
-          your own. Your profile and practice answers are also sent to an AI provider in the
-          People&rsquo;s Republic of China to be scored (see section 6).
+          your own.
         </p>
         <p>
           Where we transfer personal information out of the EEA or the UK, we rely on the

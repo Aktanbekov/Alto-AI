@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { submitSurvey } from "../../api";
 import { track } from "../../analytics";
+import { useLang, useCopy, plural, serverMessage } from "../../i18n";
 
 /*
  * The seven-question unlock survey.
@@ -116,7 +117,90 @@ function clearDraft() {
 }
 
 const optionValue = (o) => (typeof o === "string" ? o : o.value);
-const optionLabel = (o) => (typeof o === "string" ? o : o.label);
+
+/*
+ * Russian wording for the survey. Only what the reader sees: every answer is
+ * still stored under its English value above, so one question's answers stay
+ * in one bucket whichever language they were given in.
+ */
+const RU = {
+  questions: {
+    interview_timing: "Когда ваше собеседование на визу F-1?",
+    prep_methods: "Как вы сейчас готовитесь?",
+    biggest_difficulty: "Что даётся сложнее всего при подготовке?",
+    most_useful: "Какая часть разбора Altovisas была полезнее всего?",
+    inaccurate_text: "Что показалось неточным, непонятным или чего не хватило?",
+    price_point: "Сколько вы готовы заплатить за безлимитную практику?",
+    blocker_text: "Что мешает вам заплатить сегодня?",
+  },
+  hints: {
+    prep_methods: "Выберите всё, что подходит.",
+    inaccurate_text: "Необязательно.",
+    blocker_text: "Необязательно.",
+  },
+  options: {
+    "Within 2 weeks": "В ближайшие 2 недели",
+    "Within 1 month": "В течение месяца",
+    "Within 2-3 months": "Через 2–3 месяца",
+    "More than 3 months away": "Больше чем через 3 месяца",
+    "Not scheduled yet": "Ещё не назначено",
+    "Already completed": "Уже прошло",
+    "Social media or online groups": "Соцсети или онлайн-группы",
+    "Practicing with friends or family": "Тренируюсь с друзьями или семьёй",
+    "Professional consultant": "Профессиональный консультант",
+    "AI tools": "ИИ-инструменты",
+    "Reviewing sample questions": "Разбираю примеры вопросов",
+    "Not preparing yet": "Пока не готовлюсь",
+    Other: "Другое",
+    "Knowing what to say": "Понять, что говорить",
+    "Making my answers concise": "Отвечать коротко",
+    "Sounding confident": "Звучать уверенно",
+    "Understanding officer expectations": "Понять, чего ждёт офицер",
+    "English communication": "Говорить по-английски",
+    "Identifying risky answers": "Распознавать рискованные ответы",
+    "Finding realistic practice": "Найти реалистичную практику",
+    answer_analysis: "Разбор ответов",
+    suggested_answer: "Советы по ответу",
+    risk_detection: "Поиск рисков",
+    score: "Оценка",
+    none: "Ничего из этого",
+    "More than $20": "Больше $20",
+    "I would not pay yet": "Пока не готов(а) платить",
+  },
+};
+
+const optionLabel = (o, lang) => {
+  const value = optionValue(o);
+  if (lang === "ru" && RU.options[value]) return RU.options[value];
+  return typeof o === "string" ? o : o.label;
+};
+
+const COPY = {
+  en: {
+    failed: "Could not save your answers. Try again.",
+    unlocked: (n) => `${n} more rounds unlocked`,
+    unlockedSub: (q) => `That’s ${q} more questions from real interviews. Thank you for the answers.`,
+    next: "Start the next round",
+    of: (i, n) => `Question ${i} of ${n}`,
+    close: "Close",
+    back: "Back",
+    saving: "Saving…",
+    finish: "Finish and unlock",
+    cont: "Continue",
+  },
+  ru: {
+    failed: "Не удалось сохранить ответы. Попробуйте ещё раз.",
+    unlocked: (n) => `Открыто ещё ${n} ${plural("ru", n, ["раунд", "раунда", "раундов"])}`,
+    unlockedSub: (q) => `Это ещё ${q} ${plural("ru", q, ["вопрос", "вопроса", "вопросов"])} из реальных собеседований. Спасибо за ответы!`,
+    next: "Начать следующий раунд",
+    of: (i, n) => `Вопрос ${i} из ${n}`,
+    close: "Закрыть",
+    back: "Назад",
+    saving: "Сохраняем…",
+    finish: "Завершить и открыть раунды",
+    cont: "Продолжить",
+  },
+};
 
 export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
   const draft = useRef(readDraft());
@@ -125,6 +209,8 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [unlocked, setUnlocked] = useState(null);
+  const { lang } = useLang();
+  const c = useCopy(COPY);
 
   useEffect(() => { track("validation_survey_started", { resumed: !!draft.current }); }, []);
   useEffect(() => { writeDraft({ step, answers }); }, [step, answers]);
@@ -188,7 +274,7 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
       setUnlocked(result.unlocked_sets ?? 3);
       onUnlocked?.(result.access);
     } catch (err) {
-      setError(err.message || "Could not save your answers. Try again.");
+      setError(serverMessage(lang, err.message) || c.failed);
     } finally {
       setBusy(false);
     }
@@ -198,13 +284,10 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
     return (
       <div className="ev-result">
         <div className="vz-card vsv-done" role="status">
-          <h2>{unlocked} more rounds unlocked</h2>
-          <p className="sub">
-            That&rsquo;s {unlocked * 3} more questions from real interviews. Thank you for
-            the answers.
-          </p>
+          <h2>{c.unlocked(unlocked)}</h2>
+          <p className="sub">{c.unlockedSub(unlocked * 3)}</p>
           <button type="button" className="ev-submit" onClick={() => onContinue?.()}>
-            Start the next round
+            {c.next}
           </button>
         </div>
       </div>
@@ -217,9 +300,9 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
     <div className="ev-result">
       <div className="vz-card vsv">
         <div className="vsv-head">
-          <span className="tiny">Question {step + 1} of {STEPS.length}</span>
+          <span className="tiny">{c.of(step + 1, STEPS.length)}</span>
           <button type="button" className="vfb-skip" onClick={onCancel} disabled={busy}>
-            Close
+            {c.close}
           </button>
         </div>
         <div
@@ -232,8 +315,12 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
           <span style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
         </div>
 
-        <h2 className="vfb-q">{current.question}</h2>
-        {current.hint && <p className="sub">{current.hint}</p>}
+        <h2 className="vfb-q">
+          {(lang === "ru" && RU.questions[current.key]) || current.question}
+        </h2>
+        {current.hint && (
+          <p className="sub">{(lang === "ru" && RU.hints[current.key]) || current.hint}</p>
+        )}
 
         {current.kind === "text" ? (
           <label className="vfb-text">
@@ -262,7 +349,7 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
                   className={`vfb-option${on ? " on" : ""}`}
                   onClick={() => (current.kind === "multi" ? toggleMulti(v) : set(v))}
                 >
-                  {optionLabel(o)}
+                  {optionLabel(o, lang)}
                 </button>
               );
             })}
@@ -278,7 +365,7 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
             disabled={step === 0 || busy}
             onClick={() => setStep((n) => n - 1)}
           >
-            Back
+            {c.back}
           </button>
           <button
             type="button"
@@ -286,7 +373,7 @@ export default function SurveyFlow({ onUnlocked, onContinue, onCancel }) {
             disabled={busy}
             onClick={() => (last ? finish() : setStep((n) => n + 1))}
           >
-            {busy ? "Saving…" : last ? "Finish and unlock" : "Continue"}
+            {busy ? c.saving : last ? c.finish : c.cont}
           </button>
         </div>
       </div>

@@ -15,11 +15,7 @@ var (
 // GetAnalyzer returns a singleton VisaAnalyzer instance
 func GetAnalyzer() *VisaAnalyzer {
 	analyzerOnce.Do(func() {
-		apiKey := os.Getenv("OPENAI_API_KEY")
-		if apiKey == "" {
-			apiKey = os.Getenv("GPT_API_KEY")
-		}
-		analyzer = NewVisaAnalyzer(apiKey)
+		analyzer = NewVisaAnalyzer(os.Getenv("ANTHROPIC_API_KEY"))
 	})
 	return analyzer
 }

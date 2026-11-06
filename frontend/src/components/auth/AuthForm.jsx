@@ -4,6 +4,94 @@ import { login, register, verifyEmail, resendVerificationCode, getMe } from "../
 import { API_BASE } from "../../utils/apiBase";
 import { identify, track } from "../../analytics";
 import { keepRedirect, safeRedirect } from "../../utils/authRedirect";
+import { useLang, useCopy, serverMessage } from "../../i18n";
+
+const COPY = {
+  en: {
+    loginFailed: "Login failed",
+    needsVerify: "This email still needs verifying. Enter the code we sent you.",
+    mismatch: "The two passwords don't match. Type the same password in both fields.",
+    short: "Use a password of at least 6 characters.",
+    codeSent: "We sent a 6-digit code to your email. It can take a minute to arrive.",
+    registerFailed: "Registration failed",
+    badCode: "That code didn't work. Check it and try again, or ask for a new one.",
+    newCode: "A new code is on its way.",
+    resendFailed: "Could not resend the code",
+    undelivered: (mail) => <>Your account was created, but we couldn&rsquo;t send the verification email. Try &ldquo;Resend code&rdquo; below, or contact {mail}.</>,
+    checkEmail: "Check your email",
+    enterCode: (email) => <>Enter the 6-digit code sent to <strong>{email || "your address"}</strong>.</>,
+    codeLabel: "Verification code",
+    verifying: "Verifying…",
+    verify: "Verify and continue",
+    resend: "Resend code",
+    otherEmail: "Use a different email",
+    loginTitle: "Log in",
+    signupTitle: "Create your free account",
+    loginSub: "Pick up where you left off: your rounds and reports are kept on your account.",
+    signupSub: "Free. It keeps your rounds and reports, and takes about a minute.",
+    google: "Continue with Google",
+    or: "or with email",
+    name: "Name",
+    email: "Email address",
+    password: "Password",
+    hidePw: "Hide password",
+    showPw: "Show password",
+    hide: "Hide",
+    show: "Show",
+    pwHint: "At least 6 characters.",
+    confirm: "Confirm password",
+    busy: "One moment…",
+    login: "Log in",
+    create: "Create account",
+    newHere: "New here?",
+    createLink: "Create an account",
+    forgot: "Forgot password?",
+    haveOne: "Already have one?",
+    legal: (terms, privacy) => <>By continuing you agree to the {terms("Terms")} and {privacy("Privacy Policy")}.</>,
+  },
+  ru: {
+    loginFailed: "Не удалось войти",
+    needsVerify: "Этот email ещё не подтверждён. Введите код, который мы отправили.",
+    mismatch: "Пароли не совпадают. Введите один и тот же пароль в оба поля.",
+    short: "Пароль должен быть не короче 6 символов.",
+    codeSent: "Мы отправили 6-значный код на вашу почту. Письмо может идти около минуты.",
+    registerFailed: "Не удалось создать аккаунт",
+    badCode: "Код не подошёл. Проверьте его и попробуйте снова или запросите новый.",
+    newCode: "Новый код уже в пути.",
+    resendFailed: "Не удалось отправить код ещё раз",
+    undelivered: (mail) => <>Аккаунт создан, но письмо с кодом отправить не удалось. Нажмите «Отправить код ещё раз» ниже или напишите на {mail}.</>,
+    checkEmail: "Проверьте почту",
+    enterCode: (email) => <>Введите 6-значный код, отправленный на <strong>{email || "ваш адрес"}</strong>.</>,
+    codeLabel: "Код подтверждения",
+    verifying: "Проверяем…",
+    verify: "Подтвердить и продолжить",
+    resend: "Отправить код ещё раз",
+    otherEmail: "Указать другой email",
+    loginTitle: "Вход",
+    signupTitle: "Создайте бесплатный аккаунт",
+    loginSub: "Продолжите с того места, где остановились: раунды и отчёты хранятся в вашем аккаунте.",
+    signupSub: "Бесплатно. Аккаунт хранит ваши раунды и отчёты, а регистрация займёт около минуты.",
+    google: "Продолжить с Google",
+    or: "или по email",
+    name: "Имя",
+    email: "Email",
+    password: "Пароль",
+    hidePw: "Скрыть пароль",
+    showPw: "Показать пароль",
+    hide: "Скрыть",
+    show: "Показать",
+    pwHint: "Не короче 6 символов.",
+    confirm: "Повторите пароль",
+    busy: "Секунду…",
+    login: "Войти",
+    create: "Создать аккаунт",
+    newHere: "Впервые здесь?",
+    createLink: "Создать аккаунт",
+    forgot: "Забыли пароль?",
+    haveOne: "Уже есть аккаунт?",
+    legal: (terms, privacy) => <>Продолжая, вы соглашаетесь с {terms("Условиями использования")} и {privacy("Политикой конфиденциальности")}.</>,
+  },
+};
 
 const GoogleMark = () => (
   <svg viewBox="0 0 533.5 544.3" width="18" height="18" aria-hidden="true">
@@ -53,6 +141,10 @@ export default function AuthForm({
 
   const firstFieldRef = useRef(null);
   const id = (k) => `${idPrefix}-${k}`;
+  const { lang } = useLang();
+  const c = useCopy(COPY);
+  // The server writes English; the messages a student can meet are translated.
+  const said = (err, fallback) => serverMessage(lang, err?.message) || fallback;
 
   useEffect(() => { setTab(mode); }, [mode]);
   useEffect(() => {
@@ -86,9 +178,9 @@ export default function AuthForm({
       // instead of leaving the user at a dead end.
       if (/not verified|verification/i.test(msg)) {
         setStep("verify");
-        setNotice("This email still needs verifying. Enter the code we sent you.");
+        setNotice(c.needsVerify);
       } else {
-        setError(msg);
+        setError(said(err, c.loginFailed));
       }
     } finally {
       setBusy(false);
@@ -99,11 +191,11 @@ export default function AuthForm({
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("The two passwords don't match. Type the same password in both fields.");
+      setError(c.mismatch);
       return;
     }
     if (password.length < 6) {
-      setError("Use a password of at least 6 characters.");
+      setError(c.short);
       return;
     }
     setBusy(true);
@@ -118,10 +210,10 @@ export default function AuthForm({
         setNotice("");
       } else {
         setUndelivered(false);
-        setNotice("We sent a 6-digit code to your email. It can take a minute to arrive.");
+        setNotice(c.codeSent);
       }
     } catch (err) {
-      setError(err.message || "Registration failed");
+      setError(said(err, c.registerFailed));
     } finally {
       setBusy(false);
     }
@@ -135,7 +227,7 @@ export default function AuthForm({
       await verifyEmail(email, code);
       await finish();
     } catch (err) {
-      setError(err.message || "That code didn't work. Check it and try again, or ask for a new one.");
+      setError(said(err, c.badCode));
     } finally {
       setBusy(false);
     }
@@ -148,9 +240,9 @@ export default function AuthForm({
     try {
       await resendVerificationCode(email);
       setUndelivered(false);
-      setNotice("A new code is on its way.");
+      setNotice(c.newCode);
     } catch (err) {
-      setError(err.message || "Could not resend the code");
+      setError(said(err, c.resendFailed));
     } finally {
       setBusy(false);
     }
@@ -171,9 +263,7 @@ export default function AuthForm({
     <>
       {undelivered && (
         <p className="auth-warn" role="alert">
-          Your account was created, but we couldn&rsquo;t send the verification email.
-          Try &ldquo;Resend code&rdquo; below, or contact{" "}
-          <a href="mailto:support@altovisas.com">support@altovisas.com</a>.
+          {c.undelivered(<a href="mailto:support@altovisas.com">support@altovisas.com</a>)}
         </p>
       )}
       {notice && <p className="auth-notice" role="status">{notice}</p>}
@@ -184,14 +274,12 @@ export default function AuthForm({
   if (step === "verify") {
     return (
       <>
-        <h2 className="auth-title" id={id("title")}>Check your email</h2>
-        <p className="auth-sub">
-          Enter the 6-digit code sent to <strong>{email || "your address"}</strong>.
-        </p>
+        <h2 className="auth-title" id={id("title")}>{c.checkEmail}</h2>
+        <p className="auth-sub">{c.enterCode(email)}</p>
         {status}
 
         <form onSubmit={submitVerify}>
-          <label className="auth-label" htmlFor={id("code")}>Verification code</label>
+          <label className="auth-label" htmlFor={id("code")}>{c.codeLabel}</label>
           <input
             id={id("code")} ref={firstFieldRef} className="auth-input auth-code" inputMode="numeric"
             autoComplete="one-time-code" maxLength={6} value={code}
@@ -199,18 +287,18 @@ export default function AuthForm({
             placeholder="000000" required
           />
           <button className="auth-primary" disabled={busy || code.length !== 6}>
-            {busy ? "Verifying…" : "Verify and continue"}
+            {busy ? c.verifying : c.verify}
           </button>
         </form>
 
         <div className="auth-foot">
-          <button type="button" className="auth-link" onClick={resend} disabled={busy}>Resend code</button>
+          <button type="button" className="auth-link" onClick={resend} disabled={busy}>{c.resend}</button>
           <button
             type="button"
             className="auth-link"
             onClick={() => { setStep("form"); setError(""); setNotice(""); }}
           >
-            Use a different email
+            {c.otherEmail}
           </button>
         </div>
       </>
@@ -220,26 +308,24 @@ export default function AuthForm({
   return (
     <>
       <h2 className="auth-title" id={id("title")}>
-        {title || (tab === "login" ? "Log in" : "Create your free account")}
+        {title || (tab === "login" ? c.loginTitle : c.signupTitle)}
       </h2>
       <p className="auth-sub">
-        {sub || (tab === "login"
-          ? "Pick up where you left off: your rounds and reports are kept on your account."
-          : "Free. It keeps your rounds and reports, and takes about a minute.")}
+        {sub || (tab === "login" ? c.loginSub : c.signupSub)}
       </p>
 
       <button className="auth-oauth" onClick={googleAuth} type="button">
-        <GoogleMark /> Continue with Google
+        <GoogleMark /> {c.google}
       </button>
 
-      <div className="auth-or"><span>or with email</span></div>
+      <div className="auth-or"><span>{c.or}</span></div>
 
       {status}
 
       <form onSubmit={tab === "login" ? submitLogin : submitSignup}>
         {tab === "signup" && (
           <>
-            <label className="auth-label" htmlFor={id("name")}>Name</label>
+            <label className="auth-label" htmlFor={id("name")}>{c.name}</label>
             <input
               id={id("name")} ref={firstFieldRef} className="auth-input" value={name}
               onChange={(e) => setName(e.target.value)}
@@ -248,7 +334,7 @@ export default function AuthForm({
           </>
         )}
 
-        <label className="auth-label" htmlFor={id("email")}>Email address</label>
+        <label className="auth-label" htmlFor={id("email")}>{c.email}</label>
         <input
           id={id("email")} ref={tab === "login" ? firstFieldRef : undefined}
           className="auth-input" type="email"
@@ -256,7 +342,7 @@ export default function AuthForm({
           placeholder="name@example.com" autoComplete="email" required
         />
 
-        <label className="auth-label" htmlFor={id("password")}>Password</label>
+        <label className="auth-label" htmlFor={id("password")}>{c.password}</label>
         <div className="auth-pw">
           <input
             id={id("password")} className="auth-input" type={show ? "text" : "password"}
@@ -267,18 +353,18 @@ export default function AuthForm({
           />
           <button
             type="button" className="auth-reveal" onClick={() => setShow((v) => !v)}
-            aria-label={show ? "Hide password" : "Show password"}
+            aria-label={show ? c.hidePw : c.showPw}
           >
-            {show ? "Hide" : "Show"}
+            {show ? c.hide : c.show}
           </button>
         </div>
 
         {tab === "signup" && (
           <>
             <p className="auth-legal" id={id("pw-hint")} style={{ margin: "-8px 0 14px" }}>
-              At least 6 characters.
+              {c.pwHint}
             </p>
-            <label className="auth-label" htmlFor={id("confirm")}>Confirm password</label>
+            <label className="auth-label" htmlFor={id("confirm")}>{c.confirm}</label>
             <input
               id={id("confirm")} className="auth-input" type={show ? "text" : "password"}
               value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
@@ -288,7 +374,7 @@ export default function AuthForm({
         )}
 
         <button className="auth-primary" disabled={busy}>
-          {busy ? "One moment…" : tab === "login" ? "Log in" : "Create account"}
+          {busy ? c.busy : tab === "login" ? c.login : c.create}
         </button>
       </form>
 
@@ -296,26 +382,28 @@ export default function AuthForm({
         {tab === "login" ? (
           <>
             <span>
-              New here?{" "}
+              {c.newHere}{" "}
               <button type="button" className="auth-link" onClick={() => switchTo("signup")}>
-                Create an account
+                {c.createLink}
               </button>
             </span>
-            <Link className="auth-link" to={resetLink}>Forgot password?</Link>
+            <Link className="auth-link" to={resetLink}>{c.forgot}</Link>
           </>
         ) : (
           <span>
-            Already have one?{" "}
+            {c.haveOne}{" "}
             <button type="button" className="auth-link" onClick={() => switchTo("login")}>
-              Log in
+              {c.login}
             </button>
           </span>
         )}
       </div>
 
       <p className="auth-legal">
-        By continuing you agree to the <Link to="/terms">Terms</Link> and{" "}
-        <Link to="/privacy">Privacy Policy</Link>.
+        {c.legal(
+          (label) => <Link to="/terms">{label}</Link>,
+          (label) => <Link to="/privacy">{label}</Link>,
+        )}
       </p>
     </>
   );
