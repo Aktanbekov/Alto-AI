@@ -1466,3 +1466,97 @@ button.app-navitem {
   .vz { --grid: rgba(22, 35, 59, .45); }
   :focus-visible { outline-width: 3px; }
 }
+
+/* ==========================================================================
+   Checkout: the card form beside the order it pays for. The form is a
+   placeholder until a payment provider is wired in, so its fields render
+   disabled.
+   ========================================================================== */
+.tf .checkout { padding-block: 48px 88px; }
+.tf .checkout h1 { font-size: clamp(32px, 4.4vw, 46px); margin-bottom: 12px; }
+.tf .checkout > .lede { margin-bottom: 32px; }
+.tf .checkout-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  gap: 40px; align-items: start; max-width: 960px;
+}
+/* The form needs ~420px to keep the expiry and CVC pair readable; below
+   that the summary moves above it instead of squeezing it. */
+@media (max-width: 1180px) {
+  .tf .checkout-grid { grid-template-columns: minmax(0, 560px); }
+  .tf .checkout-summary { position: static; order: -1; }
+}
+.tf .checkout-form fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.tf .checkout-form legend { padding: 0; margin-bottom: 16px; }
+.tf .checkout-form fieldset:disabled .auth-input { background: var(--paper-2); cursor: not-allowed; }
+.tf .checkout-form fieldset:disabled .auth-label { color: var(--ink-soft); }
+.tf .checkout-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tf .checkout-pay { width: 100%; justify-content: center; min-height: 52px; margin-top: 4px; }
+.tf .checkout-summary { margin: 0; position: sticky; top: 24px; }
+.tf .checkout-summary dl { margin: 0 0 14px; }
+.tf .checkout-summary dl > div {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 10px 0; border-bottom: 1px solid var(--rule-soft); font-size: 16px;
+}
+.tf .checkout-summary dt { color: var(--ink-soft); }
+.tf .checkout-summary dd { margin: 0; font-weight: 600; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.tf .checkout-features { margin: 0 0 16px; padding-left: 20px; color: var(--ink-soft); font-size: 16px; }
+.tf .checkout-features li { margin-bottom: 4px; }
+.tf .checkout-total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin: 0; padding-top: 14px; border-top: 1px solid var(--ink); font-size: 17px;
+}
+.tf .checkout-total strong { font-size: 26px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tf .checkout-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 16px 0 0; font-size: 15px; }
+.tf .checkout-links a { color: var(--ink); text-underline-offset: 3px; }
+@media (max-width: 900px) {
+  .tf .checkout-grid { grid-template-columns: 1fr; gap: 28px; }
+  .tf .checkout-summary { position: static; order: -1; }
+  .tf .checkout { padding-block: 28px 56px; }
+}
+
+/* ==========================================================================
+   The way from a free report to a paid plan. It follows the report, so it
+   borrows the report's own surface and rises in only once it is on screen.
+   ========================================================================== */
+.vz .pc-upgrade { border-color: var(--ink); margin-bottom: 18px; }
+/* Rises in as it scrolls into view. Pure CSS, so a browser without
+   scroll-driven animations - or with motion reduced - simply shows it. */
+@keyframes pcUpgradeRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .vz .pc-upgrade {
+      animation: pcUpgradeRise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+.vz .pc-upgrade h2 { font-size: 22px; letter-spacing: -.02em; margin-bottom: 6px; }
+.vz .pc-upgrade > .sub { max-width: 60ch; margin-bottom: 18px; font-size: 16px; }
+.vz .pc-upgrade-plan {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 24px; flex-wrap: wrap;
+  padding: 16px 0; border-block: 1px solid var(--rule); margin-bottom: 18px;
+}
+.vz .pc-upgrade-name { margin: 0 0 8px; font-weight: 600; font-size: 17px; }
+.vz .pc-upgrade-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.vz .pc-upgrade-features li { display: flex; gap: 8px; align-items: center; color: var(--ink-soft); }
+.vz .pc-upgrade-features svg { flex: none; color: var(--ok); }
+.vz .pc-upgrade-price { margin: 0; text-align: right; }
+.vz .pc-upgrade-price strong {
+  display: block; font-size: 30px; letter-spacing: -.03em; line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.vz .pc-upgrade-price span { font-size: 14px; color: var(--ink-soft); }
+.vz .pc-upgrade-act { display: flex; align-items: center; gap: 8px 22px; flex-wrap: wrap; }
+.vz .pc-upgrade-act .ev-submit { margin-bottom: 0; text-decoration: none; }
+.vz .pc-upgrade-act .pc-quiet { display: inline-flex; align-items: center; }
+/* The free next round, once a paid step stands above it. */
+.vz .ev-submit.is-quiet { background: transparent; color: var(--ink); border-color: var(--control); }
+.vz .ev-submit.is-quiet:hover:not(:disabled) { background: var(--paper-2); border-color: var(--ink); }
+@media (max-width: 560px) {
+  .vz .pc-upgrade-price { text-align: left; }
+  .vz .pc-upgrade-act { flex-direction: column; align-items: stretch; }
+  .vz .pc-upgrade-act .ev-submit { width: 100%; }
+  .vz .pc-upgrade-act .pc-quiet { justify-content: center; }
+}
+@media print { .vz .pc-upgrade { display: none; } }

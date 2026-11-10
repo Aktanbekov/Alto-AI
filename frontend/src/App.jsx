@@ -24,6 +24,7 @@ const CaseBuilderPage = lazy(() => import("./pages/CaseBuilderPage"));
 const AnswersPage = lazy(() => import("./pages/AnswersPage"));
 const CheckProfilePage = lazy(() => import("./pages/CheckProfilePage"));
 const DataPage = lazy(() => import("./pages/DataPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 
 // Shown while a page's code downloads - usually a blink. A quiet line, not a
 // full-screen animation in a different design.
@@ -55,6 +56,12 @@ export default function App() {
         <Route path="/forgot-password" element={<AppShell><ForgotPasswordPage /></AppShell>} />
         <Route path="/data" element={<AppShell><DataPage /></AppShell>} />
         <Route path="/pricing" element={<AppShell><PricingPage /></AppShell>} />
+        {/* Paying needs an account too. Signed out, this sends the visitor to
+            /login and back here, plan and all, once they are in. */}
+        <Route
+          path="/checkout"
+          element={<AppShell><ProtectedRoute><CheckoutPage /></ProtectedRoute></AppShell>}
+        />
         <Route path="/faq" element={<AppShell><FAQPage /></AppShell>} />
         <Route path="/about" element={<AppShell><AboutPage /></AppShell>} />
         <Route path="/privacy" element={<AppShell><PrivacyPolicyPage /></AppShell>} />

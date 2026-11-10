@@ -21,7 +21,7 @@
 .home-page .hero {
   grid-template-columns: 1.2fr 1fr;
   gap: 48px;
-  padding-block: 72px 64px;
+  padding-block: 52px 56px;
 }
 .home-page .hero > * { min-width: 0; }
 .home-page .hero h1 {
@@ -29,21 +29,21 @@
   line-height: 1.08;
   letter-spacing: -.035em;
 }
-.home-page .hero-lede { max-width: 38ch; margin-top: 26px; }
-.home-page .home-evidence-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 26px;
-  padding-block: 10px;
-  min-height: 44px;
-  color: var(--ink-soft);
-  font-size: 15px;
-  text-decoration: none;
+.home-page .hero-lede { max-width: 38ch; margin-top: 22px; }
+/* The three things that make the check worth trusting, set where a visitor
+   reads them in the first seconds: under the action, not in a later section. */
+.home-page .hero-proof {
+  list-style: none; margin: 26px 0 0; padding: 20px 0 0;
+  border-top: 1px solid var(--rule);
+  display: grid; gap: 14px; max-width: 46ch;
 }
-.home-page .home-evidence-link > svg { flex: none; }
-.home-page .home-evidence-link:hover span { text-decoration: underline; text-underline-offset: 3px; }
-.home-page .home-evidence-link:hover { color: var(--ink); }
+.home-page .hero-proof li { display: flex; gap: 14px; align-items: flex-start; }
+.home-page .hero-proof-ic {
+  flex: none; display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: var(--r-control); background: var(--paper-2); color: var(--ink);
+}
+.home-page .hero-proof b { display: block; font-size: 17px; font-weight: 600; line-height: 1.35; }
+.home-page .hero-proof-t { display: block; margin-top: 2px; color: var(--ink-soft); font-size: 16px; line-height: 1.45; }
 
 /* An F-1 preparation folder, with a readable example laid over its cover. */
 .home-page .interview-preview {
@@ -231,8 +231,7 @@
   .home-page .hero { padding-block: 44px; gap: 32px; }
   .home-page .hero h1 { font-size: clamp(38px, 10.4vw, 54px); }
   .home-page .hero-lede { margin-top: 20px; }
-  .home-page .home-evidence-link { margin-top: 18px; gap: 8px; }
-  .home-page .home-evidence-link > .arrow { display: none; }
+  .home-page .hero-proof { margin-top: 24px; padding-top: 18px; gap: 14px; }
   .home-page .interview-sheet { margin-left: 20px; padding: 20px 18px 0; }
   .home-page .interview-folder-title { padding: 22px 20px; gap: 12px; }
   .home-page .interview-folder-title > span { font-size: 40px; }

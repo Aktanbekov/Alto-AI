@@ -1,1 +1,0 @@
-import{j as a}from"./index-77EuQfhB.js";function n({children:r}){const e=r||"Превью · пока не работает";return a.jsx("span",{className:"tiny",style:{display:"inline-block",border:"1px solid var(--rule)",background:"var(--paper-2)",padding:"5px 10px",borderRadius:2,letterSpacing:".12em",textTransform:"uppercase",marginBottom:22},children:e})}export{n as P};

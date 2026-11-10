@@ -12,6 +12,7 @@ import FeedbackRating from "../components/validation/FeedbackRating";
 import FeedbackCard from "../components/validation/FeedbackCard";
 import AccessScreen from "../components/validation/AccessScreen";
 import SurveyFlow from "../components/validation/SurveyFlow";
+import UpgradeCard from "../components/validation/UpgradeCard";
 import { questionLabel } from "../data/questionLabels";
 import { SMALL_N } from "../components/charts/useChartWidth";
 import Arrow from "../components/ui/Arrow";
@@ -196,6 +197,7 @@ const COPY = {
     compareEmpty: "Заполните хотя бы один ответ, прежде чем сравнивать модели.",
     answerOne: "Ответьте хотя бы на один из трёх вопросов и проверьте снова.",
     nextThree: "Следующие три вопроса",
+    nextThreeFree: "Или следующие три вопроса бесплатно",
     changeAnswer: "Изменить ответ и проверить снова",
     lastRound:
       "Это был последний раунд вопросов. Начните сначала, когда захотите пройти ещё раз.",
@@ -808,6 +810,11 @@ export default function CheckProfilePage() {
   // assume they have rounds - the form is the right thing to show while we do
   // not know, and the submit itself is still enforced server-side.
   const outOfSets = !!access && !access.unlimited && access.sets_remaining <= 0;
+  // Paid accounts have nothing to upgrade to. Admins are unlimited too, but see
+  // the card anyway so they can preview what students get. The admin model
+  // comparison (more than one report) is not a student's report, so no card.
+  const offerUpgrade = ((!!access && !access.unlimited) || isAdmin)
+    && result?.length === 1 && !!result[0]?.evaluation;
   const prompt = access?.next_prompt || "";
 
   // Latch it once per round, so answering does not unmount the card mid-thanks.
@@ -835,8 +842,8 @@ export default function CheckProfilePage() {
   } else if (hasNextRound) {
     nextAction = (
       <div className="pc-next">
-        <button type="button" className="ev-submit" onClick={nextRound}>
-          {c.nextThree} <Arrow />
+        <button type="button" className={`ev-submit${offerUpgrade ? " is-quiet" : ""}`} onClick={nextRound}>
+          {offerUpgrade ? c.nextThreeFree : c.nextThree} <Arrow />
         </button>
         <button type="button" className="pc-quiet" onClick={editRound}>
           {c.changeAnswer}
@@ -846,6 +853,16 @@ export default function CheckProfilePage() {
   } else {
     nextAction = (
       <p className="sub">{c.lastRound}</p>
+    );
+  }
+  // On a free account the report leads into the paid plan, built from what
+  // this report found. The free round stays right under it, one step quieter.
+  if (offerUpgrade && !outOfSets) {
+    nextAction = (
+      <>
+        <UpgradeCard ev={result[0].evaluation} />
+        {nextAction}
+      </>
     );
   }
 

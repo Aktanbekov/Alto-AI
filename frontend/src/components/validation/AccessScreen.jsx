@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { track } from "../../analytics";
 import WaitlistCard from "./WaitlistCard";
+import UpgradeCard from "./UpgradeCard";
 import { useCopy } from "../../i18n";
 
 const COPY = {
   ru: {
     title: "Бесплатные раунды закончились",
     doneSub: "Включая три дополнительных раунда за опрос.",
-    sub: "Каждый получает два бесплатных раунда по три вопроса. Продолжить можно двумя способами.",
+    sub: "Каждый получает два бесплатных раунда по три вопроса. Продолжить можно с тарифом или бесплатно, за короткий опрос.",
     receipt: "Опрос пройден, спасибо. Три дополнительных раунда уже использованы.",
     survey: "Пройдите опрос за 2 минуты и получите ещё 3 раунда",
     support: "Семь коротких вопросов о том, как вы готовитесь. Без оплаты и без регистрации.",
@@ -36,6 +37,7 @@ export default function AccessScreen({ access, onStartSurvey, onWaitlistJoined }
 
   return (
     <div className="ev-result">
+      <UpgradeCard from="access" />
       <div className="vz-card vac">
         <h2>{c.title}</h2>
         <p className="sub">{done ? c.doneSub : c.sub}</p>
