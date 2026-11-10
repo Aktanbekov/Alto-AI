@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import AuthForm from "./AuthForm";
-import { useLang } from "../../i18n";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
@@ -13,7 +12,6 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  */
 export default function AuthModal({ open, mode = "login", onClose, onAuthed, redirect = "/" }) {
   const dialogRef = useRef(null);
-  const { lang } = useLang();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -62,7 +60,7 @@ export default function AuthModal({ open, mode = "login", onClose, onAuthed, red
         aria-modal="true"
         aria-labelledby="dlg-title"
       >
-        <button className="auth-close" onClick={onClose} aria-label={lang === "ru" ? "Закрыть" : "Close"}>
+        <button className="auth-close" onClick={onClose} aria-label="Закрыть">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="2" strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />

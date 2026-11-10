@@ -302,6 +302,12 @@ English inside quotation marks and explain around it in Russian.
 Leave readiness, verdict, severity, question_type and comparable_interviews \
 exactly as the schema defines them; they are not shown to the student as text.
 
+Write the way a Russian-speaking student would say it to a friend, not a \
+word-for-word translation from English. Prefer short everyday sentences. Never \
+use the long dash (—) or the en dash (–) anywhere in the Russian text: use a \
+comma, a colon, brackets or a new sentence instead. Refer to the source data as \
+«отзывы» (reviews) and to the retrieved interviews as «собеседования».
+
 The plain-language rules hold in Russian too: short sentences, everyday words, \
 one idea per sentence. Do not use statistical vocabulary such as «корреляция», \
 «выборка», «дельта», «базовый уровень» or «статистически». Write percentages \

@@ -105,7 +105,7 @@ function organizationLd() {
     url: SITE.origin,
     logo: { "@type": "ImageObject", url: absolute(SITE.logo) },
     email: SITE.contact,
-    description: `Free practice for the United States F-1 student visa interview, built on ${CORPUS.interviews.toLocaleString()} self-reported interview reports.`,
+    description: `Бесплатная подготовка к собеседованию на студенческую визу США (F-1) на основе ${CORPUS.interviews.toLocaleString("ru-RU")} отзывов о собеседованиях.`,
   };
 }
 
@@ -113,12 +113,12 @@ function datasetLd() {
   return {
     "@type": "Dataset",
     "@id": `${SITE.origin}/#dataset`,
-    name: `Self-reported F-1 visa interview reports, ${CORPUS.fromYear}-${CORPUS.toYear}`,
+    name: `Отзывы о собеседованиях на визу F-1, ${CORPUS.fromYear}-${CORPUS.toYear}`,
     description:
-      `${CORPUS.interviews.toLocaleString()} self-reported accounts of United States F-1 student visa interviews, ` +
-      "posted publicly online by applicants, then de-duplicated and parsed question by question. " +
-      "Self-selected and self-reported: approval shares describe who chose to post, not the true consular " +
-      "approval rate, and every association in the data is correlational rather than causal.",
+      `${CORPUS.interviews.toLocaleString("ru-RU")} отзывов заявителей о собеседованиях на студенческую визу США (F-1). ` +
+      "Заявители сами опубликовали их в открытом доступе, а мы убрали повторы и разобрали каждый отзыв по вопросам. " +
+      "Люди сами решали, писать ли отзыв, и проверить их слова нельзя: доля одобрений описывает тех, кто написал, " +
+      "а не реальную долю одобрений в консульстве, а связи в данных показывают совпадения, но не причины.",
     url: SITE.origin,
     temporalCoverage: `${CORPUS.fromYear}/${CORPUS.toYear}`,
     isAccessibleForFree: true,
@@ -147,7 +147,7 @@ function jsonLdFor(route) {
       "@id": `${SITE.origin}/#website`,
       name: SITE.name,
       url: SITE.origin,
-      inLanguage: "en",
+      inLanguage: "ru",
       publisher: { "@id": `${SITE.origin}/#organization` },
     },
     organizationLd(),
@@ -161,8 +161,8 @@ function jsonLdFor(route) {
       url: SITE.origin,
       applicationCategory: "EducationalApplication",
       operatingSystem: "Any",
-      browserRequirements: "Requires JavaScript",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      browserRequirements: "Требуется JavaScript",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "KGS" },
       description: route.description,
     });
   }
@@ -199,7 +199,7 @@ function headFor(route) {
     `  <meta property="og:image" content="${image}" />`,
     `  <meta property="og:image:width" content="1200" />`,
     `  <meta property="og:image:height" content="630" />`,
-    `  <meta property="og:image:alt" content="${escape(SITE.name)} - F-1 visa interview practice" />`,
+    `  <meta property="og:image:alt" content="${escape(SITE.name)}: подготовка к собеседованию на визу F-1" />`,
     ``,
     `  <meta name="twitter:card" content="summary_large_image" />`,
     `  <meta name="twitter:url" content="${url}" />`,
@@ -235,27 +235,26 @@ function headFor(route) {
 function noscriptFor(route) {
   const shared = `
       <p>
-        Altovisas is a free practice tool for the United States F-1 student visa
-        interview, built on ${CORPUS.interviews.toLocaleString()} interview reports written by applicants
-        about their own interviews between ${CORPUS.fromYear} and ${CORPUS.toYear} and posted publicly
-        online. The dataset is self-selected and self-reported: approval shares
-        describe who chose to write something down, not the true approval rate at
-        any consulate, and associations in it are correlational rather than
-        causal. Nothing here predicts an individual outcome.
+        Altovisas помогает бесплатно подготовиться к собеседованию на студенческую визу
+        США (F-1). В основе лежат ${CORPUS.interviews.toLocaleString("ru-RU")} отзывов, которые заявители
+        написали о своих собеседованиях с ${CORPUS.fromYear} по ${CORPUS.toYear} год и выложили в открытом
+        доступе. Люди сами решали, писать ли отзыв, и проверить их слова нельзя: доля одобрений
+        описывает тех, кто написал, а не реальную долю одобрений в консульстве, а связи
+        в данных показывают совпадения, но не причины. Ничто здесь не предсказывает исход
+        конкретного собеседования.
       </p>
       <p>
-        Altovisas is not legal or immigration advice and is not affiliated with
-        the U.S. Department of State, any embassy or consulate, or any other
-        government body. Answers given at a real interview must be truthful and
-        your own.
+        Altovisas не даёт юридических или иммиграционных консультаций и не связан с
+        Госдепартаментом США, посольствами, консульствами или другими государственными
+        органами. На настоящем собеседовании отвечайте правдиво и своими словами.
       </p>
-      <h2>Pages</h2>
+      <h2>Страницы</h2>
       <ul>
 ${ROUTES.filter((r) => r.path !== route.path)
   .map((r) => `        <li><a href="${r.path}">${escape(r.title.split("|")[0].trim())}</a></li>`)
   .join("\n")}
       </ul>
-      <p>The interactive version of this site requires JavaScript.</p>`;
+      <p>Для интерактивной версии сайта нужен JavaScript.</p>`;
 
   const faqBlock =
     route.path === "/faq"
@@ -266,7 +265,7 @@ ${ROUTES.filter((r) => r.path !== route.path)
 
   return `  <noscript>
     <main>
-      <h1>${escape(route.path === "/" ? "Find out where your F-1 visa interview breaks" : route.title.split("|")[0].trim())}</h1>
+      <h1>${escape(route.path === "/" ? "Узнайте, где ваше собеседование на визу F-1 может пойти не так" : route.title.split("|")[0].trim())}</h1>
       <p>${escape(route.description)}</p>
 ${faqBlock}
 ${shared}

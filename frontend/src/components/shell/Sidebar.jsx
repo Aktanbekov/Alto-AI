@@ -1,6 +1,5 @@
 import { NavLink, Link } from "react-router-dom";
 import { useCopy } from "../../i18n";
-import LanguageSwitch from "../../i18n/LanguageSwitch";
 
 // The four destinations from the design brief. "Profile check" is the working
 // evaluator, and the name the home page, the page itself and the search
@@ -23,35 +22,6 @@ const LEARN = [
 ];
 
 const COPY = {
-  en: {
-    sections: "Sections",
-    explore: "Explore",
-    learn: "Learn",
-    account: "Account",
-    soon: "Soon",
-    comingSoon: "coming soon",
-    labels: {
-      check: "Profile check",
-      voice: "Voice Interview",
-      builder: "Custom Case Builder",
-      answers: "Questions/Answers",
-      data: "The data",
-      about: "How it works",
-      faq: "Questions",
-      pricing: "Pricing",
-    },
-    why: "The profile check needs a free account. It counts your free rounds and remembers where you got to.",
-    signup: "Create free account",
-    login: "Log in",
-    signedIn: "Signed in",
-    admin: "Admin panel",
-    logout: "Log out",
-    legal: "Legal",
-    terms: "Terms",
-    privacy: "Privacy",
-    refunds: "Refunds",
-    note: "Interview data updated monthly",
-  },
   ru: {
     sections: "Разделы",
     explore: "Инструменты",
@@ -94,27 +64,8 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
 
       <div className="side-label">{c.explore}</div>
       <nav className="app-nav">
-        {NAV.map((item) => {
+        {NAV.filter((item) => !item.soon).map((item) => {
           const Icon = item.icon;
-          const label = c.labels[item.key];
-
-          // Not-yet-built screens render as inert rows rather than links, so
-          // the badge and the behaviour agree - nothing to click, nowhere to go.
-          if (item.soon) {
-            return (
-              <span
-                key={item.to}
-                className="app-navitem is-soon"
-                aria-disabled="true"
-                title={`${label} - ${c.comingSoon}`}
-              >
-                <Icon />
-                <span className="lbl">{label}</span>
-                <span className="soon">{c.soon}</span>
-              </span>
-            );
-          }
-
           return (
             <NavLink
               key={item.to}
@@ -123,11 +74,28 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
               className={({ isActive }) => `app-navitem${isActive ? " is-active" : ""}`}
             >
               <Icon />
-              <span className="lbl">{label}</span>
+              <span className="lbl">{c.labels[item.key]}</span>
             </NavLink>
           );
         })}
       </nav>
+
+      {/* Not-yet-built screens sit together under one "Soon" heading as inert
+          rows rather than links - nothing to click, nowhere to go - so the
+          working tool is not one row among three disabled ones. */}
+      <div className="side-label">{c.soon}</div>
+      <ul className="app-nav app-soon">
+        {NAV.filter((item) => item.soon).map((item) => {
+          const Icon = item.icon;
+          const label = c.labels[item.key];
+          return (
+            <li key={item.to} className="app-navitem is-soon" title={`${label} - ${c.comingSoon}`}>
+              <Icon />
+              <span className="lbl">{label}</span>
+            </li>
+          );
+        })}
+      </ul>
 
       <div className="side-label">{c.learn}</div>
       <nav className="app-nav">
@@ -194,9 +162,6 @@ export default function Sidebar({ open, onNavigate, user, isAdmin, onLogout, onA
       )}
 
       <div className="side-foot">
-        {/* Signed in on a wide screen the header row collapses, and the
-            switch with it - so the rail carries its own. */}
-        {user && <LanguageSwitch className="side-lang" />}
         <nav className="side-legal" aria-label={c.legal}>
           <Link to="/terms" onClick={onNavigate}>{c.terms}</Link>
           <Link to="/privacy" onClick={onNavigate}>{c.privacy}</Link>

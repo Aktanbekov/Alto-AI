@@ -152,6 +152,8 @@ def test_russian_report_is_asked_for_in_the_user_turn_only():
     # The interview is in English, so officer wording must stay English.
     assert "example_question" in content
     assert "OUTPUT LANGUAGE" not in en_msgs[0]["content"]
+    # Natural Russian without long dashes is part of the instruction.
+    assert "long dash" in content
 
 
 def test_english_and_unknown_languages_add_nothing():

@@ -3,26 +3,13 @@ import { useShell } from "../shell/shellContext";
 import { useCopy } from "../../i18n";
 
 const COPY = {
-  en: {
-    title: "Profile check",
-    lede: "You answer three questions officers ask most, in your own words. We compare them with real interviews from applicants like you and show where an officer is likely to push back.",
-    whyTitle: "Why it needs an account",
-    why: [
-      ["Your free rounds are counted on it.", "Everyone gets two rounds of three questions, free."],
-      ["Your progress is kept.", "Come back another day and you carry on from the round you reached, not from question one."],
-      ["What you type stays private to your account.", "You can have all of it deleted at any time."],
-    ],
-    meta: "The account is free. No card, no payment.",
-    formTitle: "Create your free account",
-    formSub: "Then you go straight to your first round.",
-  },
   ru: {
     title: "Проверка профиля",
     lede: "Вы своими словами отвечаете на три вопроса, которые офицеры задают чаще всего. Мы сравниваем ответы с реальными собеседованиями похожих заявителей и показываем, где офицер может засомневаться.",
     whyTitle: "Зачем нужен аккаунт",
     why: [
       ["На нём считаются бесплатные раунды.", "Каждый получает два бесплатных раунда по три вопроса."],
-      ["Прогресс сохраняется.", "Вернитесь в другой день — и продолжите с того раунда, где остановились, а не с первого вопроса."],
+      ["Прогресс сохраняется.", "Вернитесь в другой день и продолжите с того раунда, где остановились, а не с первого вопроса."],
       ["Всё, что вы вводите, видно только в вашем аккаунте.", "Вы можете удалить всё в любой момент."],
     ],
     meta: "Аккаунт бесплатный. Без карты и без оплаты.",

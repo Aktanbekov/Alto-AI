@@ -1,440 +1,436 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
-import { useLang } from "../i18n";
-import PrivacyPolicyRu from "./legal/PrivacyPolicyRu";
 
 const CONTACT = "altovisas@gmail.com";
-const UPDATED = "21 October 2026";
+const UPDATED = "21 октября 2026 г.";
 
 const TOC = [
-  { id: "scope", title: "Who this covers" },
-  { id: "collect", title: "What we collect" },
-  { id: "never", title: "What we deliberately do not collect" },
-  { id: "use", title: "How we use it" },
-  { id: "bases", title: "Legal bases (EEA and UK)" },
-  { id: "ai", title: "AI processing" },
-  { id: "cookies", title: "Cookies, storage, and link tags" },
-  { id: "sharing", title: "Who we share it with" },
-  { id: "retention", title: "How long we keep it" },
-  { id: "security", title: "Security" },
-  { id: "rights", title: "Your rights" },
-  { id: "delete", title: "Deleting your data" },
-  { id: "transfers", title: "International transfers" },
-  { id: "children", title: "Children" },
-  { id: "changes", title: "Changes to this policy" },
-  { id: "contact", title: "Contact" },
+  { id: "scope", title: "На кого распространяется политика" },
+  { id: "collect", title: "Что мы собираем" },
+  { id: "never", title: "Что мы намеренно не собираем" },
+  { id: "use", title: "Как мы это используем" },
+  { id: "bases", title: "Правовые основания (ЕЭЗ и Великобритания)" },
+  { id: "ai", title: "Обработка с помощью ИИ" },
+  { id: "cookies", title: "Cookie, хранилище браузера и метки ссылок" },
+  { id: "sharing", title: "Кому мы передаём данные" },
+  { id: "retention", title: "Сколько мы храним данные" },
+  { id: "security", title: "Безопасность" },
+  { id: "rights", title: "Ваши права" },
+  { id: "delete", title: "Удаление ваших данных" },
+  { id: "transfers", title: "Международная передача данных" },
+  { id: "children", title: "Дети" },
+  { id: "changes", title: "Изменения политики" },
+  { id: "contact", title: "Контакты" },
 ];
 
 export default function PrivacyPolicyPage() {
-  const { lang } = useLang();
-  if (lang === "ru") return <PrivacyPolicyRu />;
   return (
     <LegalLayout
-      title="Privacy Policy"
+      title="Политика конфиденциальности"
       updated={UPDATED}
       toc={TOC}
       summary={
         <Callout>
-          <p className="doc-callout-h">The short version</p>
+          <p className="doc-callout-h">Коротко</p>
           <p>
-            We collect what the Service needs to give you feedback, and not more. We do not
-            sell your information, we do not run advertising, and we never share anything you
-            write with any government or with your university. What you type stays private to
-            your account; only anonymous, aggregated counts are used to see how the site is
-            doing. Your profile and practice answers are scored by an outside AI provider in the
-            United States; section 6 explains how. You can delete
-            your data at any time by emailing {CONTACT}.
+            Мы собираем то, что нужно Сервису для разбора ваших ответов, и не больше. Мы не
+            продаём ваши данные, не показываем рекламу и никогда не передаём ничего из того,
+            что вы пишете, ни государственным органам, ни вашему университету. Всё, что вы
+            вводите, видно только в вашем аккаунте; чтобы понимать, как работает сайт, мы
+            используем лишь анонимные сводные цифры. Ваш профиль и тренировочные ответы
+            оценивает внешний провайдер ИИ в США; подробности в разделе 6. Вы можете
+            удалить свои данные в любой момент, написав на {CONTACT}.
           </p>
         </Callout>
       }
     >
-      <Section id="scope" title="1. Who this covers">
+      <Section id="scope" title="1. На кого распространяется политика">
         <p>
-          This policy explains how Altovisas ("we", "us") handles personal information on
-          altovisas.com (the "Service"). It applies whether or not you have an account. For
-          the purposes of the UK and EU GDPR, Altovisas is the data controller. It should be
-          read alongside our{" "}
-          <Link to="/terms">Terms of Service</Link>.
+          Эта политика объясняет, как Altovisas («мы», «нас») обращается с персональными
+          данными на altovisas.com («Сервис»). Она действует независимо от того, есть ли у вас
+          аккаунт. Для целей GDPR Великобритании и ЕС оператором (контролёром) данных является
+          Altovisas. Читайте её вместе с нашими{" "}
+          <Link to="/terms">Условиями использования</Link>.
         </p>
       </Section>
 
-      <Section id="collect" title="2. What we collect">
-        <p className="doc-sub">Information you give us</p>
+      <Section id="collect" title="2. Что мы собираем">
+        <p className="doc-sub">Информация, которую вы предоставляете сами</p>
         <List>
           <li>
-            <strong>Account details.</strong> Your name and email address, and a hashed
-            password. If you sign in with Google, we receive your name, email address, and
-            profile picture from Google; we never see your Google password.
+            <strong>Данные аккаунта.</strong> Ваше имя, адрес электронной почты и хеш пароля.
+            Если вы входите через Google, мы получаем от Google ваше имя, адрес электронной
+            почты и фото профиля; ваш пароль от Google мы никогда не видим.
           </li>
           <li>
-            <strong>Your profile.</strong> What you tell us about your situation so the
-            feedback can be about you: university and programme, degree level, academic
-            record including GPA and test scores, intended consulate and country, funding,
-            scholarship and sponsor information, work history, which visa attempt this is,
-            and your plans after study.
+            <strong>Ваш профиль.</strong> То, что вы рассказываете о своей ситуации, чтобы
+            разбор касался именно вас: университет и программа, ступень обучения, успеваемость,
+            включая GPA и баллы тестов, консульство и страна, финансирование, стипендия и
+            сведения о спонсоре, опыт работы, номер попытки получения визы и планы после учёбы.
           </li>
           <li>
-            <strong>Your practice answers.</strong> What you write in response to practice
-            questions, and the reports we generate from them.
+            <strong>Ваши тренировочные ответы.</strong> То, что вы пишете в ответ на
+            тренировочные вопросы, и отчёты, которые мы на их основе создаём.
           </li>
           <li>
-            <strong>Purchases.</strong> If you buy a plan: which plan, the price, the date,
-            and the payment reference our payment processor gives us. The processor collects
-            your card or payment details directly; we never receive or store your full card
-            number.
+            <strong>Покупки.</strong> Если вы покупаете тариф: какой тариф, цена, дата и
+            платёжный идентификатор, который нам передаёт платёжный провайдер. Данные карты
+            или иные платёжные данные провайдер собирает напрямую; полный номер карты мы
+            никогда не получаем и не храним.
           </li>
           <li>
-            <strong>Refusal cover claims.</strong> If you claim the Complete plan&rsquo;s
-            refusal cover, the fact that you told us your visa was refused and the date you
-            told us.
+            <strong>Обращения по защите при отказе.</strong> Если вы воспользуетесь защитой
+            при отказе по тарифу «Максимум»: сам факт того, что вы сообщили нам об отказе в
+            визе, и дата сообщения.
           </li>
           <li>
-            <strong>Feedback and surveys.</strong> Ratings, free-text comments, survey
-            answers, and a waitlist email address if you give one.
+            <strong>Отзывы и опросы.</strong> Оценки, комментарии в свободной форме, ответы на
+            опросы и адрес электронной почты для листа ожидания, если вы его укажете.
           </li>
           <li>
-            <strong>Correspondence.</strong> Anything you send us by email.
+            <strong>Переписка.</strong> Всё, что вы присылаете нам по электронной почте.
           </li>
         </List>
 
-        <p className="doc-sub">Information collected automatically</p>
+        <p className="doc-sub">Информация, собираемая автоматически</p>
         <List>
           <li>
-            <strong>Usage events.</strong> Which pages you open, which steps of the flow you
-            reach, roughly how long things take, whether you are on mobile or desktop, and
-            your browser language. These are tied to a random identifier generated in your
-            browser, not to your name.
+            <strong>События использования.</strong> Какие страницы вы открываете, до каких
+            шагов доходите, примерно сколько времени это занимает, пользуетесь ли вы телефоном
+            или компьютером и какой язык у вашего браузера. Эти события привязаны к случайному
+            идентификатору, созданному в вашем браузере, а не к вашему имени.
           </li>
           <li>
-            <strong>Link tags.</strong> If you arrive on a link carrying a <code>src</code>,{" "}
-            <code>utm_source</code>, or <code>ref</code> value, we store that short label so
-            we can see which channels bring people to the site. It is a channel name such as
-            "reddit", never anything about you personally. See section 7.
+            <strong>Метки ссылок.</strong> Если вы пришли по ссылке со значением{" "}
+            <code>src</code>, <code>utm_source</code> или <code>ref</code>, мы сохраняем эту
+            короткую метку, чтобы видеть, какие каналы приводят людей на сайт. Это название
+            канала, например «reddit», а не что-то о вас лично. См. раздел 7.
           </li>
           <li>
-            <strong>Page analytics.</strong> We count page views with a third-party
-            analytics service that sets no cookies. It receives the page address, the site
-            that sent you, your browser, operating system, device type, screen size,
-            language, and approximate location (country or city), and nothing you type.
+            <strong>Аналитика страниц.</strong> Мы считаем просмотры страниц с помощью
+            стороннего сервиса аналитики, который не устанавливает cookie. Он получает адрес
+            страницы, сайт, с которого вы пришли, ваш браузер, операционную систему, тип
+            устройства, размер экрана, язык и приблизительное местоположение (страну или
+            город), но ничего из того, что вы вводите.
           </li>
           <li>
-            <strong>Technical information.</strong> Standard server logs, including IP
-            address, user agent, and timestamps, kept for security and abuse prevention.
+            <strong>Техническая информация.</strong> Стандартные журналы сервера, включая
+            IP-адрес, user agent и отметки времени, которые хранятся для безопасности и
+            предотвращения злоупотреблений.
           </li>
         </List>
 
         <p>
-          The usage event stream is built to be non-identifying. It deliberately strips out
-          free text, names, email addresses, exact GPA figures, sponsor details, funding
-          amounts, and your answers, and stores a banded value such as "3.0-3.3" instead of a
-          precise one. Those private details live only in your account records, described
-          above.
+          Поток событий использования устроен так, чтобы не позволять установить личность. Из
+          него намеренно исключены свободный текст, имена, адреса электронной почты, точные
+          значения GPA, сведения о спонсоре, суммы финансирования и ваши ответы, а вместо
+          точного значения хранится диапазон, например «3.0-3.3». Эти личные сведения хранятся
+          только в записях вашего аккаунта, описанных выше.
         </p>
       </Section>
 
-      <Section id="never" title="3. What we deliberately do not collect">
+      <Section id="never" title="3. Что мы намеренно не собираем">
         <p>
-          The Service never asks for, and does not want, any of the following. Please do not
-          type them into any field:
+          Сервис никогда не запрашивает и не хочет получать ничего из перечисленного ниже.
+          Пожалуйста, не вводите это ни в одно поле:
         </p>
         <List>
-          <li>passport, visa, DS-160, or SEVIS numbers;</li>
-          <li>national identity numbers, including Social Security numbers;</li>
+          <li>номера паспорта, визы, DS-160 или SEVIS;</li>
+          <li>национальные идентификационные номера, включая номера социального страхования (SSN);</li>
           <li>
-            bank account or card details (when you buy a plan, you enter these on our
-            payment processor&rsquo;s checkout, not into Altovisas);
+            реквизиты банковского счёта или карты (при покупке тарифа вы вводите их на
+            странице оплаты нашего платёжного провайдера, а не в Altovisas);
           </li>
-          <li>photographs or scans of documents;</li>
-          <li>anyone else's personal information.</li>
+          <li>фотографии или сканы документов;</li>
+          <li>персональные данные других людей.</li>
         </List>
         <p>
-          If you send us something like this anyway, tell us at {CONTACT} and we will delete
-          it. We also do not collect precise location, biometric data, or the special
-          categories of data described in Article 9 of the GDPR, and we do not knowingly
-          infer them.
+          Если вы всё же прислали нам что-то подобное, сообщите на {CONTACT}, и мы это удалим.
+          Мы также не собираем точное местоположение, биометрические данные и особые категории
+          данных, описанные в статье 9 GDPR, и сознательно не делаем о них выводов.
         </p>
       </Section>
 
-      <Section id="use" title="4. How we use it">
+      <Section id="use" title="4. Как мы это используем">
         <List>
-          <li>To create and secure your account, and to sign you in.</li>
-          <li>To generate the feedback, statistics, and practice questions you asked for.</li>
+          <li>Чтобы создать и защитить ваш аккаунт и обеспечить вход в него.</li>
+          <li>Чтобы подготовить запрошенные вами разбор, статистику и тренировочные вопросы.</li>
           <li>
-            To process purchases, give you the plan you paid for, handle refusal-cover
-            claims and billing questions, and keep the records tax and accounting law
-            requires.
+            Чтобы обрабатывать покупки, предоставлять оплаченный тариф, рассматривать
+            обращения по защите при отказе и вопросы об оплате, а также вести учёт, которого
+            требует налоговое и бухгалтерское законодательство.
           </li>
           <li>
-            To send transactional email: verification codes, password resets, and important
-            notices about the Service. We do not send marketing email unless you ask for it,
-            and you can unsubscribe from anything that is not transactional.
+            Чтобы отправлять служебные письма: коды подтверждения, сброс пароля и важные
+            уведомления о Сервисе. Рекламные рассылки мы не отправляем, если вы сами о них не
+            попросите, и от любых несервисных писем можно отписаться.
           </li>
           <li>
-            To understand how the Service is used in aggregate - where people get stuck, which
-            steps take too long, which channels bring people here - so it can be improved.
+            Чтобы в обобщённом виде понимать, как используется Сервис: где люди застревают,
+            какие шаги занимают слишком много времени, какие каналы приводят людей, и
+            улучшать его.
           </li>
-          <li>To detect, investigate, and prevent abuse, fraud, and security incidents.</li>
-          <li>To comply with legal obligations and to establish or defend legal claims.</li>
+          <li>Чтобы выявлять, расследовать и предотвращать злоупотребления, мошенничество и инциденты безопасности.</li>
+          <li>Чтобы выполнять требования закона, а также предъявлять или защищать правовые требования.</li>
         </List>
         <p>
-          We do not use your information for advertising, we do not build advertising
-          profiles, and we do not make decisions with legal or similarly significant effects
-          about you by automated means. The feedback the Service generates is informational
-          only and decides nothing about you.
+          Мы не используем ваши данные для рекламы, не строим рекламные профили и не
+          принимаем о вас автоматизированных решений, которые влекут юридические или
+          аналогично значимые последствия. Разбор, который создаёт Сервис, носит
+          исключительно информационный характер и ничего о вас не решает.
         </p>
       </Section>
 
-      <Section id="bases" title="5. Legal bases (EEA and UK)">
-        <p>If the UK or EU GDPR applies to you, we rely on:</p>
+      <Section id="bases" title="5. Правовые основания (ЕЭЗ и Великобритания)">
+        <p>Если к вам применяется GDPR Великобритании или ЕС, мы опираемся на:</p>
         <List>
           <li>
-            <strong>Contract</strong> - to provide the Service you asked for: your account,
-            your feedback, your reports, and any plan you buy.
+            <strong>Договор:</strong> чтобы предоставлять запрошенный вами Сервис: аккаунт,
+            разбор, отчёты и любой купленный тариф.
           </li>
           <li>
-            <strong>Legitimate interests</strong> - to keep the Service secure, prevent
-            abuse, and understand aggregate usage so we can improve it. We have weighed these
-            against your rights, which is why the usage stream is stripped of personal detail.
+            <strong>Законные интересы:</strong> чтобы обеспечивать безопасность Сервиса,
+            предотвращать злоупотребления и понимать обобщённое использование для его
+            улучшения. Мы соотнесли эти интересы с вашими правами, поэтому поток событий
+            очищен от личных сведений.
           </li>
           <li>
-            <strong>Consent</strong> - for anything optional, such as joining a waitlist. You
-            can withdraw consent at any time.
+            <strong>Согласие:</strong> для всего необязательного, например записи в лист
+            ожидания. Вы можете отозвать согласие в любой момент.
           </li>
           <li>
-            <strong>Legal obligation</strong> - where the law requires us to keep or disclose
-            something, such as tax and accounting records of purchases.
+            <strong>Юридическую обязанность:</strong> когда закон требует хранить или
+            раскрывать что-либо, например налоговые и бухгалтерские записи о покупках.
           </li>
         </List>
       </Section>
 
-      <Section id="ai" title="6. AI processing">
+      <Section id="ai" title="6. Обработка с помощью ИИ">
         <p>
-          To generate your feedback, in the profile check and in practice interviews, we send
-          your profile and your answers to one third-party AI provider, based in the United
-          States, which processes them on our behalf and returns a report. We do not send your
-          name, email address, or account identifiers, but anything you write inside an answer
-          goes as written.
+          Чтобы подготовить разбор в проверке профиля и в пробных собеседованиях, мы
+          отправляем ваш профиль и ответы одному стороннему провайдеру ИИ в США, который
+          обрабатывает их по нашему поручению и возвращает отчёт. Мы не отправляем ваше имя,
+          адрес электронной почты или идентификаторы аккаунта, но всё, что вы пишете внутри
+          ответа, передаётся как есть.
         </p>
         <p>
-          That provider&rsquo;s commercial terms do not allow it to use what we send to train
-          its models, though it may keep it for a limited time to monitor abuse. We do not use
-          your content to train any model of our own.
+          Коммерческие условия этого провайдера не разрешают ему использовать отправленные
+          нами данные для обучения своих моделей, хотя он может хранить их ограниченное время
+          для выявления злоупотреблений. Мы не используем ваш контент для обучения каких-либо
+          собственных моделей.
         </p>
         <Callout>
           <p>
-            Because your answers are read by an outside provider, keep them to what the
-            questions ask. Leave out names, contact details, and anything you
-            would not want to leave your hands.
+            Поскольку ваши ответы читает внешний провайдер, пишите только то, о чём
+            спрашивают вопросы. Не указывайте имена, контактные данные и всё, что вы не
+            хотели бы выпускать из рук.
           </p>
         </Callout>
       </Section>
 
-      <Section id="cookies" title="7. Cookies, storage, and link tags">
-        <p>We use a small number of cookies and browser-storage entries, all functional:</p>
+      <Section id="cookies" title="7. Cookie, хранилище браузера и метки ссылок">
+        <p>Мы используем небольшое количество cookie и записей в хранилище браузера, и все они функциональные:</p>
         <List>
           <li>
-            <strong>Cookies.</strong> A secure, HTTP-only refresh-token cookie keeps you
-            signed in for up to 30 days. An HTTP-only guest cookie identifies your browser
-            before you sign in, so free usage is counted fairly. A short-lived cookie remembers
-            which page to return you to during Google sign-in, and expires after five minutes.
+            <strong>Cookie.</strong> Защищённая cookie с токеном обновления (HTTP-only)
+            сохраняет вход до 30 дней. Гостевая cookie (HTTP-only) идентифицирует ваш браузер
+            до входа, чтобы бесплатное использование учитывалось честно. Краткосрочная cookie
+            запоминает, на какую страницу вернуть вас при входе через Google, и истекает через
+            пять минут.
           </li>
           <li>
-            <strong>Local storage.</strong> A random visitor identifier and a session
-            identifier, used to group your own usage events together, the link tag
-            described below, and the site language you chose.
+            <strong>Локальное хранилище.</strong> Случайный идентификатор посетителя и
+            идентификатор сеанса, по которым группируются ваши собственные события
+            использования, и метка ссылки, описанная ниже.
           </li>
           <li>
-            <strong>Session storage.</strong> Your sign-in token, and an unfinished profile
-            check or survey, kept in that browser tab so a reload does not lose your work. All
-            of it is cleared when the tab closes or you sign out.
+            <strong>Хранилище сеанса.</strong> Ваш токен входа, а также незавершённая проверка
+            профиля или опрос, которые хранятся в этой вкладке браузера, чтобы при перезагрузке
+            ничего не потерялось. Всё это очищается, когда вы закрываете вкладку или выходите из
+            аккаунта.
           </li>
           <li>
-            <strong>The link tag.</strong> When you arrive from a tagged link, we store its
-            channel label so that later activity in the same browser is credited to the
-            channel that introduced you. The first tag is kept, and it holds until you clear
-            your browser storage.
+            <strong>Метка ссылки.</strong> Когда вы приходите по ссылке с меткой, мы сохраняем
+            название канала, чтобы последующие действия в том же браузере засчитывались
+            каналу, который вас привёл. Сохраняется первая метка, и она действует, пока вы не
+            очистите хранилище браузера.
           </li>
         </List>
         <p>
-          We do not use third-party advertising cookies, cross-site trackers, or advertising
-          pixels, and we do not sell or share personal information for cross-context
-          behavioural advertising. Our usage events go to our own servers. Page-view counts go
-          to a third-party analytics service, which sets no cookies and does not track you
-          across other sites.
+          Мы не используем сторонние рекламные cookie, межсайтовые трекеры или рекламные
+          пиксели и не продаём и не передаём персональные данные для поведенческой рекламы на
+          других сайтах. События использования поступают на наши собственные серверы.
+          Просмотры страниц учитывает сторонний сервис аналитики, который не устанавливает
+          cookie и не отслеживает вас на других сайтах.
         </p>
         <p>
-          You can clear or block cookies and local storage in your browser settings. Blocking
-          them will sign you out and reset the free-usage flow, but the rest of the Service
-          will still work.
+          Вы можете удалить или заблокировать cookie и локальное хранилище в настройках
+          браузера. Блокировка выведет вас из аккаунта и сбросит учёт бесплатного
+          использования, но остальной Сервис продолжит работать.
         </p>
       </Section>
 
-      <Section id="sharing" title="8. Who we share it with">
+      <Section id="sharing" title="8. Кому мы передаём данные">
         <p>
-          <strong>We do not sell your personal information, and we never have.</strong> We
-          share it only with service providers who process it on our behalf under contract,
-          and only as far as they need to:
+          <strong>Мы не продаём ваши персональные данные и никогда этого не делали.</strong>{" "}
+          Мы передаём их только поставщикам услуг, которые обрабатывают их по нашему поручению
+          на основании договора, и только в том объёме, который им нужен:
         </p>
         <List>
-          <li><strong>Our AI provider</strong> - scoring your answers (see section 6).</li>
-          <li><strong>An analytics service</strong> - cookie-free page-view counts.</li>
-          <li><strong>Google</strong> - optional sign-in, if you use it.</li>
+          <li><strong>Наш провайдер ИИ:</strong> оценка ваших ответов (см. раздел 6).</li>
+          <li><strong>Сервис аналитики:</strong> подсчёт просмотров страниц без cookie.</li>
+          <li><strong>Google:</strong> необязательный вход, если вы им пользуетесь.</li>
           <li>
-            <strong>Our payment processor</strong> - taking payment when you buy a plan.
+            <strong>Наш платёжный провайдер:</strong> приём оплаты при покупке тарифа.
           </li>
-          <li><strong>Our email provider</strong> - delivery of verification and account email.</li>
+          <li><strong>Наш почтовый провайдер:</strong> доставка писем с кодами и писем об аккаунте.</li>
           <li>
-            <strong>Vercel and our database provider</strong> - hosting the Service and storing
-            its data.
+            <strong>Vercel и наш провайдер базы данных:</strong> хостинг Сервиса и хранение
+            его данных.
           </li>
         </List>
         <p>
-          We may also disclose information if we are legally required to, to enforce our{" "}
-          <Link to="/terms">Terms</Link>, or to
-          protect the rights and safety of our users or the public. If the Service is ever
-          part of a merger, acquisition, or sale of assets, information may transfer to the
-          new owner, who would remain bound by this policy or give you notice before changing
-          it.
+          Мы также можем раскрыть информацию, если этого требует закон, для обеспечения
+          соблюдения наших <Link to="/terms">Условий</Link> или для защиты прав и безопасности
+          наших пользователей или общества. Если Сервис когда-либо станет частью слияния,
+          поглощения или продажи активов, информация может перейти к новому владельцу, который
+          останется связан этой политикой или уведомит вас до её изменения.
         </p>
         <Callout>
           <p>
-            We do not report anything you write to any immigration authority, embassy,
-            consulate, university, or employer, and we do not receive anything about you from
-            them. We have no relationship with any of them.
+            Мы не сообщаем ничего из того, что вы пишете, ни иммиграционным органам, ни
+            посольствам, ни консульствам, ни университетам, ни работодателям и ничего о вас от
+            них не получаем. Мы никак с ними не связаны.
           </p>
         </Callout>
       </Section>
 
-      <Section id="retention" title="9. How long we keep it">
+      <Section id="retention" title="9. Сколько мы храним данные">
         <List>
           <li>
-            <strong>Account information</strong> - while your account exists, then deleted
-            within 30 days of your deletion request.
+            <strong>Данные аккаунта:</strong> пока существует аккаунт, затем удаляются в
+            течение 30 дней после запроса на удаление.
           </li>
           <li>
-            <strong>Profiles, answers, and reports</strong> - while your account exists, so
-            you can look back at them, then deleted with your account.
+            <strong>Профили, ответы и отчёты:</strong> пока существует аккаунт, чтобы вы
+            могли к ним вернуться, затем удаляются вместе с аккаунтом.
           </li>
           <li>
-            <strong>Usage events</strong> - up to 24 months, in a form already stripped of
-            personal detail, then deleted or aggregated permanently.
+            <strong>События использования:</strong> до 24 месяцев, в форме, уже очищенной от
+            личных сведений, затем удаляются или безвозвратно обобщаются.
           </li>
           <li>
-            <strong>Purchase records</strong> - for as long as tax and accounting law
-            requires, even after your account is deleted.
+            <strong>Записи о покупках:</strong> столько, сколько требует налоговое и
+            бухгалтерское законодательство, даже после удаления аккаунта.
           </li>
           <li>
-            <strong>Server logs</strong> - up to 90 days.
+            <strong>Журналы сервера:</strong> до 90 дней.
           </li>
           <li>
-            <strong>Backups</strong> - deleted records persist in encrypted backups until
-            those backups rotate out, normally within 90 days.
+            <strong>Резервные копии:</strong> удалённые записи остаются в зашифрованных
+            резервных копиях, пока эти копии не будут заменены, обычно в течение 90 дней.
           </li>
         </List>
       </Section>
 
-      <Section id="security" title="10. Security">
+      <Section id="security" title="10. Безопасность">
         <p>
-          Traffic is encrypted in transit with HTTPS. Passwords are stored hashed, never in
-          readable form. Data is held in access-controlled databases, and administrative
-          access is limited to the people who need it. Sensitive fields are kept out of the
-          analytics stream by design rather than by policy alone.
+          Трафик шифруется при передаче по HTTPS. Пароли хранятся в виде хешей, а не в
+          читаемом виде. Данные хранятся в базах с контролем доступа, а административный
+          доступ есть только у тех, кому он нужен. Чувствительные поля не попадают в поток
+          аналитики по самой конструкции системы, а не только по правилам.
         </p>
         <p>
-          No system is perfectly secure, and we cannot guarantee absolute security. If a
-          breach affects your personal information, we will notify you and any relevant
-          regulator as the law requires.
+          Ни одна система не защищена идеально, и мы не можем гарантировать абсолютную
+          безопасность. Если утечка затронет ваши персональные данные, мы уведомим вас и
+          соответствующий надзорный орган, как того требует закон.
         </p>
       </Section>
 
-      <Section id="rights" title="11. Your rights">
-        <p>Depending on where you live, you may have the right to:</p>
+      <Section id="rights" title="11. Ваши права">
+        <p>В зависимости от того, где вы живёте, у вас может быть право:</p>
         <List>
-          <li>access a copy of the personal information we hold about you;</li>
-          <li>correct information that is wrong or incomplete;</li>
-          <li>delete your information;</li>
-          <li>receive your information in a portable format;</li>
-          <li>object to or restrict certain processing;</li>
-          <li>withdraw consent you previously gave;</li>
-          <li>not be discriminated against for exercising any of these rights.</li>
+          <li>получить копию персональных данных, которые мы о вас храним;</li>
+          <li>исправить неверные или неполные данные;</li>
+          <li>удалить свои данные;</li>
+          <li>получить свои данные в переносимом формате;</li>
+          <li>возразить против определённой обработки или ограничить её;</li>
+          <li>отозвать ранее данное согласие;</li>
+          <li>не подвергаться дискриминации за осуществление любого из этих прав.</li>
         </List>
         <p>
-          To exercise any of them, email{" "}
-          <a href={`mailto:${CONTACT}`}>
-            {CONTACT}
-          </a>{" "}
-          from the address on your account. We respond within 30 days. We may need to verify
-          who you are first, and an authorized agent may act for you with written permission.
+          Чтобы воспользоваться любым из них, напишите на{" "}
+          <a href={`mailto:${CONTACT}`}>{CONTACT}</a> с адреса, привязанного к аккаунту. Мы
+          отвечаем в течение 30 дней. Возможно, сначала нам потребуется подтвердить вашу
+          личность; уполномоченный представитель может действовать от вашего имени с
+          письменного разрешения.
         </p>
         <p>
-          <strong>California residents.</strong> We do not sell or share personal information
-          as those terms are used in the CCPA/CPRA, and we do not use or disclose sensitive
-          personal information beyond the purposes permitted for providing the Service. The
-          categories we collect, why, and who we disclose them to are set out in sections 2,
-          4, and 8.
+          <strong>Жители Калифорнии.</strong> Мы не продаём и не передаём персональные данные
+          в том смысле, в каком эти термины используются в CCPA/CPRA, и не используем и не
+          раскрываем чувствительные персональные данные сверх целей, допустимых для
+          предоставления Сервиса. Какие категории мы собираем, зачем и кому раскрываем,
+          описано в разделах 2, 4 и 8.
         </p>
         <p>
-          <strong>EEA and UK residents.</strong> You may also complain to your local
-          supervisory authority, or in the UK to the Information Commissioner's Office.
-          We would rather you came to us first.
-        </p>
-      </Section>
-
-      <Section id="delete" title="12. Deleting your data">
-        <p>
-          Email {CONTACT} from your account address and ask us to delete your account. We
-          remove your account record, your profile, your practice answers, the reports
-          generated for you, and your usage history, within 30 days, subject only to backup
-          rotation and to anything we are legally required to keep, such as purchase records.
-          Copies held by the AI provider under its own retention terms are not in our
-          control, which is one more reason to keep answers to what the questions ask.
-        </p>
-        <p>
-          Aggregated statistics that can no longer identify you - counts, medians, approval
-          shares - are not deleted, because they contain nothing that points back to you.
+          <strong>Жители ЕЭЗ и Великобритании.</strong> Вы также можете подать жалобу в
+          местный надзорный орган, а в Великобритании, в Управление комиссара по информации
+          (ICO). Но мы будем рады, если сначала вы обратитесь к нам.
         </p>
       </Section>
 
-      <Section id="transfers" title="13. International transfers">
+      <Section id="delete" title="12. Удаление ваших данных">
         <p>
-          We operate from and store data in the United States, and most of our service
-          providers are U.S.-based. If you use the Service from outside the United States,
-          your information will be transferred there, where data protection law differs from
-          your own.
+          Напишите на {CONTACT} с адреса аккаунта и попросите удалить аккаунт. В течение 30
+          дней мы удалим запись аккаунта, ваш профиль, тренировочные ответы, созданные для вас
+          отчёты и историю использования, с оговоркой только о замене резервных копий и о
+          том, что мы обязаны хранить по закону, например записи о покупках. Копии, которые
+          провайдер ИИ хранит по собственным правилам, нам неподконтрольны, и это ещё одна
+          причина писать в ответах только то, о чём спрашивают.
         </p>
         <p>
-          Where we transfer personal information out of the EEA or the UK, we rely on the
-          safeguards our providers offer for such transfers, such as the European
-          Commission&rsquo;s Standard Contractual Clauses and the UK Addendum, where they
-          offer them.
-        </p>
-      </Section>
-
-      <Section id="children" title="14. Children">
-        <p>
-          The Service is not directed to children under 16, and we do not knowingly collect
-          their personal information. Users under 18 need the consent and involvement of a
-          parent or guardian. If you believe a child under 16 has given us information, email
-          {" "}{CONTACT} and we will delete it promptly.
+          Сводная статистика, по которой вас уже нельзя идентифицировать (количества,
+          медианы, доли одобрений), не удаляется, поскольку в ней нет ничего, что указывало бы
+          на вас.
         </p>
       </Section>
 
-      <Section id="changes" title="15. Changes to this policy">
+      <Section id="transfers" title="13. Международная передача данных">
         <p>
-          We may update this policy. The "Last updated" date above always reflects the current
-          version, and we will give notice on the Service, or by email to account holders,
-          before a material change takes effect. Continuing to use the Service after that
-          means you accept the updated policy.
+          Мы работаем из США и храним данные там же, и большинство наших поставщиков услуг
+          находятся в США. Если вы пользуетесь Сервисом за пределами США, ваши данные будут
+          переданы туда, где законодательство о защите данных отличается от вашего.
+        </p>
+        <p>
+          Когда мы передаём персональные данные за пределы ЕЭЗ или Великобритании, мы
+          опираемся на гарантии, которые наши поставщики предлагают для такой передачи,
+          например Стандартные договорные положения Европейской комиссии и Дополнение
+          Великобритании, если поставщики их предлагают.
         </p>
       </Section>
 
-      <Section id="contact" title="16. Contact">
+      <Section id="children" title="14. Дети">
         <p>
-          Questions, requests, or complaints about privacy go to{" "}
-          <a href={`mailto:${CONTACT}`}>
-            {CONTACT}
-          </a>
-          . We read everything sent there.
+          Сервис не предназначен для детей младше 16 лет, и мы сознательно не собираем их
+          персональные данные. Пользователям младше 18 лет нужно согласие и участие родителя
+          или опекуна. Если вы считаете, что ребёнок младше 16 лет передал нам свои данные,
+          напишите на {CONTACT}, и мы быстро их удалим.
+        </p>
+      </Section>
+
+      <Section id="changes" title="15. Изменения политики">
+        <p>
+          Мы можем обновлять эту политику. Дата «Последнее обновление» вверху всегда
+          соответствует текущей версии, а о существенных изменениях мы заранее сообщим на
+          сайте или по электронной почте владельцам аккаунтов. Продолжая пользоваться Сервисом
+          после этого, вы принимаете обновлённую политику.
+        </p>
+      </Section>
+
+      <Section id="contact" title="16. Контакты">
+        <p>
+          Вопросы, запросы и жалобы о конфиденциальности направляйте на{" "}
+          <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. Мы читаем всё, что туда приходит.
         </p>
       </Section>
     </LegalLayout>

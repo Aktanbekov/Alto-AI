@@ -6,25 +6,15 @@ import { useCopy } from "../i18n";
 // The officer's question stays in English in both languages: the interview is
 // held in English.
 const COPY = {
-  en: {
-    of: "Question 2 of 3",
-    src: "Asked in 29.5% of interviews in the data · median spoken answer 14 seconds",
-    micAria: "Voice answers - not available yet",
-    mic: "Voice answers are coming. This screen does not record.",
-    type: "Prefer to type? Switch to text - but the real thing is spoken, and speaking is the part people freeze on.",
-    none: "No feedback yet. All three answers are scored together against comparable posts, so the report reads your file as a whole rather than one answer at a time.",
-    check: "Check my answers",
-    hint: "Type your profile and answers - scored against the corpus",
-  },
   ru: {
     of: "Вопрос 2 из 3",
-    src: "Задавали в 29,5% собеседований из данных · медианный устный ответ — 14 секунд",
-    micAria: "Голосовые ответы — пока недоступны",
+    src: "Задавали в 29,5% собеседований из данных · медианный устный ответ длится 14 секунд",
+    micAria: "Голосовые ответы пока недоступны",
     mic: "Голосовые ответы скоро появятся. Этот экран ничего не записывает.",
-    type: "Удобнее печатать? Переключитесь на текст — но настоящее собеседование устное, и теряются люди именно тогда, когда нужно говорить.",
-    none: "Разбора пока нет. Все три ответа оцениваются вместе и сравниваются с похожими рассказами, поэтому отчёт смотрит на ваш кейс целиком, а не на каждый ответ по отдельности.",
+    type: "Удобнее печатать? Переключитесь на текст. Но настоящее собеседование устное, и теряются люди именно тогда, когда нужно говорить.",
+    none: "Разбора пока нет. Все три ответа оцениваются вместе и сравниваются с похожими отзывами, поэтому отчёт смотрит на ваш кейс целиком, а не на каждый ответ по отдельности.",
     check: "Проверить ответы",
-    hint: "Введите профиль и ответы — мы сравним их с базой",
+    hint: "Введите профиль и ответы, и мы сравним их с базой",
   },
 };
 

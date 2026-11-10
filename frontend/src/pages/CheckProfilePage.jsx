@@ -161,99 +161,6 @@ const POSTGRAD = new Set(["Masters", "MBA", "PhD"]);
  * the reader sees beside them.
  */
 const COPY = {
-  en: {
-    scales: [
-      { value: "", label: "Choose a scale" },
-      { value: "4", label: "Out of 4.0 (US and similar)" },
-      { value: "4.3", label: "Out of 4.3" },
-      { value: "5", label: "Out of 5.0" },
-      { value: "10", label: "Out of 10 (India CGPA)" },
-      { value: "100", label: "Percentage (out of 100)" },
-    ],
-    attempts: [
-      { value: "1", label: "First attempt" },
-      { value: "2", label: "Second attempt" },
-      { value: "3", label: "Third attempt" },
-      { value: "4", label: "Fourth or later" },
-    ],
-    degrees: { Bachelor: "Bachelor's", Masters: "Master's", MBA: "MBA", PhD: "PhD" },
-    gpaScale:
-      "Choose what your grades are out of. A number on its own is ambiguous - 3.5 out of 4 " +
-      "is strong, 3.5 out of 10 is not. Or clear the grades box.",
-    offline: "We couldn't reach Altovisas. Check your connection and try again - your answers are still here.",
-    failed: "Something went wrong while checking your answers. Try again in a moment.",
-    coverCity: (n, name) => <><strong>{n} interviews</strong> from {name} in the data.</>,
-    coverNoCity: (city) => <>No interviews from {city} in the data yet. </>,
-    coverCountry: (n, name) => <><strong>{n} interviews</strong> from {name} overall.</>,
-    coverThin: " That is a thin comparison - read the numbers in your report with that in mind.",
-    coverNone: (name) =>
-      `Few or no interviews from ${name} in the data yet. Your answers are still ` +
-      "checked, but the comparisons lean on other consulates, mostly in India.",
-    compareEmpty: "Fill in at least one answer before comparing models.",
-    answerOne: "Answer at least one of the three questions, then check again.",
-    nextThree: "Next three questions",
-    changeAnswer: "Change an answer and check again",
-    lastRound:
-      "That was the last round of questions. Start again from the top whenever you want another pass.",
-    adminIntro: "Admin view: every model's report on the same answers. Students see one.",
-    noReport: "The report didn’t come back.",
-    noReportStill: "Your answers are still here -",
-    goBack: "go back and check again",
-    stepStudy: "Your study",
-    stepInterview: "Your interview",
-    stepQuestion: (i, n) => `Question ${i} of ${n}`,
-    admin: "Admin",
-    fill: "Fill with test data",
-    scoring: "Scoring…",
-    scoreFree: "Score without a round",
-    adminNote: "Fill drops in a sample applicant. Score runs this round with Claude Opus — no practice round spent, nothing stored.",
-    stepOf: (i, n) => `Step ${i} of ${n}`,
-    roundN: (n) => `Round ${n} · `,
-    progress: "Progress",
-    studyTitle: "First, your study",
-    studySub: "This is how we find interviews like yours. Skip anything you don’t know.",
-    degreeQ: "What degree are you applying for?",
-    university: "University",
-    universityHint: "e.g. Arizona State University",
-    course: "What you will study",
-    courseHint: "e.g. MS in Computer Science",
-    major: "What you studied before",
-    majorHint: "e.g. B.Tech in Mechanical Engineering",
-    gpa: "Your grades",
-    gpaHint: "e.g. 8.2",
-    outOf: "Out of",
-    interviewTitle: "Your interview and funding",
-    interviewSub: "The consulate decides which officers’ questions we compare you with.",
-    consulate: "Which consulate is your interview at?",
-    consulateHint: "e.g. Chennai",
-    funding: "Who is paying for your degree?",
-    fundingHint: "e.g. My father's business savings and an education loan",
-    more: "Add more detail",
-    optional: "(optional)",
-    work: "Work experience",
-    workHint: "e.g. 2 years as a data analyst, or none",
-    firstAttempt: "Is this your first attempt?",
-    country: "Consulate country",
-    countryAuto: (c) => `We'll use ${c} unless you change it`,
-    countryHint: "e.g. India",
-    askedIn: (p) => `Asked in ${p}% of the interviews in the data`,
-    answerTip: "Write what you would really say at the window. Two or three sentences is plenty. You can leave a question blank.",
-    check: "Check my answers",
-    nextQ: "Next question",
-    cont: "Continue",
-    back: "Back",
-    edit: "Edit your details",
-    statusChecking: "Checking that scoring is up…",
-    statusDown: "Scoring is down right now. Your answers stay in this browser until it's back.",
-    statusUnlimited: "Your admin account has unlimited practice rounds.",
-    statusLeft: (n) => `A new round uses one of your free rounds. You have ${n} left.`,
-    statusSaved: "Your answers are saved in this browser as you type.",
-    title: "Profile check",
-    lede: "A few details about you, then three questions officers ask most. We show where an officer would push back.",
-    downTitle: "Scoring is down right now.",
-    downBody: "You can still fill this in; your answers stay in this browser, and you can check them when it’s back.",
-    adminDetail: "Admin detail:",
-  },
   ru: {
     scales: [
       { value: "", label: "Выберите шкалу" },
@@ -271,9 +178,9 @@ const COPY = {
     ],
     degrees: { Bachelor: "Бакалавриат", Masters: "Магистратура", MBA: "MBA", PhD: "PhD" },
     gpaScale:
-      "Выберите, из скольки баллов ваша оценка. Одно число ничего не говорит: 3.5 из 4 — " +
-      "это высокая оценка, а 3.5 из 10 — нет. Или очистите поле с оценками.",
-    offline: "Не удалось связаться с Altovisas. Проверьте подключение и попробуйте ещё раз — ваши ответы никуда не делись.",
+      "Выберите, из скольки баллов ваша оценка. Одно число ничего не говорит: 3.5 из 4 это " +
+      "высокая оценка, а 3.5 из 10 нет. Или очистите поле с оценками.",
+    offline: "Не удалось связаться с Altovisas. Проверьте подключение и попробуйте ещё раз, ваши ответы никуда не делись.",
     failed: "При проверке ответов что-то пошло не так. Попробуйте ещё раз через минуту.",
     coverCity: (n, name, count) => (
       <>{name}: в данных <strong>{n} {plural("ru", count, ["собеседование", "собеседования", "собеседований"])}</strong>.</>
@@ -282,7 +189,7 @@ const COPY = {
     coverCountry: (n, name, count) => (
       <>{name} в целом: <strong>{n} {plural("ru", count, ["собеседование", "собеседования", "собеседований"])}</strong>.</>
     ),
-    coverThin: " Сравнивать особо не с чем — учитывайте это, читая цифры в отчёте.",
+    coverThin: " Сравнивать особо не с чем, учитывайте это, когда будете читать цифры в отчёте.",
     coverNone: (name) =>
       `${name}: собеседований в данных пока мало или нет совсем. Ваши ответы всё равно ` +
       "проверят, но сравнение будет опираться на другие консульства, в основном в Индии.",
@@ -294,7 +201,7 @@ const COPY = {
       "Это был последний раунд вопросов. Начните сначала, когда захотите пройти ещё раз.",
     adminIntro: "Вид администратора: отчёты всех моделей по одним и тем же ответам. Студенты видят один.",
     noReport: "Отчёт не пришёл.",
-    noReportStill: "Ваши ответы на месте —",
+    noReportStill: "Ваши ответы на месте.",
     goBack: "вернитесь и проверьте снова",
     stepStudy: "Ваша учёба",
     stepInterview: "Ваше собеседование",
@@ -303,11 +210,11 @@ const COPY = {
     fill: "Заполнить тестовыми данными",
     scoring: "Проверяем…",
     scoreFree: "Проверить без траты раунда",
-    adminNote: "«Заполнить» подставляет пример заявителя. «Проверить» прогоняет этот раунд через Claude Opus — раунд не тратится, ничего не сохраняется.",
+    adminNote: "«Заполнить» подставляет пример заявителя. «Проверить» прогоняет этот раунд через Claude Opus. Раунд не тратится, ничего не сохраняется.",
     stepOf: (i, n) => `Шаг ${i} из ${n}`,
     roundN: (n) => `Раунд ${n} · `,
     progress: "Прогресс",
-    studyTitle: "Сначала — о вашей учёбе",
+    studyTitle: "Сначала об учёбе",
     studySub: "По этим данным мы находим собеседования, похожие на ваше. Пропустите то, чего не знаете.",
     degreeQ: "На какую ступень вы поступаете?",
     university: "Университет",
@@ -334,7 +241,7 @@ const COPY = {
     countryAuto: (c) => `Укажем ${c}, если вы не измените`,
     countryHint: "например, Uzbekistan",
     askedIn: (p) => `Этот вопрос задавали в ${p}% собеседований из наших данных`,
-    answerTip: "Отвечайте по-английски — собеседование проходит на английском. Напишите то, что вы действительно скажете у окошка: двух-трёх предложений достаточно. Вопрос можно пропустить.",
+    answerTip: "Отвечайте по-английски, потому что собеседование проходит на английском. Напишите то, что вы действительно скажете у окошка: двух-трёх предложений достаточно. Вопрос можно пропустить.",
     check: "Проверить ответы",
     nextQ: "Следующий вопрос",
     cont: "Продолжить",
@@ -1269,16 +1176,6 @@ function Select({ id, label, value, onChange, options }) {
  * what is being compared, and the answers being compared, read back.
  */
 const SCORING_COPY = {
-  en: {
-    title: "Checking your answers",
-    body: (where, n) => (
-      <>
-        Comparing them with interviews from {where || "applicants like you"}
-        {n ? ` - ${n} in the data` : ""}, and with the questions officers ask there. It
-        takes a little while; keep this tab open.
-      </>
-    ),
-  },
   ru: {
     title: "Проверяем ваши ответы",
     body: (where, n) => (
@@ -1286,7 +1183,7 @@ const SCORING_COPY = {
         {where
           ? `Сравниваем их с собеседованиями (${where}${n ? `: ${n} в данных` : ""}) `
           : "Сравниваем их с собеседованиями заявителей, похожих на вас, "}
-        и с вопросами, которые там задают офицеры. Это займёт немного времени — не
+        и с вопросами, которые там задают офицеры. Это займёт немного времени, не
         закрывайте вкладку.
       </>
     ),
@@ -1335,10 +1232,6 @@ const rx = (body) => new RegExp(body, "g");
 
 // What a stripped interview id becomes, in the report's language.
 const ID_PHRASES = {
-  en: {
-    both: "Two comparable interviews", three: "three comparable interviews",
-    two: "two comparable interviews", one: "one comparable interview",
-  },
   ru: {
     both: "Два похожих собеседования", three: "три похожих собеседования",
     two: "два похожих собеседования", one: "одно похожее собеседование",
@@ -1404,31 +1297,6 @@ const TONES = {
 };
 
 const REPORT_COPY = {
-  en: {
-    readiness: { strong: "Holding up", moderate: "Partly ready", needs_work: "Needs work" },
-    verdict: { strong: "Holds up", adequate: "Could be stronger", weak: "Weak" },
-    severity: { high: "High risk", medium: "Medium risk", low: "Low risk" },
-    head: (n) => `Profile check · round ${n}`,
-    checked: "Answers checked",
-    rework: "Answers to rework",
-    from: (where) => `Interviews from ${where}`,
-    refused: "Of those, reported a refusal",
-    answersTitle: "Your answers, one by one",
-    said: "You said",
-    mayHear: "An officer may hear",
-    works: "What works",
-    fix: "How to fix it",
-    likelyTitle: "What an officer is likely to ask you next",
-    askedIn: (share) => ` · asked in ${share} of comparable interviews`,
-    prepare: "To prepare:",
-    risksTitle: "Risks in your profile",
-    rehearseTitle: "Rehearse these",
-    rehearseSub: "Say each answer out loud, in your own words, then try the follow-up. Don’t memorise a script: officers hear one immediately.",
-    thenReady: "Then be ready for:",
-    print: "Print or save as PDF",
-    howToRead: "How to read this.",
-    howToReadTail: "The interviews behind it were posted by applicants themselves, so the numbers describe who chose to post, not official approval rates.",
-  },
   ru: {
     readiness: { strong: "В целом готовы", moderate: "Частично готовы", needs_work: "Нужна доработка" },
     verdict: { strong: "Убедительно", adequate: "Можно сильнее", weak: "Слабо" },

@@ -141,7 +141,7 @@ const RU = {
   options: {
     "Within 2 weeks": "В ближайшие 2 недели",
     "Within 1 month": "В течение месяца",
-    "Within 2-3 months": "Через 2–3 месяца",
+    "Within 2-3 months": "Через 2-3 месяца",
     "More than 3 months away": "Больше чем через 3 месяца",
     "Not scheduled yet": "Ещё не назначено",
     "Already completed": "Уже прошло",
@@ -176,18 +176,6 @@ const optionLabel = (o, lang) => {
 };
 
 const COPY = {
-  en: {
-    failed: "Could not save your answers. Try again.",
-    unlocked: (n) => `${n} more rounds unlocked`,
-    unlockedSub: (q) => `That’s ${q} more questions from real interviews. Thank you for the answers.`,
-    next: "Start the next round",
-    of: (i, n) => `Question ${i} of ${n}`,
-    close: "Close",
-    back: "Back",
-    saving: "Saving…",
-    finish: "Finish and unlock",
-    cont: "Continue",
-  },
   ru: {
     failed: "Не удалось сохранить ответы. Попробуйте ещё раз.",
     unlocked: (n) => `Открыто ещё ${n} ${plural("ru", n, ["раунд", "раунда", "раундов"])}`,

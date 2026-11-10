@@ -4,15 +4,6 @@ import { track } from "../../analytics";
 import { useLang, useCopy, serverMessage } from "../../i18n";
 
 const COPY = {
-  en: {
-    failed: "Could not save that. Try again.",
-    thanks: "Thank you for your feedback.",
-    question: "How useful was this feedback?",
-    aria: (n) => `${n} out of 5${n === 1 ? ", not useful" : ""}${n === 5 ? ", very useful" : ""}`,
-    low: "Not useful",
-    high: "Very useful",
-    skip: "Skip",
-  },
   ru: {
     failed: "Не удалось сохранить. Попробуйте ещё раз.",
     thanks: "Спасибо за отзыв.",

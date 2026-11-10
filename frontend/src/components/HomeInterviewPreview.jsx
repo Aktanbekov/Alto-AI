@@ -3,16 +3,6 @@ import { useCopy } from "../i18n";
 // The question and the answer stay in English in both languages: the
 // interview is held in English, and the card shows the product as it works.
 const COPY = {
-  en: {
-    aria: "Example of F-1 interview preparation feedback",
-    folderA: "Student visa",
-    folderB: "Interview preparation",
-    head: "Example feedback",
-    needs: "An answer that needs more detail",
-    tipTitle: "Make it specific.",
-    tip: <>Name a course or research opportunity that connects to <strong>your study plans.</strong></>,
-    caption: "Your own facts. A clearer answer.",
-  },
   ru: {
     aria: "Пример разбора при подготовке к собеседованию на F-1",
     folderA: "Студенческая виза",

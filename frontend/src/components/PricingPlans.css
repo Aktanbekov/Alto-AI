@@ -34,7 +34,7 @@
   row-gap: 0;
   padding: 30px 24px 24px;
   border: 1px solid rgba(22, 35, 59, .22);
-  border-radius: 3px;
+  border-radius: var(--r-card);
   background: #fff;
 }
 .tf .tier-full { border-color: var(--ink); }
@@ -49,7 +49,7 @@
   gap: 5px;
   margin: 0;
   padding: 3px 8px;
-  border-radius: 2px;
+  border-radius: var(--r-tag);
   background: var(--ink);
   color: var(--paper);
   font-size: 13px;
@@ -71,6 +71,8 @@
   letter-spacing: -.035em;
   font-variant-numeric: tabular-nums;
 }
+/* "сом" sits beside the figure at body size, so a four-digit price still fits a column. */
+.tf .tier-cur { font-size: 20px; font-weight: 500; letter-spacing: 0; color: var(--ink-soft); }
 .tf .tier-term { color: var(--ink-soft); font-size: 16px; }
 .tf .tier-unit { margin: 10px 0 0; color: var(--ink-muted); font-size: 14.5px; font-variant-numeric: tabular-nums; }
 .tf .tier-body { margin-top: 22px; padding: 18px 0 24px; border-top: 1px solid var(--rule-soft); }
@@ -82,7 +84,7 @@
   margin: 18px 0 0;
   padding: 10px 12px;
   border: 1px solid rgba(47, 107, 79, .3);
-  border-radius: 2px;
+  border-radius: var(--r-control);
   background: rgba(47, 107, 79, .07);
   color: var(--ok);
   font-size: 15.5px;

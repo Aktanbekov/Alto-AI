@@ -1,15 +1,9 @@
 import { Link } from "react-router-dom";
-import { FAQ, FAQ_RU } from "../data/faq";
+import { FAQ } from "../data/faq";
 import { SITE } from "../seo/site";
-import { useLang, useCopy } from "../i18n";
+import { useCopy } from "../i18n";
 
 const COPY = {
-  en: {
-    title: "F-1 visa interview questions",
-    lede: "What officers ask, how the data behind Altovisas was built, and what it can and cannot tell you.",
-    moreTitle: "Still have a question?",
-    more: (mail, about) => <>Email {mail}, or read {about("how Altovisas works")}.</>,
-  },
   ru: {
     title: "Вопросы о собеседовании на визу F-1",
     lede: "О чём спрашивают офицеры, как собраны данные Altovisas и что они могут и не могут сказать.",
@@ -25,9 +19,7 @@ const COPY = {
  * rather than by remembering to update two places.
  */
 export default function FAQPage() {
-  const { lang } = useLang();
   const c = useCopy(COPY);
-  const items = lang === "ru" ? FAQ_RU : FAQ;
   const mail = <a href={`mailto:${SITE.contact}`}>{SITE.contact}</a>;
   const about = (label) => <Link to="/about">{label}</Link>;
 
@@ -38,7 +30,7 @@ export default function FAQPage() {
         <p className="lede">{c.lede}</p>
 
         <div className="doc-qa">
-          {items.map(({ q, a }) => (
+          {FAQ.map(({ q, a }) => (
             <section key={q}>
               <h2>{q}</h2>
               <p>{a}</p>

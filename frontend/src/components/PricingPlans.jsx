@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { APPLICANTS_PREPPED, pricingPlans, checkoutPath } from "../constants/pricing";
+import { APPLICANTS_PREPPED, PRICING_PLANS, checkoutPath, perInterview } from "../constants/pricing";
 import { CORPUS } from "../seo/site";
 import { track } from "../analytics";
 import { useLang, useCopy, formatNumber } from "../i18n";
@@ -7,26 +7,15 @@ import Arrow from "./ui/Arrow";
 import "./PricingPlans.css";
 
 const COPY = {
-  en: {
-    prepped: "applicants prepped",
-    noSub: "No subscription. Pay once.",
-    builtOn: (n) => <>Built on <strong>{n}</strong> interview reports</>,
-    free: "Free",
-    oneTime: "one-time",
-    noCard: "no card needed",
-    perInterview: (x) => `$${x} per interview`,
-    foot: "Prices in US dollars. You pay once, and nothing renews.",
-    details: "What each plan includes",
-  },
   ru: {
     prepped: "заявителей уже подготовились",
     noSub: "Без подписки. Платите один раз.",
-    builtOn: (n) => <>Основано на <strong>{n}</strong> отчётах о собеседованиях</>,
+    builtOn: (n) => <>Основано на <strong>{n}</strong> реальных отзывах о собеседованиях</>,
     free: "Бесплатно",
     oneTime: "разово",
     noCard: "карта не нужна",
-    perInterview: (x) => `$${x} за собеседование`,
-    foot: "Цены в долларах США. Вы платите один раз, ничего не продлевается.",
+    perInterview: (x) => `${x} сом за собеседование`,
+    foot: "Цены указаны в сомах. Вы платите один раз, ничего не продлевается.",
     details: "Что входит в каждый тариф",
   },
 };
@@ -61,8 +50,7 @@ function Icon({ name, size = 20 }) {
 export default function PricingPlans({ onStart, detailsLink = false }) {
   const { lang } = useLang();
   const c = useCopy(COPY);
-  const plans = pricingPlans(lang);
-  const choose = (plan) => track("pricing_plan_click", { plan: plan.id, price: plan.price });
+  const choose = (plan) => track("pricing_plan_click", { plan: plan.id, price: plan.price, currency: "KGS" });
 
   return (
     <>
@@ -76,7 +64,7 @@ export default function PricingPlans({ onStart, detailsLink = false }) {
       </ul>
 
       <ul className="price-tiers">
-        {plans.map((p) => (
+        {PRICING_PLANS.map((p) => (
           <li key={p.id} className={`tier tier-${p.id}${p.badge ? " has-badge" : ""}`}>
             {p.badge && (
               <p className="tier-badge">
@@ -92,10 +80,12 @@ export default function PricingPlans({ onStart, detailsLink = false }) {
 
             <div className="tier-price">
               <p className="tier-amount">
-                <span className="tier-figure">{p.price ? `$${p.price}` : c.free}</span>
+                <span className="tier-figure">
+                  {p.price ? <>{p.price}<span className="tier-cur"> сом</span></> : c.free}
+                </span>
                 <span className="tier-term">{p.price ? c.oneTime : c.noCard}</span>
               </p>
-              {p.price > 0 && <p className="tier-unit">{c.perInterview((p.price / p.interviews).toFixed(2))}</p>}
+              {p.price > 0 && <p className="tier-unit">{c.perInterview(perInterview(p))}</p>}
             </div>
 
             <div className="tier-body">

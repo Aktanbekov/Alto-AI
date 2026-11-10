@@ -7,61 +7,31 @@ import { getMe, logout, getAdminMe } from "../../api";
 import { track } from "../../analytics";
 import { ROUTES, SITE } from "../../seo/site";
 import { ShellContext } from "./shellContext";
-import { useLang, useCopy } from "../../i18n";
-import LanguageSwitch from "../../i18n/LanguageSwitch";
+import { useCopy } from "../../i18n";
 
 
 /*
  * The tab title for client-side navigation. The SEO build bakes a per-route
  * <title> into static HTML for crawlers, but a visitor moving between routes
  * inside the app otherwise keeps whichever title the first page loaded with.
- * In English, indexable routes reuse the crawler title; the rest, and every
- * Russian title, are named here.
+ * Routes in the SEO table reuse the crawler title; the rest are named here.
  */
 const TITLES = {
-  en: {
-    "/login": "Log in",
-    "/signup": "Create your account",
-    "/forgot-password": "Reset your password",
-    "/take-a-test": "Voice practice (preview)",
-    "/voice-interview": "Voice interview (preview)",
-    "/case-builder": "Case builder (preview)",
-    "/answers": "Answer library (preview)",
-  },
-  ru: {
-    "/": "Подготовка к собеседованию на визу F-1 с ИИ",
-    "/check-profile": "Бесплатная проверка профиля для визы F-1",
-    "/data": "Статистика собеседований на визу F-1",
-    "/pricing": "Тарифы",
-    "/faq": "Вопросы о собеседовании на визу F-1",
-    "/about": "Как работает Altovisas",
-    "/terms": "Условия использования",
-    "/privacy": "Политика конфиденциальности",
-    "/refund-policy": "Политика возврата",
-    "/login": "Вход",
-    "/signup": "Создать аккаунт",
-    "/forgot-password": "Восстановление пароля",
-    "/take-a-test": "Голосовая практика (превью)",
-    "/voice-interview": "Голосовое собеседование (превью)",
-    "/case-builder": "Конструктор кейса (превью)",
-    "/answers": "Библиотека ответов (превью)",
-  },
+  "/login": "Вход",
+  "/signup": "Создать аккаунт",
+  "/forgot-password": "Восстановление пароля",
+  "/take-a-test": "Голосовая практика (превью)",
+  "/voice-interview": "Голосовое собеседование (превью)",
+  "/case-builder": "Конструктор кейса (превью)",
+  "/answers": "Библиотека ответов (превью)",
 };
-function titleFor(pathname, lang) {
-  const named = TITLES[lang]?.[pathname];
-  if (lang !== "en") return named ? `${named} | ${SITE.name}` : SITE.name;
+function titleFor(pathname) {
   const seo = ROUTES.find((r) => r.path === pathname);
   if (seo) return seo.title;
-  return named ? `${named} | ${SITE.name}` : SITE.name;
+  return TITLES[pathname] ? `${TITLES[pathname]} | ${SITE.name}` : SITE.name;
 }
 
 const COPY = {
-  en: {
-    login: "Log in",
-    signup: "Create free account",
-    openMenu: "Open menu",
-    closeMenu: "Close menu",
-  },
   ru: {
     login: "Войти",
     signup: "Создать аккаунт бесплатно",
@@ -83,7 +53,6 @@ export default function AppShell({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const { pathname, hash } = useLocation();
   const burgerRef = useRef(null);
-  const { lang } = useLang();
   const c = useCopy(COPY);
 
   // One page_view per route change. referrer is only meaningful on the first
@@ -93,8 +62,8 @@ export default function AppShell({ children }) {
   }, [pathname]);
 
   useEffect(() => {
-    document.title = titleFor(pathname, lang);
-  }, [pathname, lang]);
+    document.title = titleFor(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,7 +175,6 @@ export default function AppShell({ children }) {
               <div className="page-spacer" />
 
               <div className="page-account">
-                <LanguageSwitch />
                 {!user && (
                   <>
                     <button className="hdr-login" onClick={() => openAuth("login")}>

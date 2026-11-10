@@ -18,7 +18,7 @@ export const SITE = {
   name: "Altovisas",
   // The canonical host. Everything else 301s here; see DEPLOYMENT notes.
   origin: "https://www.altovisas.com",
-  locale: "en_US",
+  locale: "ru_RU",
   // Absolute, because Open Graph consumers do not resolve relative URLs.
   ogImage: "/og-image.png",
   logo: "/logo.png",
@@ -55,81 +55,81 @@ export const absolute = (path) => `${SITE.origin}${path === "/" ? "/" : path}`;
 export const ROUTES = [
   {
     path: "/",
-    title: "F1 Visa Mock Interview Practice with AI | Altovisas",
+    title: "Подготовка к собеседованию на визу F-1 с ИИ | Altovisas",
     description:
-      "Practice your US student visa interview with an AI interviewer built on ~16,000 real F-1 interview reports from 2020-2026. Free, instant feedback.",
+      "Потренируйтесь перед собеседованием на студенческую визу США с ИИ, который опирается на 16 204 реальных отзыва о собеседованиях на F-1 за 2020-2026 годы. Бесплатно, с мгновенным разбором.",
     changefreq: "weekly",
     priority: "1.0",
     indexable: true,
   },
   {
     path: "/check-profile",
-    title: "Free F1 Visa Profile Check | Altovisas",
+    title: "Бесплатная проверка профиля для визы F-1 | Altovisas",
     description:
-      "Answer three questions and see where a consular officer is most likely to push back on your F-1 case, checked against 16,204 real interview reports.",
+      "Ответьте на три вопроса и узнайте, где консульский офицер может засомневаться в вашем деле. Мы сверяем ответы с 16 204 реальными отзывами о собеседованиях.",
     changefreq: "weekly",
     priority: "0.9",
     indexable: true,
   },
   {
     path: "/data",
-    title: "F1 Visa Interview Statistics from 16,204 Write-ups | Altovisas",
+    title: "Статистика собеседований на визу F-1: 16 204 отзыва | Altovisas",
     description:
-      "Approval shares by consulate, degree and attempt, and which questions officers ask most, from 16,204 self-reported F-1 interview write-ups.",
+      "Доля одобрений по консульствам, ступеням обучения и попыткам, а также самые частые вопросы офицеров, по 16 204 отзывам о собеседованиях на F-1.",
     changefreq: "monthly",
     priority: "0.7",
     indexable: true,
   },
   {
     path: "/pricing",
-    title: "Pricing: Free and One-Time F-1 Interview Plans | Altovisas",
+    title: "Тарифы: бесплатно и разовая оплата | Altovisas",
     description:
-      "Start with a free F-1 mock interview, then pay once for more: $15, $25 or $99, with no subscription. See what each plan includes.",
+      "Начните с бесплатного пробного собеседования на F-1, а затем заплатите один раз: 999, 1999 или 8500 сом, без подписки. Посмотрите, что входит в каждый тариф.",
     changefreq: "monthly",
     priority: "0.8",
     indexable: true,
   },
   {
     path: "/faq",
-    title: "F1 Visa Interview FAQ - Questions Answered | Altovisas",
+    title: "Вопросы о собеседовании на визу F-1 | Altovisas",
     description:
-      "Answers to the most common questions about the US F-1 student visa interview: what officers ask, what documents to bring, and how to prepare.",
+      "Ответы на частые вопросы о собеседовании на студенческую визу США: о чём спрашивают офицеры, какие документы взять и как подготовиться.",
     changefreq: "monthly",
     priority: "0.8",
     indexable: true,
   },
   {
     path: "/about",
-    title: "About Altovisas and the Interview Dataset",
+    title: "Как работает Altovisas и откуда данные | Altovisas",
     description:
-      "How Altovisas works, where its 16,204 F-1 visa interview reports come from, and the limits of what self-reported data can tell you.",
+      "Как устроен Altovisas, откуда взялись 16 204 отзыва о собеседованиях на F-1 и что такие данные могут и не могут показать.",
     changefreq: "monthly",
     priority: "0.6",
     indexable: true,
   },
   {
     path: "/terms",
-    title: "Terms of Service | Altovisas",
+    title: "Условия использования | Altovisas",
     description:
-      "The terms that govern use of Altovisas, including what the service is not: not legal advice, and not affiliated with any government.",
+      "Условия использования Altovisas, в том числе то, чем сервис не является: это не юридическая консультация, и он не связан ни с одним государственным органом.",
     changefreq: "yearly",
     priority: "0.3",
     indexable: true,
   },
   {
     path: "/privacy",
-    title: "Privacy Policy | Altovisas",
+    title: "Политика конфиденциальности | Altovisas",
     description:
-      "What Altovisas collects, how it is used, who processes it, and how to have it deleted.",
+      "Что собирает Altovisas, как это используется, кто это обрабатывает и как удалить свои данные.",
     changefreq: "yearly",
     priority: "0.3",
     indexable: true,
   },
   {
     path: "/refund-policy",
-    title: "Refund Policy | Altovisas",
+    title: "Политика возврата | Altovisas",
     description:
-      "Altovisas plans are one-time digital purchases and are not refundable. What that means, the billing mistakes we fix, and your rights under consumer law.",
+      "Тарифы Altovisas это разовые цифровые покупки, и деньги за них не возвращаются. Что это значит, какие ошибки при оплате мы исправляем и какие у вас права по закону.",
     changefreq: "yearly",
     priority: "0.3",
     indexable: true,

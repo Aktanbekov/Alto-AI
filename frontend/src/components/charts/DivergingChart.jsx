@@ -4,14 +4,6 @@ import { questionLabel } from "../../data/questionLabels";
 import { useLang, useCopy, formatNumber } from "../../i18n";
 
 const COPY = {
-  en: {
-    empty: "No question types met the sample threshold.",
-    lower: "Lower approval",
-    higher: "Higher approval",
-    points: (pp) => `${pp} points vs the whole corpus`,
-    asked: (n) => `Asked in ${n} interviews`,
-    when: (v) => `Approval share when asked: ${v}%`,
-  },
   ru: {
     empty: "Ни один тип вопроса не набрал достаточно собеседований.",
     lower: "Ниже доля одобрений",

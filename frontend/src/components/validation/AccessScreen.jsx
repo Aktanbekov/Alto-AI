@@ -4,19 +4,11 @@ import WaitlistCard from "./WaitlistCard";
 import { useCopy } from "../../i18n";
 
 const COPY = {
-  en: {
-    title: "You’ve used your free rounds",
-    doneSub: "That includes the three extra rounds from the survey.",
-    sub: "Everyone gets two free rounds of three questions. There are two ways to keep going.",
-    receipt: "Survey done - thank you. Your three extra rounds have been used.",
-    survey: "Answer a 2-minute survey for 3 more rounds",
-    support: "Seven short questions about how you are preparing. No payment, nothing to sign up for.",
-  },
   ru: {
     title: "Бесплатные раунды закончились",
     doneSub: "Включая три дополнительных раунда за опрос.",
     sub: "Каждый получает два бесплатных раунда по три вопроса. Продолжить можно двумя способами.",
-    receipt: "Опрос пройден — спасибо. Три дополнительных раунда уже использованы.",
+    receipt: "Опрос пройден, спасибо. Три дополнительных раунда уже использованы.",
     survey: "Пройдите опрос за 2 минуты и получите ещё 3 раунда",
     support: "Семь коротких вопросов о том, как вы готовитесь. Без оплаты и без регистрации.",
   },

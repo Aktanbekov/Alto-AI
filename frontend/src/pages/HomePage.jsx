@@ -14,55 +14,6 @@ import { useLang, useCopy, formatNumber } from "../i18n";
 import "./HomePage.css";
 
 const COPY = {
-  en: {
-    h1a: "Your F-1 interview.",
-    h1b: "Better prepared.",
-    lede: <>Answer <strong>three real interview questions.</strong> Get clear feedback on what to improve and how to explain your plans with confidence.</>,
-    cta: "Start your profile check",
-    free: "Free",
-    meta: "About four minutes. Needs a free account.",
-    builtOn: (n) => <>Built on <strong>{n} real interview reports</strong></>,
-    steps: [
-      ["Share your plans", "Your university, your course and who pays. A minute or two."],
-      ["Answer three real questions", "The ones officers ask most, one at a time, in your own words."],
-      ["Know what to improve", "Clear feedback, real interview examples and practical next steps."],
-    ],
-    stakesA: "A short interview.",
-    stakesB: "A big next chapter.",
-    stakesP: "Your university, your funding, your plans for the future. You need to explain them clearly, even when the next question catches you off guard.",
-    pullA: "You know your plans.",
-    pullB: "We help you",
-    pullC: "explain them.",
-    whyTitle: "Why us?",
-    whyPullA: "We’re not guessing.",
-    whyPullB: "We start with evidence.",
-    whyLede: (n) => <>Your preparation should start with real experience. Altovisas draws on <strong>{n} real F-1 interview reports</strong> shared by students, covering what officers asked, how applicants answered and what happened next.</>,
-    reasons: [
-      ["Real interviews behind the advice", <>We look at both approvals and refusals to understand the questions applicants face and where officers ask for more detail.</>],
-      ["AI guided by that experience", <>Our AI checks your answers against <strong>real interview experiences and statistics.</strong> You get feedback on weak points and what to explain more clearly.</>],
-      ["Statistics you can explore", <>See which questions come up most and how reported experiences differ by consulate and degree. The numbers behind our approach are open for you to explore.</>],
-    ],
-    source: "These are students’ own reports, not official consular records. They show patterns, not your chances of approval.",
-    howData: "How we use the data",
-    dataTitle: (n) => `What ${n} interviews show`,
-    dataLede: "Students wrote down what they were asked and what happened. Three things stand out.",
-    reviewsTitle: "What applicants say after the check",
-    reviewsLede: "Students wrote to us once they had run their profile check. The marked lines are the parts they said helped most.",
-    pricingA: "Choose your prep level.",
-    pricingB: "One-time. No subscription.",
-    limitsTitle: "What we won’t do",
-    limits: [
-      ["Write you a script.", "Memorised answers are a common refusal signal. The words stay yours."],
-      ["Invent facts.", "A false statement at the window can bar you permanently."],
-      ["Promise a visa.", "Only the officer decides. Our numbers predict nothing about you."],
-      ["Give legal advice.", "We are not lawyers, and not linked to any consulate or government."],
-    ],
-    closeA: "Your next chapter starts with",
-    closeB: "a clearer answer.",
-    closeMeta: "Want help fixing them? A paid version that rebuilds each answer with you and drills you by voice is on the way.",
-    howItWorks: "How it works",
-    questions: "Questions",
-  },
   ru: {
     h1a: "Собеседование на визу F-1.",
     h1b: "Подготовьтесь как следует.",
@@ -70,7 +21,7 @@ const COPY = {
     cta: "Начать проверку профиля",
     free: "Бесплатно",
     meta: "Около четырёх минут. Нужен бесплатный аккаунт.",
-    builtOn: (n) => <>Основано на <strong>{n} реальных отчётах о собеседованиях</strong></>,
+    builtOn: (n) => <>Основано на <strong>{n} реальных отзывах о собеседованиях</strong></>,
     steps: [
       ["Расскажите о планах", "Университет, программа и кто платит. Минута-две."],
       ["Ответьте на три настоящих вопроса", "Те, что офицеры задают чаще всего, по одному, своими словами."],
@@ -78,7 +29,7 @@ const COPY = {
     ],
     stakesA: "Короткое собеседование.",
     stakesB: "Большая новая глава.",
-    stakesP: "Университет, финансирование, планы на будущее. Всё это нужно объяснить ясно — даже когда следующий вопрос застаёт врасплох.",
+    stakesP: "Университет, финансирование, планы на будущее. Всё это нужно объяснить ясно, даже когда следующий вопрос застаёт врасплох.",
     pullA: "Свои планы вы знаете.",
     pullB: "Мы поможем их",
     pullC: "объяснить.",
@@ -87,23 +38,23 @@ const COPY = {
     whyPullB: "Мы опираемся на факты.",
     // Phrased with "из N" and "о N": those cases take the same noun form for
     // any number, so the copy stays grammatical when the corpus grows.
-    whyLede: (n) => <>Подготовка должна опираться на реальный опыт. Altovisas работает с базой из <strong>{n} реальных отчётов о собеседованиях на F-1</strong>, которыми поделились студенты: что спрашивали офицеры, как отвечали заявители и чем всё закончилось.</>,
+    whyLede: (n) => <>Подготовка должна опираться на реальный опыт. Altovisas работает с базой из <strong>{n} реальных отзывов о собеседованиях на F-1</strong>, которыми поделились студенты: что спрашивали офицеры, как отвечали заявители и чем всё закончилось.</>,
     reasons: [
-      ["За советами — реальные собеседования", <>Мы смотрим и на одобрения, и на отказы, чтобы понять, с какими вопросами сталкиваются заявители и где офицеры просят подробностей.</>],
+      ["За советами стоят реальные собеседования", <>Мы смотрим и на одобрения, и на отказы, чтобы понять, с какими вопросами сталкиваются заявители и где офицеры просят подробностей.</>],
       ["ИИ, который опирается на этот опыт", <>Наш ИИ сверяет ваши ответы с <strong>реальными собеседованиями и статистикой.</strong> Вы узнаёте свои слабые места и что стоит объяснить яснее.</>],
       ["Статистика в открытом доступе", <>Посмотрите, какие вопросы звучат чаще всего и как опыт заявителей различается по консульствам и ступеням обучения. Цифры, на которых строится наш подход, открыты для всех.</>],
     ],
-    source: "Это рассказы самих студентов, а не официальные данные консульств. Они показывают закономерности, а не ваши шансы на одобрение.",
+    source: "Это отзывы самих студентов, а не официальные данные консульств. Они показывают закономерности, а не ваши шансы на одобрение.",
     howData: "Как мы используем данные",
     dataTitle: (n) => `Что говорят данные о ${n} собеседованиях`,
     dataLede: "Студенты записали, о чём их спрашивали и чем всё закончилось. Выделяются три вещи.",
     reviewsTitle: "Что говорят заявители после проверки",
-    reviewsLede: "Студенты написали нам после проверки профиля. Выделенные строки — то, что помогло им больше всего.",
+    reviewsLede: "Студенты написали нам после проверки профиля. Выделенные строки отмечают то, что помогло им больше всего.",
     pricingA: "Выберите уровень подготовки.",
     pricingB: "Разовая оплата. Без подписки.",
     limitsTitle: "Чего мы не делаем",
     limits: [
-      ["Не пишем за вас сценарий.", "Заученные ответы — частый повод для отказа. Слова остаются вашими."],
+      ["Не пишем за вас сценарий.", "Заученные ответы часто становятся поводом для отказа. Слова остаются вашими."],
       ["Не выдумываем факты.", "Ложное заявление у окошка может навсегда закрыть въезд."],
       ["Не обещаем визу.", "Решает только офицер. Наши цифры ничего не предсказывают о вас."],
       ["Не даём юридических консультаций.", "Мы не юристы и не связаны ни с одним консульством или правительством."],
@@ -159,7 +110,7 @@ export default function HomePage() {
         <div className="wrap">
           <div className="grid2 hero">
             <div>
-              <h1>{c.h1a}<br /><span className="home-headline-emphasis">{c.h1b}</span></h1>
+              <h1>{c.h1a}<br /><span className="tone">{c.h1b}</span></h1>
               <p className="lede hero-lede">{c.lede}</p>
               <div className="hero-act">
                 <button className="btn" onClick={() => start("hero")}>
@@ -200,10 +151,10 @@ export default function HomePage() {
       {/* -------------------------------------------------------- stakes -- */}
       <section className="wrap section stakes-short">
         <div>
-          <h2>{c.stakesA}<br /><mark>{c.stakesB}</mark></h2>
+          <h2>{c.stakesA}<br /><span className="tone">{c.stakesB}</span></h2>
           <p>{c.stakesP}</p>
         </div>
-        <p className="pull">{c.pullA}<br />{c.pullB} <span className="home-underline">{c.pullC}</span></p>
+        <p className="pull">{c.pullA}<br /><span className="tone">{c.pullB} {c.pullC}</span></p>
       </section>
 
       {/* -------------------------------------------------------- why us -- */}
@@ -212,7 +163,7 @@ export default function HomePage() {
           <div className="grid2">
             <div className="why-us-intro">
               <h2 id="why-us-heading">{c.whyTitle}</h2>
-              <p className="pull">{c.whyPullA}<br /><mark>{c.whyPullB}</mark></p>
+              <p className="pull">{c.whyPullA}<br /><span className="tone">{c.whyPullB}</span></p>
               <p className="lede">{c.whyLede(interviews)}</p>
             </div>
             <ul className="why-us-reasons">
@@ -256,7 +207,7 @@ export default function HomePage() {
 
       {/* ------------------------------------------------------ pricing -- */}
       <section className="wrap section pricing" id="pricing" aria-labelledby="pricing-heading">
-        <h2 id="pricing-heading">{c.pricingA}<br /><mark>{c.pricingB}</mark></h2>
+        <h2 id="pricing-heading">{c.pricingA}<br /><span className="tone">{c.pricingB}</span></h2>
         <PricingPlans onStart={() => start("pricing")} detailsLink />
       </section>
 
@@ -275,7 +226,7 @@ export default function HomePage() {
       {/* ------------------------------------------------------- close --- */}
       <div className="close-band band-ink">
         <div className="wrap">
-          <h2>{c.closeA} <span className="home-underline">{c.closeB}</span></h2>
+          <h2>{c.closeA} <span className="tone">{c.closeB}</span></h2>
           <div className="hero-act">
             <button className="btn" onClick={() => start("close")}>
               {c.cta} <span className="btn-free">{c.free}</span>{" "}

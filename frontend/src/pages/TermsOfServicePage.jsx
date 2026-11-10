@@ -1,546 +1,548 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
 import { REFUSAL_COVER_INTERVIEWS } from "../constants/pricing";
-import { useLang } from "../i18n";
-import TermsOfServiceRu from "./legal/TermsOfServiceRu";
 
 const CONTACT = "altovisas@gmail.com";
-const UPDATED = "21 October 2026";
+const UPDATED = "21 октября 2026 г.";
 
 const TOC = [
-  { id: "agreement", title: "The agreement" },
-  { id: "what-this-is", title: "What Altovisas is, and is not" },
-  { id: "no-guarantee", title: "No guarantee of any visa outcome" },
-  { id: "honesty", title: "Honesty at your interview" },
-  { id: "eligibility", title: "Who may use the service" },
-  { id: "accounts", title: "Accounts" },
-  { id: "price", title: "Plans, prices, and payment" },
-  { id: "acceptable-use", title: "Acceptable use" },
-  { id: "your-content", title: "Your content" },
-  { id: "data", title: "Where our data comes from" },
-  { id: "ai", title: "How the AI works, and how it fails" },
-  { id: "ip", title: "Our intellectual property" },
-  { id: "third-parties", title: "Third-party services" },
-  { id: "warranty", title: "Disclaimer of warranties" },
-  { id: "liability", title: "Limitation of liability" },
-  { id: "indemnity", title: "Indemnification" },
-  { id: "termination", title: "Termination" },
-  { id: "changes", title: "Changes to these Terms" },
-  { id: "disputes", title: "Governing law and disputes" },
-  { id: "general", title: "General terms" },
-  { id: "contact", title: "Contact" },
+  { id: "agreement", title: "Соглашение" },
+  { id: "what-this-is", title: "Что такое Altovisas и чем он не является" },
+  { id: "no-guarantee", title: "Никаких гарантий результата по визе" },
+  { id: "honesty", title: "Честность на собеседовании" },
+  { id: "eligibility", title: "Кто может пользоваться сервисом" },
+  { id: "accounts", title: "Аккаунты" },
+  { id: "price", title: "Тарифы, цены и оплата" },
+  { id: "acceptable-use", title: "Допустимое использование" },
+  { id: "your-content", title: "Ваш контент" },
+  { id: "data", title: "Откуда берутся наши данные" },
+  { id: "ai", title: "Как работает ИИ и как он ошибается" },
+  { id: "ip", title: "Наша интеллектуальная собственность" },
+  { id: "third-parties", title: "Сторонние сервисы" },
+  { id: "warranty", title: "Отказ от гарантий" },
+  { id: "liability", title: "Ограничение ответственности" },
+  { id: "indemnity", title: "Возмещение убытков" },
+  { id: "termination", title: "Прекращение" },
+  { id: "changes", title: "Изменения Условий" },
+  { id: "disputes", title: "Применимое право и споры" },
+  { id: "general", title: "Общие положения" },
+  { id: "contact", title: "Контакты" },
 ];
 
 export default function TermsOfServicePage() {
-  const { lang } = useLang();
-  if (lang === "ru") return <TermsOfServiceRu />;
   return (
     <LegalLayout
-      title="Terms of Service"
+      title="Условия использования"
       updated={UPDATED}
       toc={TOC}
       summary={
         <Callout>
-          <p className="doc-callout-h">The short version</p>
+          <p className="doc-callout-h">Коротко</p>
           <p>
-            Altovisas is a practice tool. It is not legal advice, not immigration advice,
-            and not connected to any government. Nothing here can change what a consular
-            officer decides. Answer every question at your real interview truthfully, in
-            your own words, whatever this site suggests. If you are making an actual
-            immigration decision, talk to a licensed immigration attorney.
+            Altovisas только тренажёр. Это не юридическая и не иммиграционная консультация, и
+            он не связан ни с одним государством. Ничто здесь не может изменить решение
+            консульского офицера. На настоящем собеседовании отвечайте на каждый вопрос
+            правдиво и своими словами, что бы ни подсказывал этот сайт. Если вы принимаете
+            реальное иммиграционное решение, обратитесь к лицензированному иммиграционному
+            адвокату.
           </p>
         </Callout>
       }
     >
-      <Section id="agreement" title="1. The agreement">
+      <Section id="agreement" title="1. Соглашение">
         <p>
-          These Terms of Service (the "Terms") are a binding agreement between you and
-          Altovisas ("Altovisas", "we", "us"), covering altovisas.com and everything on
-          it (the "Service"). By creating an account, submitting a profile, or otherwise
-          using the Service, you agree to these Terms, to our{" "}
-          <Link to="/privacy">Privacy Policy</Link>, and to our{" "}
-          <Link to="/refund-policy">Refund Policy</Link>, which are part of this agreement.
+          Настоящие Условия использования («Условия») являются обязательным соглашением между вами и
+          Altovisas («Altovisas», «мы», «нас»), которое распространяется на altovisas.com и
+          всё, что на нём размещено («Сервис»). Создавая аккаунт, отправляя профиль или иным
+          образом пользуясь Сервисом, вы соглашаетесь с этими Условиями, с нашей{" "}
+          <Link to="/privacy">Политикой конфиденциальности</Link> и с нашей{" "}
+          <Link to="/refund-policy">Политикой возврата</Link>, которые являются частью этого
+          соглашения.
         </p>
         <p>
-          If you do not agree, do not use the Service. If you are using the Service on
-          behalf of an organization, you confirm you are authorized to bind that
-          organization to these Terms.
+          Если вы не согласны, не пользуйтесь Сервисом. Если вы пользуетесь Сервисом от имени
+          организации, вы подтверждаете, что уполномочены связать эту организацию настоящими
+          Условиями.
         </p>
       </Section>
 
-      <Section id="what-this-is" title="2. What Altovisas is, and is not">
+      <Section id="what-this-is" title="2. Что такое Altovisas и чем он не является">
         <p>
-          Altovisas helps you rehearse for a student visa interview. You describe your
-          situation, you answer practice questions, and the Service returns automated
-          feedback and statistics drawn from write-ups other applicants posted publicly
-          about their own interviews.
+          Altovisas помогает отрепетировать собеседование на студенческую визу. Вы описываете
+          свою ситуацию, отвечаете на тренировочные вопросы, а Сервис возвращает
+          автоматический разбор и статистику, основанные на отзывах, которые другие
+          заявители открыто опубликовали о своих собеседованиях.
         </p>
-        <p className="doc-sub">The Service is not:</p>
+        <p className="doc-sub">Сервис не является:</p>
         <List>
           <li>
-            <strong>Legal or immigration advice.</strong> We are not a law firm and we are
-            not licensed immigration advisers. Using the Service does not create an
-            attorney-client relationship, and nothing on the site should be relied on as a
-            substitute for advice from a licensed professional about your own situation.
+            <strong>Юридической или иммиграционной консультацией.</strong> Мы не юридическая
+            фирма и не лицензированные иммиграционные консультанты. Использование Сервиса не
+            создаёт отношений «адвокат и клиент», и ничто на сайте не должно заменять вам
+            совет лицензированного специалиста по вашей ситуации.
           </li>
           <li>
-            <strong>Affiliated with any government.</strong> We are not connected to,
-            endorsed by, or acting for the U.S. Department of State, U.S. Citizenship and
-            Immigration Services, any embassy or consulate, SEVP/SEVIS, or any other
-            government body of any country. We have no role in and no visibility into any
-            visa application, and no ability to influence one.
+            <strong>Связанным с каким-либо государством.</strong> Мы не связаны с
+            Государственным департаментом США, Службой гражданства и иммиграции США (USCIS),
+            каким-либо посольством или консульством, SEVP/SEVIS или любым другим
+            государственным органом любой страны, не одобрены ими и не действуем от их имени.
+            Мы не участвуем ни в одном визовом деле, не видим его и не можем на него повлиять.
           </li>
           <li>
-            <strong>A visa application service.</strong> We do not file, submit, review, or
-            transmit any application, form, or document to any authority on your behalf.
+            <strong>Сервисом подачи визовых документов.</strong> Мы не подаём, не отправляем,
+            не проверяем и не передаём от вашего имени никакие заявления, формы или документы
+            ни в какие органы.
           </li>
           <li>
-            <strong>Affiliated with any university.</strong> Institution and program names
-            appear only to describe your situation back to you.
+            <strong>Связанным с каким-либо университетом.</strong> Названия учебных заведений
+            и программ появляются только для того, чтобы описать вашу же ситуацию.
           </li>
         </List>
       </Section>
 
-      <Section id="no-guarantee" title="3. No guarantee of any visa outcome">
+      <Section id="no-guarantee" title="3. Никаких гарантий результата по визе">
         <Callout>
           <p>
-            Nothing on this site predicts, improves, or guarantees the outcome of a real
-            visa interview. Visa decisions are made solely by consular officers under laws
-            and policies we do not control and cannot see.
+            Ничто на этом сайте не предсказывает, не улучшает и не гарантирует исход
+            настоящего визового собеседования. Решения о визе принимают исключительно
+            консульские офицеры по законам и правилам, которые мы не контролируем и не видим.
           </p>
         </Callout>
         <p>
-          Scores, readiness bands, risk flags, approval percentages, and any similar figure
-          the Service shows you are descriptions of a dataset of self-reported posts. They
-          are not a probability that your visa will be approved, and they are not evidence
-          of anything about your individual case. A high score is not an approval and a low
-          score is not a refusal.
+          Баллы, уровни готовности, отметки о рисках, доли одобрений и любые подобные цифры,
+          которые показывает Сервис, описывают набор отзывов, опубликованных самими
+          заявителями. Это не вероятность одобрения вашей визы и не доказательство чего-либо
+          о вашем деле. Высокий балл не означает одобрения, а низкий не означает отказа.
         </p>
         <p>
-          You accept that any decision you make about travel, tuition deposits, housing,
-          employment, deferrals, or your application itself is your own, and that you are
-          not relying on the Service to make it. Buying a plan, including the Complete
-          plan&rsquo;s refusal cover described in section 7, does not change any of this.
+          Вы признаёте, что любое ваше решение о поездке, депозите за обучение, жилье,
+          работе, переносе зачисления или о самом заявлении принимаете вы сами и не
+          полагаетесь при этом на Сервис. Покупка тарифа, включая защиту при отказе по
+          тарифу «Максимум», описанную в разделе 7, ничего из этого не меняет.
         </p>
       </Section>
 
-      <Section id="honesty" title="4. Honesty at your interview">
+      <Section id="honesty" title="4. Честность на собеседовании">
         <p>
-          This matters more than anything else in these Terms. The Service exists to help
-          you present true facts about yourself clearly and calmly. It does not exist to
-          help you present facts that are not true.
+          Это важнее всего остального в этих Условиях. Сервис существует, чтобы помочь вам
+          ясно и спокойно изложить правдивые факты о себе. Он не существует, чтобы помогать
+          излагать факты, которые не соответствуют действительности.
         </p>
-        <p className="doc-sub">You agree that you will not:</p>
+        <p className="doc-sub">Вы соглашаетесь, что не будете:</p>
         <List>
           <li>
-            use the Service to invent, rehearse, or refine a false or misleading statement
-            for any immigration authority;
+            использовать Сервис, чтобы придумать, отрепетировать или отшлифовать ложное или
+            вводящее в заблуждение заявление для какого-либо иммиграционного органа;
           </li>
           <li>
-            recite a suggested answer that is not true of you, or that describes funding,
-            family, academic history, employment, or intentions you do not actually have;
+            произносить предложенный ответ, если он не соответствует действительности или
+            описывает финансирование, семью, образование, работу или намерения, которых у вас
+            на самом деле нет;
           </li>
           <li>
-            treat any wording the Service produces as a script to be repeated regardless of
-            whether it is accurate about you.
+            относиться к формулировкам Сервиса как к сценарию, который нужно повторять
+            независимо от того, верен ли он в отношении вас.
           </li>
         </List>
         <p>
-          Misrepresenting a material fact to a consular officer is a serious matter with
-          consequences that can last a lifetime, including a permanent bar from entry. Those
-          consequences are yours alone. Where the Service suggests an answer, it is a
-          suggestion of <em>structure</em> - what to lead with, what to leave out, how much
-          detail to give. The facts inside it must be your own and must be true. We may
-          suspend or terminate any account we reasonably believe is being used to prepare a
-          deceptive statement.
+          Искажение существенного факта перед консульским офицером: это серьёзный проступок с
+          последствиями, которые могут длиться всю жизнь, вплоть до пожизненного запрета на
+          въезд. Эти последствия несёте только вы. Когда Сервис предлагает ответ, это
+          предложение <em>структуры</em>: с чего начать, что опустить, сколько деталей дать.
+          Факты внутри ответа должны быть вашими и правдивыми. Мы можем приостановить или
+          закрыть любой аккаунт, если у нас есть разумные основания полагать, что его
+          используют для подготовки обманного заявления.
         </p>
       </Section>
 
-      <Section id="eligibility" title="5. Who may use the service">
+      <Section id="eligibility" title="5. Кто может пользоваться сервисом">
         <p>
-          You must be at least 16 years old to use the Service. If you are under 18, you may
-          use it only with the involvement and consent of a parent or legal guardian, who
-          agrees to these Terms on your behalf. The Service is not directed to children
-          under 16, and we do not knowingly collect their information.
+          Чтобы пользоваться Сервисом, вам должно быть не меньше 16 лет. Если вам меньше 18,
+          вы можете пользоваться им только с участием и согласия родителя или законного
+          опекуна, который принимает эти Условия от вашего имени. Сервис не предназначен для
+          детей младше 16 лет, и мы сознательно не собираем их данные.
         </p>
         <p>
-          You may not use the Service if you are barred from doing so under applicable law,
-          including U.S. export control and sanctions law, or if we have previously
-          terminated your account.
-        </p>
-      </Section>
-
-      <Section id="accounts" title="6. Accounts">
-        <p>
-          Parts of the Service work without an account. For the rest, you agree to give
-          accurate registration information, to keep it current, and to keep your
-          credentials confidential. You are responsible for activity under your account.
-          Tell us at {CONTACT} promptly if you believe it has been used without your
-          permission.
-        </p>
-        <p>
-          One account per person. Do not share, sell, or transfer an account, and do not
-          create an account for anyone else without their knowledge.
+          Вы не можете пользоваться Сервисом, если вам это запрещено применимым правом,
+          включая законодательство США об экспортном контроле и санкциях, или если ранее мы
+          закрыли ваш аккаунт.
         </p>
       </Section>
 
-      <Section id="price" title="7. Plans, prices, and payment">
+      <Section id="accounts" title="6. Аккаунты">
         <p>
-          Altovisas has a free plan and paid plans. The plans, what each includes, and their
-          prices are set out on our <Link to="/pricing">Pricing page</Link>. A plan includes
-          what that page lists for it on the day you buy.
+          Часть Сервиса работает без аккаунта. Для остального вы соглашаетесь указывать
+          точные регистрационные данные, поддерживать их в актуальном состоянии и хранить
+          свои учётные данные в тайне. Вы отвечаете за действия, совершённые в вашем
+          аккаунте. Если вы считаете, что им воспользовались без вашего разрешения, сразу
+          сообщите нам на {CONTACT}.
+        </p>
+        <p>
+          Один аккаунт на человека. Не передавайте, не продавайте и не уступайте аккаунт и не
+          создавайте аккаунт для другого человека без его ведома.
+        </p>
+      </Section>
+
+      <Section id="price" title="7. Тарифы, цены и оплата">
+        <p>
+          У Altovisas есть бесплатный и платные тарифы. Тарифы, их содержание и цены указаны на
+          нашей <Link to="/pricing">странице тарифов</Link>. Тариф включает то, что указано
+          для него на этой странице в день покупки.
         </p>
         <List>
           <li>
-            <strong>One-time payments.</strong> Paid plans are single payments, not
-            subscriptions. Nothing renews, and you are not charged again unless you buy
-            another plan.
+            <strong>Разовые платежи.</strong> Платные тарифы оплачиваются разовыми платежами, а не
+            подписки. Ничего не продлевается, и повторно с вас ничего не спишут, если вы не
+            купите другой тариф.
           </li>
           <li>
-            <strong>Currency.</strong> Prices are in U.S. dollars. Your bank or card issuer
-            may add currency conversion or foreign transaction fees, which are not ours.
+            <strong>Валюта.</strong> Цены указаны в киргизских сомах (KGS). Если ваш банк или
+            платёжная система берёт комиссию за операцию, она не входит в цену тарифа и не
+            относится к нам.
           </li>
           <li>
-            <strong>Payment processing.</strong> Payments are handled by a third-party
-            payment processor. We do not receive or store your full card number.
+            <strong>Обработка платежей.</strong> Платежи обрабатывает сторонний платёжный
+            провайдер. Мы не получаем и не храним полный номер вашей карты.
           </li>
           <li>
-            <strong>Mock interviews.</strong> A mock interview is one round of practice
-            questions answered in your own words, with the feedback generated for it. Mock
-            interviews are tied to your account, have no cash value, and cannot be transferred.
+            <strong>Пробные собеседования.</strong> Пробное собеседование: это один раунд
+            тренировочных вопросов, на которые вы отвечаете своими словами, вместе с разбором.
+            Пробные собеседования привязаны к вашему аккаунту, не имеют денежной стоимости и
+            не передаются другим лицам.
           </li>
           <li>
-            <strong>Refusal cover.</strong> If your F-1 visa is refused after you buy the
-            Complete plan, we add {REFUSAL_COVER_INTERVIEWS} more mock interviews to your
-            account at no charge, once for each Complete purchase, when you email us from your
-            account address. Refusal cover is additional practice. It is not a refund, not
-            compensation for the refusal, and not a statement about your chances at a later
-            attempt.
+            <strong>Защита при отказе.</strong> Если после покупки тарифа «Максимум» вам
+            откажут в визе F-1, мы бесплатно добавим на ваш аккаунт ещё{" "}
+            {REFUSAL_COVER_INTERVIEWS} пробных собеседований, один раз за каждую покупку
+            «Максимума», когда вы напишете нам с адреса аккаунта. Защита при отказе даёт
+            дополнительную практику. Это не возврат денег, не компенсация за отказ и не оценка
+            ваших шансов при следующей попытке.
           </li>
           <li>
-            <strong>Refunds.</strong> All sales are final. Refunds are covered by our{" "}
-            <Link to="/refund-policy">Refund Policy</Link>, which is part of these Terms: in
-            short, we put right billing mistakes and honour any refund right the law gives you,
-            and otherwise do not refund plans.
+            <strong>Возвраты.</strong> Все продажи окончательны. Возвраты регулирует наша{" "}
+            <Link to="/refund-policy">Политика возврата</Link>, которая является частью этих
+            Условий. Коротко: мы исправляем ошибки при оплате и соблюдаем любое право на
+            возврат, которое даёт вам закон, а в остальных случаях деньги за тарифы не
+            возвращаем.
           </li>
           <li>
-            <strong>Price changes.</strong> We may change prices or plans for future
-            purchases. A change never applies to a plan you have already bought.
+            <strong>Изменение цен.</strong> Мы можем менять цены или тарифы для будущих
+            покупок. Изменение никогда не применяется к уже купленному тарифу.
           </li>
         </List>
         <p>
-          Free access may be limited by usage caps, and we may change, suspend, or
-          discontinue any part of the Service. We aim for continuous availability but do not
-          promise it: maintenance, outages, third-party failures, and capacity limits all
-          happen. We do not offer service-level commitments, credits, or compensation for
-          downtime or data loss, except as set out in the Refund Policy.
+          Бесплатный доступ может ограничиваться лимитами использования, и мы можем изменить,
+          приостановить или прекратить работу любой части Сервиса. Мы стремимся к
+          непрерывной доступности, но не обещаем её: техническое обслуживание, сбои, отказы
+          сторонних сервисов и ограничения мощностей случаются. Мы не даём обязательств по
+          уровню обслуживания и не предоставляем кредитов или компенсаций за простой или
+          потерю данных, кроме случаев, описанных в Политике возврата.
         </p>
       </Section>
 
-      <Section id="acceptable-use" title="8. Acceptable use">
-        <p>You agree not to:</p>
+      <Section id="acceptable-use" title="8. Допустимое использование">
+        <p>Вы соглашаетесь не:</p>
         <List>
-          <li>break any applicable law, or help anyone else to;</li>
+          <li>нарушать применимое право и не помогать в этом другим;</li>
           <li>
-            impersonate anyone, or submit another person's information as your own without
-            their permission;
+            выдавать себя за другого человека и не отправлять чужие данные как свои без
+            разрешения их владельца;
           </li>
           <li>
-            scrape, crawl, bulk-download, or systematically extract the Service, its
-            content, its dataset, or its outputs;
+            собирать автоматически (скрейпинг, обход, массовая загрузка) или систематически
+            извлекать Сервис, его контент, набор данных или результаты;
           </li>
           <li>
-            resell, sublicense, or redistribute the Service or its outputs as a commercial
-            product or a competing service;
+            перепродавать, сублицензировать или распространять Сервис или его результаты как
+            коммерческий продукт или конкурирующий сервис;
           </li>
           <li>
-            use the Service or its outputs to train, fine-tune, distil, or benchmark a
-            machine-learning model;
+            использовать Сервис или его результаты для обучения, дообучения, дистилляции или
+            сравнительного тестирования моделей машинного обучения;
           </li>
           <li>
-            probe, scan, or test the security of the Service, defeat rate limits or access
-            controls, or access accounts, systems, or data that are not yours;
+            зондировать, сканировать или тестировать безопасность Сервиса, обходить
+            ограничения частоты запросов или контроль доступа, получать доступ к чужим
+            аккаунтам, системам или данным;
           </li>
           <li>
-            interfere with the Service or its infrastructure, including by automated load,
-            denial-of-service traffic, or malware;
+            мешать работе Сервиса или его инфраструктуры, в том числе автоматической нагрузкой,
+            DoS-трафиком или вредоносным ПО;
           </li>
           <li>
-            submit content that is unlawful, defamatory, harassing, hateful, or that
-            infringes anyone's rights;
+            отправлять незаконный, клеветнический, оскорбительный, разжигающий ненависть
+            контент или контент, нарушающий чьи-либо права;
           </li>
           <li>
-            attempt to make the Service produce content that violates section 4, or that is
-            otherwise designed to deceive an official body;
+            пытаться заставить Сервис создать контент, нарушающий раздел 4 или иначе
+            предназначенный для обмана официального органа;
           </li>
           <li>
-            remove or obscure any notice on the Service, or misrepresent your relationship
-            with us.
+            удалять или скрывать какие-либо уведомления на Сервисе или искажать свои
+            отношения с нами.
           </li>
         </List>
       </Section>
 
-      <Section id="your-content" title="9. Your content">
+      <Section id="your-content" title="9. Ваш контент">
         <p>
-          "Your Content" means everything you submit: your profile, your practice answers,
-          your feedback, and your survey responses. You keep ownership of it.
+          «Ваш контент» означает всё, что вы отправляете: профиль, тренировочные ответы, отзывы и
+          ответы на опросы. Он остаётся вашей собственностью.
         </p>
         <p>
-          You grant us a worldwide, non-exclusive, royalty-free licence to host, store,
-          reproduce, and process Your Content, and to create de-identified and aggregated
-          statistics from it, for the limited purposes of operating the Service, generating
-          your feedback, keeping the Service secure, and improving how it works. This licence
-          lasts as long as we hold Your Content and ends when it is deleted, except for
-          de-identified aggregates that can no longer be traced back to you and for copies
-          retained in backups until they expire.
+          Вы предоставляете нам всемирную неисключительную безвозмездную лицензию на
+          размещение, хранение, воспроизведение и обработку Вашего контента, а также на
+          создание из него обезличенной и обобщённой статистики, в ограниченных целях работы
+          Сервиса, подготовки вашего разбора, обеспечения безопасности Сервиса и улучшения его
+          работы. Лицензия действует, пока мы храним Ваш контент, и прекращается с его
+          удалением, за исключением обезличенных обобщённых данных, которые уже нельзя связать
+          с вами, и копий в резервных копиях до истечения их срока.
         </p>
         <p>
-          We do not sell Your Content, publish it, or show it to other users, and we do not
-          use it to train machine-learning models of our own. To generate your feedback it is
-          processed by a third-party AI provider. The{" "}
-          <Link to="/privacy">Privacy Policy</Link>{" "}
-          describes it, explains what its terms allow, and tells you how to have your content
-          deleted.
+          Мы не продаём Ваш контент, не публикуем его и не показываем другим пользователям и
+          не используем его для обучения собственных моделей машинного обучения. Для
+          подготовки разбора его обрабатывает сторонний провайдер ИИ.{" "}
+          <Link to="/privacy">Политика конфиденциальности</Link> описывает этого провайдера,
+          объясняет, что разрешают его условия, и рассказывает, как удалить ваш контент.
         </p>
         <p>
-          You confirm that you have the right to submit Your Content and that it does not
-          infringe anyone's rights. Please do not submit passport numbers, visa or SEVIS
-          identifiers, national identity numbers, bank or card numbers, or anyone else's
-          personal information. The Service does not ask for these and does not need them.
+          Вы подтверждаете, что имеете право отправлять Ваш контент и что он не нарушает
+          чьих-либо прав. Пожалуйста, не отправляйте номера паспорта, идентификаторы визы или
+          SEVIS, национальные идентификационные номера, номера банковских счетов или карт и
+          чужие персональные данные. Сервис их не запрашивает, и они ему не нужны.
         </p>
       </Section>
 
-      <Section id="data" title="10. Where our data comes from">
+      <Section id="data" title="10. Откуда берутся наши данные">
         <p>
-          The statistics on the Service are built from interview write-ups that applicants
-          posted publicly about their own experiences, which we collected, de-duplicated,
-          and parsed. That has consequences you should hold in mind whenever you read a
-          number on this site:
+          Статистика Сервиса построена на отзывах о собеседованиях, которые заявители открыто
+          опубликовали о своём опыте, а мы собрали, очистили от дубликатов и разобрали. Из
+          этого следуют вещи, о которых стоит помнить, читая любую цифру на сайте:
         </p>
         <List>
           <li>
-            <strong>It is self-selected.</strong> People who post are not a random sample of
-            applicants. Approval rates in the dataset describe who chose to write something
-            down, not the true rate at any consulate.
+            <strong>Данные не случайны.</strong> Люди, которые публикуют отзывы, не
+            случайная выборка заявителей. Доля одобрений в данных описывает тех, кто решил
+            что-то написать, а не реальную долю в каком-либо консульстве.
           </li>
           <li>
-            <strong>It is self-reported.</strong> We did not witness any of these interviews
-            and cannot verify any of them.
+            <strong>Данные основаны на словах самих заявителей.</strong> Мы не присутствовали
+            ни на одном из этих собеседований и не можем проверить ни одно из них.
           </li>
           <li>
-            <strong>It is correlational.</strong> Where the Service reports that some factor
-            goes with a higher or lower approval share, that is an association in the data,
-            not a cause, and not a lever you can pull.
+            <strong>Данные показывают связи, а не причины.</strong> Если Сервис сообщает, что
+            какой-то фактор сопровождается более высокой или низкой долей одобрений, это связь
+            в данных, а не причина и не рычаг, которым можно воспользоваться.
           </li>
           <li>
-            <strong>It ages.</strong> Consular practice changes. Older records may describe
-            a process that no longer resembles the one you will face.
+            <strong>Данные устаревают.</strong> Практика консульств меняется. Старые записи
+            могут описывать процесс, который уже не похож на тот, с которым столкнётесь вы.
           </li>
         </List>
         <p>
-          We publish these caveats alongside the figures themselves and make no
-          representation that the dataset is complete, accurate, current, or representative.
+          Мы публикуем эти оговорки рядом с самими цифрами и не заявляем, что набор данных
+          полон, точен, актуален или репрезентативен.
         </p>
       </Section>
 
-      <Section id="ai" title="11. How the AI works, and how it fails">
+      <Section id="ai" title="11. Как работает ИИ и как он ошибается">
         <p>
-          Feedback on the Service is generated by large language models. These systems are
-          probabilistic. They can be confidently wrong, misread what you wrote, produce
-          statements that are not supported by the data behind them, and give different
-          answers to the same input. We work to keep the output grounded in the dataset, and
-          it will still sometimes be wrong.
+          Разбор на Сервисе создают большие языковые модели. Эти системы вероятностные. Они
+          могут уверенно ошибаться, неправильно понять написанное вами, делать утверждения, не
+          подкреплённые данными, и давать разные ответы на одни и те же входные данные. Мы
+          стараемся опирать результат на набор данных, но иногда он всё равно будет ошибочным.
         </p>
         <p>
-          Output is generated automatically and is not reviewed by a human before you see
-          it. Treat everything the Service tells you as a prompt for your own thinking, not
-          as a finding. Verify anything that matters against official sources, such as
-          travel.state.gov, your consulate's own guidance, your designated school official,
-          or a licensed immigration attorney.
-        </p>
-      </Section>
-
-      <Section id="ip" title="12. Our intellectual property">
-        <p>
-          The Service, including its software, interface, text, graphics, logos, dataset
-          compilation, and structure, belongs to Altovisas or its licensors and is protected
-          by intellectual property law. Subject to these Terms, we grant you a personal,
-          limited, non-exclusive, non-transferable, revocable licence to use the Service for
-          your own visa interview preparation. No other rights are granted.
-        </p>
-        <p>
-          The feedback the Service generates for you is yours to use for your own
-          preparation, subject to section 8.
-        </p>
-        <p>
-          If you believe something on the Service infringes your copyright, write to{" "}
-          {CONTACT} identifying the work, the material in question, and your contact details,
-          and confirming that you are the rights holder or authorized to act for them.
+          Результат создаётся автоматически, и человек не проверяет его, прежде чем вы его
+          увидите. Воспринимайте всё, что говорит Сервис, как повод подумать самому, а не как
+          вывод. Всё важное проверяйте по официальным источникам: travel.state.gov,
+          указаниям вашего консульства, ответственному сотруднику вашего университета (DSO)
+          или у лицензированного иммиграционного адвоката.
         </p>
       </Section>
 
-      <Section id="third-parties" title="13. Third-party services">
+      <Section id="ip" title="12. Наша интеллектуальная собственность">
         <p>
-          The Service depends on third parties for sign-in, payments, email delivery,
-          hosting, analytics, and AI processing. Their failures can become our outages. We are not responsible for
-          third-party services, and your use of one may also be governed by its own terms.
-          Links to external sites are provided for convenience only and are not an
-          endorsement.
+          Сервис, включая его программное обеспечение, интерфейс, тексты, графику, логотипы,
+          подборку данных и структуру, принадлежит Altovisas или его лицензиарам и защищён
+          законодательством об интеллектуальной собственности. С учётом этих Условий мы
+          предоставляем вам личную, ограниченную, неисключительную, непередаваемую и отзывную
+          лицензию на использование Сервиса для подготовки к собственному визовому
+          собеседованию. Никакие другие права не предоставляются.
+        </p>
+        <p>
+          Разбор, который Сервис создаёт для вас, вы можете использовать для собственной
+          подготовки с учётом раздела 8.
+        </p>
+        <p>
+          Если вы считаете, что что-то на Сервисе нарушает ваши авторские права, напишите на{" "}
+          {CONTACT}, указав произведение, спорный материал и свои контактные данные и
+          подтвердив, что вы правообладатель или уполномочены действовать от его имени.
         </p>
       </Section>
 
-      <Section id="warranty" title="14. Disclaimer of warranties">
+      <Section id="third-parties" title="13. Сторонние сервисы">
+        <p>
+          Сервис зависит от третьих сторон для входа, платежей, доставки писем, хостинга,
+          аналитики и обработки с помощью ИИ. Их сбои могут становиться нашими сбоями. Мы не
+          несём ответственности за сторонние сервисы, и их использование может регулироваться
+          их собственными условиями. Ссылки на внешние сайты даны только для удобства и не
+          означают их одобрения.
+        </p>
+      </Section>
+
+      <Section id="warranty" title="14. Отказ от гарантий">
         <p className="doc-caps">
-          The service and everything in it are provided "as is" and "as available", without
-          warranty of any kind. To the fullest extent permitted by law, we disclaim all
-          warranties, express or implied, including merchantability, fitness for a particular
-          purpose, title, non-infringement, and any warranty arising from course of dealing
-          or usage of trade.
+          Сервис и всё его содержимое предоставляются «как есть» и «по мере доступности», без
+          каких-либо гарантий. В максимальной степени, разрешённой законом, мы отказываемся от
+          всех явных и подразумеваемых гарантий, включая гарантии товарной пригодности,
+          пригодности для определённой цели, права собственности, ненарушения прав, а также
+          любые гарантии, вытекающие из деловой практики или обычаев делового оборота.
         </p>
         <p>
-          We do not warrant that the Service will be uninterrupted, secure, or error-free,
-          that its content or statistics are accurate or current, that defects will be
-          corrected, or that any result you obtain from it is reliable. Some jurisdictions do
-          not allow the exclusion of implied warranties, so parts of this section may not
-          apply to you.
+          Мы не гарантируем, что Сервис будет работать бесперебойно, безопасно или без
+          ошибок, что его содержимое или статистика точны или актуальны, что недостатки будут
+          исправлены или что любой полученный с его помощью результат надёжен. В некоторых
+          юрисдикциях исключение подразумеваемых гарантий не допускается, поэтому часть этого
+          раздела может к вам не применяться.
         </p>
       </Section>
 
-      <Section id="liability" title="15. Limitation of liability">
+      <Section id="liability" title="15. Ограничение ответственности">
         <p className="doc-caps">
-          To the fullest extent permitted by law, Altovisas and its owners, employees, and
-          contractors will not be liable for any indirect, incidental, special,
-          consequential, exemplary, or punitive damages, or for lost profits, lost
-          opportunities, lost data, or loss of goodwill, arising out of or relating to the
-          Service, whether in contract, tort, or any other theory, and whether or not we were
-          advised of the possibility.
-        </p>
-        <p className="doc-caps">
-          This includes, without limitation, any visa refusal, delay, administrative
-          processing, ban, deferred or lost admission, forfeited deposit, cancelled travel,
-          or immigration consequence of any kind.
+          В максимальной степени, разрешённой законом, Altovisas, его владельцы, сотрудники и
+          подрядчики не несут ответственности за косвенные, случайные, специальные,
+          последующие, штрафные или показательные убытки, а также за упущенную выгоду,
+          упущенные возможности, потерю данных или деловой репутации, возникшие из Сервиса или
+          в связи с ним, будь то на основании договора, деликта или любого иного основания и
+          независимо от того, предупреждали ли нас о такой возможности.
         </p>
         <p className="doc-caps">
-          Our total aggregate liability for all claims relating to the Service will not
-          exceed the greater of the amount you paid us in the twelve months before the claim
-          arose, or one hundred U.S. dollars (US$100).
+          Это включает, без ограничений, любой отказ в визе, задержку, административную
+          проверку, запрет на въезд, перенесённое или потерянное зачисление, утраченный
+          депозит, отменённую поездку или иммиграционные последствия любого рода.
+        </p>
+        <p className="doc-caps">
+          Наша совокупная ответственность по всем требованиям, связанным с Сервисом, не
+          превышает большей из двух сумм: суммы, которую вы заплатили нам за двенадцать
+          месяцев до возникновения требования, или ста долларов США (US$100).
         </p>
         <p>
-          These limits apply even if a remedy fails of its essential purpose. Some
-          jurisdictions do not allow certain limitations, so parts of this section may not
-          apply to you; nothing here limits liability that cannot lawfully be limited,
-          including liability for fraud or for death or personal injury caused by negligence.
+          Эти ограничения действуют, даже если средство правовой защиты не достигло своей
+          основной цели. В некоторых юрисдикциях отдельные ограничения не допускаются, поэтому
+          часть этого раздела может к вам не применяться; ничто здесь не ограничивает
+          ответственность, которую нельзя ограничить по закону, включая ответственность за
+          мошенничество, а также за смерть или вред здоровью, причинённые по небрежности.
         </p>
       </Section>
 
-      <Section id="indemnity" title="16. Indemnification">
+      <Section id="indemnity" title="16. Возмещение убытков">
         <p>
-          You agree to indemnify and hold harmless Altovisas and its owners, employees, and
-          contractors from any claim, loss, liability, or expense (including reasonable legal
-          fees) arising out of your use of the Service, Your Content, your breach of these
-          Terms, or your violation of any law or third-party right, including any statement
-          you make to any immigration or government authority.
+          Вы соглашаетесь возместить убытки и оградить Altovisas, его владельцев, сотрудников
+          и подрядчиков от любых требований, убытков, ответственности или расходов (включая
+          разумные расходы на юристов), возникших из вашего использования Сервиса, Вашего
+          контента, нарушения вами этих Условий или нарушения вами закона или прав третьих
+          лиц, включая любые ваши заявления любому иммиграционному или государственному органу.
         </p>
       </Section>
 
-      <Section id="termination" title="17. Termination">
+      <Section id="termination" title="17. Прекращение">
         <p>
-          You may stop using the Service at any time, and ask us to delete your account by
-          emailing {CONTACT}. We may suspend or terminate your access at any time, with or
-          without notice, if we reasonably believe you have breached these Terms - in
-          particular section 4 or section 8 - or to protect the Service or other users.
+          Вы можете перестать пользоваться Сервисом в любой момент и попросить удалить
+          аккаунт, написав на {CONTACT}. Мы можем приостановить или прекратить ваш доступ в
+          любой момент, с уведомлением или без него, если у нас есть разумные основания
+          полагать, что вы нарушили эти Условия (в частности, раздел 4 или раздел 8) или
+          чтобы защитить Сервис или других пользователей.
         </p>
         <p>
-          If we terminate your account because you breached these Terms, no refund is due for
-          any plan or unused mock interviews. If we close the Service, or your account for any
-          other reason, the{" "}
-          <Link to="/refund-policy">Refund Policy</Link>{" "}
-          sets out what we refund.
+          Если мы закрываем ваш аккаунт из-за нарушения вами этих Условий, возврат за тариф или
+          неиспользованные пробные собеседования не производится. Если мы закрываем Сервис
+          или ваш аккаунт по любой другой причине, что именно мы возвращаем, описано в{" "}
+          <Link to="/refund-policy">Политике возврата</Link>.
         </p>
         <p>
-          On termination, your licence to use the Service ends. Sections 3, 4, 9, 10, 11, 12,
-          14, 15, 16, 19, and 20 survive. Deletion of your data on termination is covered by
-          the{" "}
-          <Link to="/privacy">Privacy Policy</Link>.
-        </p>
-      </Section>
-
-      <Section id="changes" title="18. Changes to these Terms">
-        <p>
-          We may update these Terms. When we do, we will change the "Last updated" date
-          above, and for material changes we will give notice on the Service or by email to
-          account holders before they take effect. Continuing to use the Service after that
-          means you accept the updated Terms. If you do not accept them, stop using the
-          Service and delete your account.
+          При прекращении ваша лицензия на использование Сервиса заканчивается. Разделы 3, 4,
+          9, 10, 11, 12, 14, 15, 16, 19 и 20 продолжают действовать. Удаление ваших данных
+          при прекращении регулирует{" "}
+          <Link to="/privacy">Политика конфиденциальности</Link>.
         </p>
       </Section>
 
-      <Section id="disputes" title="19. Governing law and disputes">
+      <Section id="changes" title="18. Изменения Условий">
         <p>
-          These Terms are governed by the laws of the State of Delaware, USA, without regard
-          to its conflict-of-laws rules, and excluding the U.N. Convention on Contracts for
-          the International Sale of Goods.
-        </p>
-        <p>
-          <strong>Talk to us first.</strong> If you have a dispute, email {CONTACT} with a
-          description of it and what you would like us to do. We will try to resolve it
-          informally. Please give us 30 days before starting formal proceedings.
-        </p>
-        <p>
-          If that does not work, you and we agree to the exclusive jurisdiction of the state
-          and federal courts located in Delaware, USA, and each of us consents to venue
-          there. Claims must be brought individually, not as part of a class or
-          representative action.
-        </p>
-        <p>
-          If you are a consumer resident in the European Economic Area, the United Kingdom,
-          or another jurisdiction whose law gives you a non-waivable right to the protection
-          of your local law or to bring proceedings in your local courts, nothing in this
-          section takes that right away.
+          Мы можем обновлять эти Условия. В этом случае мы изменим дату «Последнее
+          обновление» вверху, а о существенных изменениях заранее сообщим на Сервисе или по
+          электронной почте владельцам аккаунтов. Продолжая пользоваться Сервисом после этого,
+          вы принимаете обновлённые Условия. Если вы их не принимаете, прекратите
+          пользоваться Сервисом и удалите аккаунт.
         </p>
       </Section>
 
-      <Section id="general" title="20. General terms">
+      <Section id="disputes" title="19. Применимое право и споры">
+        <p>
+          Эти Условия регулируются законами штата Делавэр, США, без учёта его коллизионных
+          норм и за исключением Конвенции ООН о договорах международной купли-продажи
+          товаров.
+        </p>
+        <p>
+          <strong>Сначала напишите нам.</strong> Если у вас возник спор, напишите на{" "}
+          {CONTACT}, опишите его и то, чего вы от нас ждёте. Мы постараемся решить его
+          неформально. Пожалуйста, дайте нам 30 дней, прежде чем начинать официальное
+          разбирательство.
+        </p>
+        <p>
+          Если это не помогло, вы и мы соглашаемся на исключительную юрисдикцию судов штата и
+          федеральных судов, расположенных в Делавэре, США, и каждая сторона соглашается с
+          рассмотрением дела там. Требования предъявляются только в индивидуальном порядке, а
+          не в рамках группового или представительского иска.
+        </p>
+        <p>
+          Если вы потребитель, проживающий в Европейской экономической зоне, Великобритании
+          или другой юрисдикции, законы которой дают вам неотъемлемое право на защиту местного
+          законодательства или на обращение в местные суды, ничто в этом разделе не лишает вас
+          этого права.
+        </p>
+      </Section>
+
+      <Section id="general" title="20. Общие положения">
         <List>
           <li>
-            <strong>Entire agreement.</strong> These Terms, the Privacy Policy, and the Refund
-            Policy are the whole agreement between us about the Service and replace anything
-            said before.
+            <strong>Полнота соглашения.</strong> Эти Условия, Политика конфиденциальности и
+            Политика возврата составляют всё соглашение между нами о Сервисе и заменяют всё,
+            что было сказано ранее.
           </li>
           <li>
-            <strong>Severability.</strong> If a provision is held unenforceable, it is
-            limited or removed to the minimum extent necessary and the rest stays in force.
+            <strong>Делимость.</strong> Если какое-либо положение признано не имеющим силы, оно
+            ограничивается или исключается в минимально необходимой мере, а остальные
+            положения сохраняют силу.
           </li>
           <li>
-            <strong>No waiver.</strong> Not enforcing a provision is not a waiver of it.
+            <strong>Отсутствие отказа от прав.</strong> Если мы не настаиваем на соблюдении
+            какого-либо положения, это не означает отказа от него.
           </li>
           <li>
-            <strong>Assignment.</strong> You may not assign these Terms without our written
-            consent. We may assign them in connection with a merger, acquisition, or sale of
-            assets.
+            <strong>Уступка.</strong> Вы не можете уступить эти Условия без нашего письменного
+            согласия. Мы можем уступить их в связи со слиянием, поглощением или продажей
+            активов.
           </li>
           <li>
-            <strong>Force majeure.</strong> Neither party is liable for a failure caused by
-            events beyond its reasonable control.
+            <strong>Форс-мажор.</strong> Ни одна из сторон не несёт ответственности за
+            неисполнение, вызванное обстоятельствами вне её разумного контроля.
           </li>
           <li>
-            <strong>No third-party beneficiaries.</strong> These Terms create rights only
-            between you and us.
+            <strong>Права только у сторон.</strong> Эти Условия создают права только между вами
+            и нами, но не для третьих лиц.
           </li>
           <li>
-            <strong>Language.</strong> These Terms are written in English. A translation is
-            provided for convenience only; the English version governs.
+            <strong>Язык.</strong> Эти Условия составлены на русском языке.
           </li>
         </List>
       </Section>
 
-      <Section id="contact" title="21. Contact">
+      <Section id="contact" title="21. Контакты">
         <p>
-          Questions about these Terms go to{" "}
-          <a href={`mailto:${CONTACT}`}>
-            {CONTACT}
-          </a>
-          .
+          Вопросы об этих Условиях направляйте на{" "}
+          <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
         </p>
       </Section>
     </LegalLayout>

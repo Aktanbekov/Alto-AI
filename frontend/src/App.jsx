@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppShell from "./components/shell/AppShell";
 import AccountGate from "./components/auth/AccountGate";
-import { useLang } from "./i18n";
 
 // Lazy load components for better performance
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -28,10 +27,7 @@ const DataPage = lazy(() => import("./pages/DataPage"));
 
 // Shown while a page's code downloads - usually a blink. A quiet line, not a
 // full-screen animation in a different design.
-function LoadingFallback() {
-  const { lang } = useLang();
-  return <p className="route-wait" role="status">{lang === "ru" ? "Загрузка…" : "Loading…"}</p>;
-}
+const LoadingFallback = () => <p className="route-wait" role="status">Загрузка…</p>;
 
 export default function App() {
   return (

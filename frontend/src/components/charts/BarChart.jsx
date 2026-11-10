@@ -1,21 +1,14 @@
 import { SMALL_N } from "./useChartWidth";
 import { useTooltip } from "./useTooltip";
 import Tooltip from "./Tooltip";
-import { useLang, useCopy, formatNumber, plural } from "../../i18n";
+import { useLang, useCopy, formatNumber } from "../../i18n";
 
 const COPY = {
-  en: {
-    empty: "No data for this breakdown.",
-    share: (v) => `Approval share: ${v}%`,
-    decided: (n) => `${n} decided interviews`,
-    small: "Small sample - read with caution",
-    posts: (n) => plural("en", n, ["post", "posts"]),
-  },
   ru: {
     empty: "Для этого разреза нет данных.",
     share: (v) => `Доля одобрений: ${v}%`,
     decided: (n) => `Собеседований с итогом: ${n}`,
-    small: "Маленькая группа — делайте выводы осторожно",
+    small: "Маленькая группа, выводы делайте осторожно",
     // No unit in Russian: the word does not fit the count column, so the
     // chart's caption says what the number is instead.
     posts: () => "",

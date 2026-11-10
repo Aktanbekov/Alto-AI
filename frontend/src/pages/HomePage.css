@@ -7,11 +7,16 @@
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
-.home-page .home-underline {
-  text-decoration: underline;
-  text-decoration-color: var(--control);
-  text-decoration-thickness: 2px;
-  text-underline-offset: .14em;
+/* Headings make their point in two tones, the way a sentence has a claim and
+   a consequence. One device, used everywhere, in place of the highlight box,
+   tinted marks and underlines the headings used to share. #5F6B7E is 4.5:1 on
+   paper and 5.4:1 on white; on the ink band the tone is 5.6:1. */
+.home-page { --ink-tone: #5F6B7E; }
+.home-page .band-ink { --ink-tone: rgba(231, 236, 230, .6); }
+.home-page .tone { color: var(--ink-tone); }
+@media (prefers-contrast: more) {
+  .home-page { --ink-tone: #3A4558; }
+  .home-page .band-ink { --ink-tone: rgba(231, 236, 230, .85); }
 }
 .home-page .hero {
   grid-template-columns: 1.2fr 1fr;
@@ -23,13 +28,6 @@
   font-size: clamp(42px, 4.4vw, 64px);
   line-height: 1.08;
   letter-spacing: -.035em;
-}
-.home-page .home-headline-emphasis {
-  display: inline;
-  background: var(--paper-2);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding: 0 .08em .04em;
 }
 .home-page .hero-lede { max-width: 38ch; margin-top: 26px; }
 .home-page .home-evidence-link {
@@ -64,7 +62,7 @@
   overflow: hidden;
   transform: rotate(-3deg);
   border: 1px solid var(--ink);
-  border-radius: 3px;
+  border-radius: var(--r-card);
   background: var(--ink);
   color: var(--paper);
 }
@@ -89,7 +87,7 @@
   margin: 92px 0 0 32px;
   padding: 24px 26px 0;
   border: 1px solid var(--control);
-  border-radius: 3px;
+  border-radius: var(--r-card);
   background: var(--paper-2);
   box-shadow: 0 14px 34px -22px rgba(22, 35, 59, .55);
 }
@@ -173,7 +171,7 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 3px;
+  border-radius: var(--r-control);
   background: var(--paper);
   color: var(--ink);
   font-size: 14px;

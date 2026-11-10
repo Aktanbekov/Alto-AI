@@ -4,20 +4,6 @@ import { track } from "../../analytics";
 import { useLang, useCopy, serverMessage } from "../../i18n";
 
 const COPY = {
-  en: {
-    invalid: "Enter a valid email address.",
-    failed: "Could not add you to the waitlist. Try again.",
-    doneTitle: "You’re on the waitlist",
-    doneSub: "We’ll email you when the paid version is ready. No payment details needed now.",
-    title: "Or wait for the paid version",
-    sub: "It works through each weak point with you, rebuilds the answer from your own facts, then drills you on the follow-ups by voice. One payment.",
-    confirmKnown: "Confirm the address you’d like us to use.",
-    leaveEmail: "Leave an email and we’ll tell you when it’s ready.",
-    email: "Email",
-    adding: "Adding you…",
-    confirm: "Confirm and join",
-    join: "Join the waitlist",
-  },
   ru: {
     invalid: "Введите корректный email.",
     failed: "Не удалось добавить вас в лист ожидания. Попробуйте ещё раз.",

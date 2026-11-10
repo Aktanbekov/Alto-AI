@@ -1,188 +1,185 @@
 import { Link } from "react-router-dom";
 import LegalLayout, { Section, List, Callout } from "../components/LegalLayout";
 import { REFUSAL_COVER_INTERVIEWS } from "../constants/pricing";
-import { useLang } from "../i18n";
-import RefundPolicyRu from "./legal/RefundPolicyRu";
 
 const CONTACT = "altovisas@gmail.com";
-const UPDATED = "21 October 2026";
+const UPDATED = "21 октября 2026 г.";
 
 const TOC = [
-  { id: "covers", title: "What this policy covers" },
-  { id: "final", title: "All sales are final" },
-  { id: "why", title: "Why we don't offer refunds" },
-  { id: "refusal", title: "If your visa is refused" },
-  { id: "mistakes", title: "Billing mistakes we will fix" },
-  { id: "unused", title: "Unused mock interviews" },
-  { id: "ending", title: "If we end the Service or remove a feature" },
-  { id: "law", title: "Your rights under consumer law" },
-  { id: "disputes", title: "Before you dispute a charge" },
-  { id: "contact", title: "How to reach us" },
-  { id: "changes", title: "Changes to this policy" },
+  { id: "covers", title: "На что распространяется политика" },
+  { id: "final", title: "Все продажи окончательны" },
+  { id: "why", title: "Почему мы не возвращаем деньги" },
+  { id: "refusal", title: "Если вам отказали в визе" },
+  { id: "mistakes", title: "Ошибки при оплате, которые мы исправим" },
+  { id: "unused", title: "Неиспользованные пробные собеседования" },
+  { id: "ending", title: "Если мы закроем Сервис или уберём функцию" },
+  { id: "law", title: "Ваши права по закону о защите прав потребителей" },
+  { id: "disputes", title: "Прежде чем оспаривать списание" },
+  { id: "contact", title: "Как с нами связаться" },
+  { id: "changes", title: "Изменения политики" },
 ];
 
 export default function RefundPolicyPage() {
-  const { lang } = useLang();
-  if (lang === "ru") return <RefundPolicyRu />;
   return (
     <LegalLayout
-      title="Refund Policy"
+      title="Политика возврата"
       updated={UPDATED}
       toc={TOC}
       summary={
         <Callout>
-          <p className="doc-callout-h">The short version</p>
+          <p className="doc-callout-h">Коротко</p>
           <p>
-            Altovisas plans are one-time purchases of a digital service that starts working
-            the moment you buy it. For that reason all sales are final and we do not offer
-            refunds, including when a visa is refused. You can try the free mock interview
-            first, with no card. We will always put right a billing mistake, and nothing here
-            takes away rights your local consumer law gives you.
+            Тарифы Altovisas оплачиваются один раз и дают доступ к цифровой услуге, которая начинает работать
+            сразу после оплаты. Поэтому все продажи окончательны, и мы не возвращаем деньги, в
+            том числе при отказе в визе. Сначала вы можете попробовать бесплатное пробное
+            собеседование без карты. Ошибку при оплате мы исправим всегда, и ничто здесь не
+            лишает вас прав, которые даёт закон о защите прав потребителей вашей страны.
           </p>
         </Callout>
       }
     >
-      <Section id="covers" title="1. What this policy covers">
+      <Section id="covers" title="1. На что распространяется политика">
         <p>
-          This policy applies to every paid plan listed on our{" "}
-          <Link to="/pricing">Pricing page</Link> (Quick prep, Full prep and Complete) and
-          to any other paid plan we offer on altovisas.com. The free plan costs nothing, so
-          there is nothing to refund. This policy is part of our{" "}
-          <Link to="/terms">Terms of Service</Link>.
+          Эта политика действует для каждого платного тарифа на нашей{" "}
+          <Link to="/pricing">странице тарифов</Link> («Быстрая подготовка», «Полная
+          подготовка» и «Максимум») и для любого другого платного тарифа на altovisas.com.
+          Бесплатный тариф ничего не стоит, поэтому возвращать по нему нечего. Эта политика
+          является частью наших <Link to="/terms">Условий использования</Link>.
         </p>
       </Section>
 
-      <Section id="final" title="2. All sales are final">
+      <Section id="final" title="2. Все продажи окончательны">
         <p>
-          Once your payment goes through, the plan is added to your account and you can use
-          it straight away. From that moment the purchase is not refundable, in whole or in
-          part. That holds whether or not you use the mock interviews, and whatever the
-          reason, including:
+          Как только оплата прошла, тариф добавляется на ваш аккаунт, и им можно сразу
+          пользоваться. С этого момента покупка не подлежит ни полному, ни частичному
+          возврату, независимо от того, пользуетесь ли вы пробными собеседованиями, и по
+          какой бы причине вы ни просили возврат, в том числе если:
         </p>
         <List>
-          <li>you changed your mind, or bought the wrong plan;</li>
-          <li>your interview was moved, cancelled, or no longer needed;</li>
-          <li>you did not find the feedback as useful as you hoped;</li>
-          <li>your visa was refused (see section 4 for what the Complete plan includes).</li>
+          <li>вы передумали или купили не тот тариф;</li>
+          <li>ваше собеседование перенесли, отменили или оно больше не нужно;</li>
+          <li>разбор оказался не таким полезным, как вы надеялись;</li>
+          <li>вам отказали в визе (что входит в тариф «Максимум», смотрите раздел 4).</li>
         </List>
       </Section>
 
-      <Section id="why" title="3. Why we don't offer refunds">
+      <Section id="why" title="3. Почему мы не возвращаем деньги">
         <List>
           <li>
-            <strong>You can try before you pay.</strong> The free mock interview shows you
-            the full feedback format with no card and no charge, so you know what a plan
-            contains before you buy one.
+            <strong>Можно попробовать до оплаты.</strong> Бесплатное пробное собеседование
+            показывает полный формат разбора без карты и без оплаты, так что вы знаете, что
+            входит в тариф, ещё до покупки.
           </li>
           <li>
-            <strong>The service is delivered at once.</strong> A plan works the moment you
-            buy it, and every mock interview you run costs us money to score. That work cannot
-            be handed back.
+            <strong>Услуга предоставляется сразу.</strong> Тариф работает с момента покупки, а
+            оценка каждого пробного собеседования стоит нам денег. Эту работу нельзя вернуть.
           </li>
           <li>
-            <strong>The outcome is not ours to promise.</strong> Visa decisions are made only
-            by consular officers. A refund tied to the result would suggest we can influence
-            it, and we cannot.
+            <strong>Мы не можем обещать результат.</strong> Решения о визе принимают только
+            консульские офицеры. Возврат, привязанный к результату, создавал бы впечатление,
+            что мы можем на него повлиять, а мы не можем.
           </li>
         </List>
       </Section>
 
-      <Section id="refusal" title="4. If your visa is refused">
+      <Section id="refusal" title="4. Если вам отказали в визе">
         <Callout>
           <p>
-            A visa refusal is not grounds for a refund on any plan. Nothing we sell can change
-            what a consular officer decides.
+            Отказ в визе не является основанием для возврата денег ни по одному тарифу. Ничто
+            из того, что мы продаём, не может изменить решение консульского офицера.
           </p>
         </Callout>
         <p>
-          The Complete plan includes refusal cover. If your F-1 visa is refused after you
-          bought Complete, we add {REFUSAL_COVER_INTERVIEWS} more mock interviews to your
-          account at no charge, so you can prepare for your next attempt. To claim it, email{" "}
-          {CONTACT} from the address on your account and tell us your visa was refused. Do
-          not send passport, visa, or DS-160 numbers; we never need them.
+          Тариф «Максимум» включает защиту при отказе. Если после покупки «Максимума» вам
+          откажут в визе F-1, мы бесплатно добавим на ваш аккаунт ещё{" "}
+          {REFUSAL_COVER_INTERVIEWS} пробных собеседований, чтобы вы подготовились к
+          следующей попытке. Чтобы получить её, напишите на {CONTACT} с адреса аккаунта и
+          сообщите, что вам отказали в визе. Не присылайте номера паспорта, визы или DS-160:
+          они нам никогда не нужны.
         </p>
         <p>
-          Refusal cover can be claimed once for each Complete purchase. It is extra practice,
-          not money: it cannot be exchanged for cash, a refund, or a different plan.
+          Защитой при отказе можно воспользоваться один раз за каждую покупку «Максимума». Это
+          дополнительная практика, а не деньги: её нельзя обменять на наличные, возврат или
+          другой тариф.
         </p>
       </Section>
 
-      <Section id="mistakes" title="5. Billing mistakes we will fix">
-        <p>All sales being final never means you pay for our mistakes. We will put right:</p>
+      <Section id="mistakes" title="5. Ошибки при оплате, которые мы исправим">
+        <p>То, что все продажи окончательны, не значит, что вы платите за наши ошибки. Мы исправим:</p>
         <List>
-          <li>a charge made more than once for the same purchase;</li>
-          <li>a charge for a different amount from the price shown when you paid;</li>
+          <li>повторное списание за одну и ту же покупку;</li>
+          <li>списание суммы, отличной от цены, указанной при оплате;</li>
           <li>
-            a payment that went through without the plan reaching your account, where we
-            cannot fix that promptly;
+            оплату, которая прошла, но тариф не появился в аккаунте, если мы не можем быстро
+            это исправить;
           </li>
           <li>
-            a charge you did not make or authorise. Tell your bank as well as us.
+            списание, которое вы не совершали и не разрешали. Сообщите об этом и нам, и своему
+            банку.
           </li>
         </List>
         <p>
-          Depending on what went wrong, we will either deliver what you paid for or refund
-          the mistaken amount to the payment method you used. Tell us as soon as you notice
-          the problem. Refunds usually take a few working days to appear, depending on your
-          bank.
+          В зависимости от того, что пошло не так, мы либо предоставим оплаченное, либо
+          вернём ошибочно списанную сумму на тот же способ оплаты. Сообщите нам, как только
+          заметите проблему. Обычно возврат поступает в течение нескольких рабочих дней, но это
+          зависит от вашего банка.
         </p>
       </Section>
 
-      <Section id="unused" title="6. Unused mock interviews">
+      <Section id="unused" title="6. Неиспользованные пробные собеседования">
         <p>
-          Mock interviews you have not used have no cash value. They cannot be refunded,
-          moved to another account, or exchanged for money or for a different plan.
+          Неиспользованные пробные собеседования не имеют денежной стоимости. Их нельзя
+          вернуть, перенести на другой аккаунт или обменять на деньги или другой тариф.
         </p>
       </Section>
 
-      <Section id="ending" title="7. If we end the Service or remove a feature">
+      <Section id="ending" title="7. Если мы закроем Сервис или уберём функцию">
         <p>
-          If we close Altovisas, or permanently remove a feature included in a plan you
-          bought before you have been able to use it, we will refund the part of the price
-          that covers what you could not use. If we close your account because you broke our{" "}
-          <Link to="/terms">Terms of Service</Link>, no refund is due.
+          Если мы закроем Altovisas или навсегда уберём функцию, входящую в купленный вами
+          тариф, раньше, чем вы смогли ею воспользоваться, мы вернём ту часть цены, которая
+          приходится на то, чем вы не смогли воспользоваться. Если мы закрываем ваш аккаунт
+          из-за нарушения наших <Link to="/terms">Условий использования</Link>, возврат не
+          производится.
         </p>
       </Section>
 
-      <Section id="law" title="8. Your rights under consumer law">
+      <Section id="law" title="8. Ваши права по закону о защите прав потребителей">
         <p>
-          This policy does not take away any right that the consumer law of the country you
-          live in gives you and does not allow to be waived. If the law where you live gives
-          you a right to cancel or to a refund, we will honour it.
+          Эта политика не отменяет прав, которые даёт вам закон о защите прав потребителей
+          страны, где вы живёте, и от которых нельзя отказаться. Если закон вашей страны даёт
+          вам право отказаться от покупки или вернуть деньги, мы его соблюдём.
         </p>
         <p>
-          If you live in the European Union or the United Kingdom, consumer law usually gives
-          you 14 days to cancel an online purchase. For a digital service that starts
-          immediately, that right can end once you begin using it, if you asked for immediate
-          access and acknowledged that you would lose the right to cancel. Where the law still
-          gives you a right to cancel, this policy does not override it.
-        </p>
-      </Section>
-
-      <Section id="disputes" title="9. Before you dispute a charge">
-        <p>
-          Please email us before you open a dispute or chargeback with your bank. A billing
-          mistake is usually put right faster by us than through a bank dispute, and we would
-          rather fix it directly.
+          Если вы живёте в Европейском союзе или Великобритании, закон о защите прав
+          потребителей обычно даёт 14 дней на отказ от покупки в интернете. Для цифровой
+          услуги, которая начинает работать сразу, это право может прекратиться, как только вы
+          начали ею пользоваться, если вы попросили немедленный доступ и подтвердили, что
+          теряете право на отказ. Если закон всё же сохраняет за вами право на отказ, эта
+          политика его не отменяет.
         </p>
       </Section>
 
-      <Section id="contact" title="10. How to reach us">
+      <Section id="disputes" title="9. Прежде чем оспаривать списание">
         <p>
-          Write to{" "}
-          <a href={`mailto:${CONTACT}`}>
-            {CONTACT}
-          </a>{" "}
-          from the email address on your account. Include the date and amount of the charge,
-          the plan you bought, and what went wrong. We aim to reply within a few working days.
+          Пожалуйста, напишите нам, прежде чем открывать спор или запрашивать chargeback в
+          банке. Ошибку при оплате мы обычно исправляем быстрее, чем это происходит через
+          спор в банке, и предпочитаем решать такие вопросы напрямую.
         </p>
       </Section>
 
-      <Section id="changes" title="11. Changes to this policy">
+      <Section id="contact" title="10. Как с нами связаться">
         <p>
-          We may update this policy. The "Last updated" date above shows the current version.
-          A purchase is always governed by the version in force on the day you paid; a later
-          change never applies to a plan you have already bought.
+          Напишите на <a href={`mailto:${CONTACT}`}>{CONTACT}</a> с адреса электронной почты
+          вашего аккаунта. Укажите дату и сумму списания, купленный тариф и что пошло не так.
+          Мы стараемся отвечать в течение нескольких рабочих дней.
+        </p>
+      </Section>
+
+      <Section id="changes" title="11. Изменения политики">
+        <p>
+          Мы можем обновлять эту политику. Дата «Последнее обновление» вверху показывает
+          текущую версию. Покупка всегда регулируется версией, действовавшей в день оплаты;
+          более позднее изменение никогда не применяется к уже купленному тарифу.
         </p>
       </Section>
     </LegalLayout>

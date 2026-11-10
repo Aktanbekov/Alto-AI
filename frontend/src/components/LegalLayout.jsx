@@ -1,22 +1,13 @@
 import { Link } from "react-router-dom";
-import { useLang, useCopy } from "../i18n";
+import { useCopy } from "../i18n";
 
 const COPY = {
-  en: {
-    updated: (d) => `Last updated ${d}`,
-    contents: "Contents",
-    terms: "Terms of Service",
-    privacy: "Privacy Policy",
-    refund: "Refund Policy",
-  },
   ru: {
     updated: (d) => `Последнее обновление: ${d}`,
     contents: "Содержание",
     terms: "Условия использования",
     privacy: "Политика конфиденциальности",
     refund: "Политика возврата",
-    notice: "Это перевод для удобства. Юридическую силу имеет английская версия.",
-    readEnglish: "Открыть английскую версию",
   },
 };
 
@@ -48,24 +39,12 @@ export function Callout({ children }) {
 }
 
 export default function LegalLayout({ title, updated, summary, toc, children }) {
-  const { lang, setLang } = useLang();
   const c = useCopy(COPY);
   return (
     <div className="tf">
       <article className="page-w doc">
         <h1>{title}</h1>
         <p className="meta">{c.updated(updated)}</p>
-
-        {/* The Terms say the English text governs, so a translated page says
-            so before anything else, with the way to the governing text. */}
-        {lang !== "en" && c.notice && (
-          <p className="doc-lang-note">
-            {c.notice}{" "}
-            <button type="button" className="doc-lang-switch" lang="en" onClick={() => setLang("en")}>
-              {c.readEnglish}
-            </button>
-          </p>
-        )}
 
         {summary}
 

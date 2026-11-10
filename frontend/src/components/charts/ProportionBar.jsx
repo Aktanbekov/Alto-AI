@@ -3,10 +3,6 @@ import Tooltip from "./Tooltip";
 import { useLang, useCopy, formatNumber } from "../../i18n";
 
 const COPY = {
-  en: {
-    interviews: (n) => `${n} interviews`,
-    ofCorpus: (p) => `${p}% of corpus`,
-  },
   ru: {
     interviews: (n) => `Собеседований: ${n}`,
     ofCorpus: (p) => `${p}% всех данных`,

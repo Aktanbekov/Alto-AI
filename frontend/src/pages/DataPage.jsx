@@ -3,17 +3,11 @@ import { CORPUS } from "../seo/site";
 import { useLang, useCopy, formatNumber, plural } from "../i18n";
 
 const COPY = {
-  en: {
-    title: (n) => `What ${n} interview write-ups show`,
-    lede: (from, to) =>
-      `Every number here comes from interviews students posted about themselves between ${from} and ${to}. ` +
-      "Open to everyone, no account needed, updated monthly.",
-  },
   ru: {
     title: (n, count) =>
-      `Что говорят ${n} ${plural("ru", count, ["рассказ", "рассказа", "рассказов"])} о собеседованиях`,
+      `Что показывают ${n} ${plural("ru", count, ["отзыв", "отзыва", "отзывов"])} о собеседованиях`,
     lede: (from, to) =>
-      `Все цифры здесь взяты из рассказов студентов о своих собеседованиях с ${from} по ${to} год. ` +
+      `Все цифры здесь взяты из отзывов студентов о своих собеседованиях с ${from} по ${to} год. ` +
       "Доступно всем без аккаунта, обновляется ежемесячно.",
   },
 };

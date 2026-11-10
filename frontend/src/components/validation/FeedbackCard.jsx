@@ -9,22 +9,6 @@ import { useLang, useCopy, serverMessage } from "../../i18n";
 const OPTIONS = ["answer_analysis", "suggested_answer", "risk_detection", "score", "none"];
 
 const COPY = {
-  en: {
-    options: {
-      answer_analysis: "Answer analysis",
-      suggested_answer: "Suggested answer",
-      risk_detection: "Risk detection",
-      score: "Score",
-      none: "None of these",
-    },
-    failed: "Could not save that. Try again.",
-    thanks: "Thank you for your feedback.",
-    question: "What was the most useful part?",
-    missing: "What felt inaccurate, confusing, or missing?",
-    saving: "Saving…",
-    submit: "Submit feedback",
-    skip: "Skip",
-  },
   ru: {
     options: {
       answer_analysis: "Разбор ответов",
