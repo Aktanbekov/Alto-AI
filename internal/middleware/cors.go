@@ -54,8 +54,11 @@ func setCORSHeaders(headers http.Header, origin string) {
 		if _, allowed := configuredOrigins()[origin]; allowed {
 			headers.Set("Access-Control-Allow-Origin", origin)
 		}
-		headers.Add("Vary", "Origin")
 	}
+	// Always, not only when this request had an Origin: a response cached
+	// from a same-origin request carries no CORS header, and without Vary a
+	// shared cache would hand that copy to a cross-origin caller.
+	headers.Add("Vary", "Origin")
 	headers.Set("Access-Control-Allow-Credentials", "true")
 	headers.Set("Access-Control-Allow-Headers", allowedHeaders)
 	headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")

@@ -1,8 +1,7 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { getMe } from "../api";
-import { setAccessToken } from "../utils/tokenStorage";
-import { safeRedirect } from "../utils/authRedirect";
+import { consumeOAuthRedirect } from "../utils/oauthReturn";
 import HomeFindings from "../components/HomeFindings";
 import HomeInterviewPreview from "../components/HomeInterviewPreview";
 import HomeReviews from "../components/HomeReviews";
@@ -90,27 +89,17 @@ export default function HomePage() {
   const { lang } = useLang();
   const c = useCopy(COPY);
   const interviews = formatNumber(lang, CORPUS.interviews);
-  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Google OAuth callback: the backend redirects here with an access token.
+  // Google sign-in return. main.jsx already moved the token out of the URL
+  // and into storage; here the session is confirmed and the person continues
+  // to where they were going (a same-site path, checked on both ends).
   useEffect(() => {
-    const accessToken = searchParams.get("access_token");
-    const redirect = searchParams.get("redirect");
-    if (!accessToken) return;
-
-    setAccessToken(accessToken);
-    searchParams.delete("access_token");
-    if (redirect) searchParams.delete("redirect");
-    setSearchParams(searchParams, { replace: true });
-
+    const redirect = consumeOAuthRedirect();
+    if (!redirect) return;
     getMe()
-      .then(() => {
-        // The path made a round trip through Google and back as a query
-        // parameter, so it is only trusted as far as being same-site.
-        if (redirect) navigate(safeRedirect(redirect));
-      })
+      .then(() => { if (redirect !== "/") navigate(redirect); })
       .catch(() => {});
-  }, [searchParams, setSearchParams, navigate]);
+  }, [navigate]);
 
   // The check itself asks a signed-out visitor for a free account, in place
   // and with the reason, so the button only has to say that it needs one.

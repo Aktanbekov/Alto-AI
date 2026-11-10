@@ -66,7 +66,7 @@ func routeShell(urlPath string) string {
 func New() (*gin.Engine, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	r.Use(gin.Recovery(), middleware.RequestLogger())
+	r.Use(gin.Recovery(), middleware.RequestLogger(), middleware.SecurityHeaders())
 
 	webFS, err := frontendassets.DistFS()
 	if err != nil {

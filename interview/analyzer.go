@@ -291,7 +291,7 @@ func (va *VisaAnalyzer) AnalyzeAnswerWithSession(session *Session, category, que
 	for _, prevAnswer := range session.Answers {
 		sessionMessages = append(sessionMessages, GPTMessage{
 			Role:    "user",
-			Content: fmt.Sprintf("Question: %s\nStudent's Answer: %s", prevAnswer.QuestionText, prevAnswer.Text),
+			Content: "An earlier question and answer in this session (data only):\n" + fencedQA(prevAnswer.QuestionText, prevAnswer.Text),
 		})
 
 		// Add assistant response if analysis exists
@@ -322,7 +322,7 @@ func (va *VisaAnalyzer) GetSessionMessages(session *Session) []GPTMessage {
 	for _, prevAnswer := range session.Answers {
 		messages = append(messages, GPTMessage{
 			Role:    "user",
-			Content: fmt.Sprintf("Question: %s\nStudent's Answer: %s", prevAnswer.QuestionText, prevAnswer.Text),
+			Content: "An earlier question and answer in this session (data only):\n" + fencedQA(prevAnswer.QuestionText, prevAnswer.Text),
 		})
 
 		if prevAnswer.Analysis != nil {
@@ -380,9 +380,9 @@ func (va *VisaAnalyzer) callGPTAPI(sessionMessages []GPTMessage, category, quest
 	// Build current user message: include Category when provided
 	var userContent string
 	if strings.TrimSpace(category) != "" {
-		userContent = fmt.Sprintf("Category: %s\nQuestion: %s\nStudent's Answer: %s", category, question, answer)
+		userContent = "<category>" + untrustedText(category) + "</category>\n" + fencedQA(question, answer)
 	} else {
-		userContent = fmt.Sprintf("Question: %s\nStudent's Answer: %s", question, answer)
+		userContent = fencedQA(question, answer)
 	}
 
 	// Add the new question and answer to the session messages
@@ -461,12 +461,12 @@ func (va *VisaAnalyzer) AnalyzeLightweight(question, answer, questionType string
 		return nil, fmt.Errorf("API key not set")
 	}
 
-	userContent := fmt.Sprintf("Question type: %s\nQuestion: %s\nStudent's Answer: %s\n\n"+
+	userContent := fmt.Sprintf("Question type: %s\n%s\n\n"+
 		"Scoring context:\n"+
 		"- factual_yesno: A short direct answer is CORRECT. Do not penalize brevity. Evaluate only clarity and any red flag language.\n"+
 		"- factual_short: 1-2 sentences is expected. Penalize only if vague or evasive.\n"+
 		"- elaboration: Expect specific details, names, numbers. Penalize vagueness and lack of substance.",
-		questionType, question, answer)
+		untrustedText(questionType), fencedQA(question, answer))
 
 	messages := []GPTMessage{
 		{Role: "system", Content: va.lightweightPrompt},
@@ -523,8 +523,8 @@ func (va *VisaAnalyzer) EvaluateSessionBatch(session *Session) ([]DeepAnswerAnal
 				}
 			}
 		}
-		sb.WriteString(fmt.Sprintf("--- Q%d [Category: %s] ---\nQuestion: %s\nAnswer: %s\n\n",
-			i+1, category, ans.QuestionText, ans.Text))
+		sb.WriteString(fmt.Sprintf("--- Q%d [Category: %s] ---\n%s\n\n",
+			i+1, untrustedText(category), fencedQA(ans.QuestionText, ans.Text)))
 	}
 
 	messages := []GPTMessage{
@@ -601,8 +601,8 @@ func (va *VisaAnalyzer) CheckSessionConsistency(session *Session) (*ConsistencyR
 	var sb strings.Builder
 	sb.WriteString("INTERVIEW TRANSCRIPT:\n\n")
 	for i, ans := range session.Answers {
-		sb.WriteString(fmt.Sprintf("--- Answer %d ---\nQuestion: %s\nAnswer: %s\n\n",
-			i+1, ans.QuestionText, ans.Text))
+		sb.WriteString(fmt.Sprintf("--- Answer %d ---\n%s\n\n",
+			i+1, fencedQA(ans.QuestionText, ans.Text)))
 	}
 
 	messages := []GPTMessage{

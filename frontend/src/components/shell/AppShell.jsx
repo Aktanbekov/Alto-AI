@@ -95,7 +95,9 @@ export default function AppShell({ children }) {
   // before the dashboard's data arrives, so the section is either absent or in
   // the wrong place; re-align each frame until its offset stops moving.
   useEffect(() => {
-    if (!hash) return undefined;
+    // Only a plain #section-id. Any other fragment is not a selector, and
+    // querySelector would throw on it.
+    if (!hash || !/^#[A-Za-z][\w-]*$/.test(hash)) return undefined;
     let raf;
     let frames = 0;
     let settled = 0;

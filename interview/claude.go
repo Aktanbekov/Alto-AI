@@ -45,6 +45,9 @@ func (va *VisaAnalyzer) callClaude(messages []GPTMessage, effort anthropic.BetaO
 			turns = append(turns, anthropic.NewBetaUserMessage(anthropic.NewBetaTextBlock(m.Content)))
 		}
 	}
+	// Every call, whatever prompt it carries, gets the untrusted-input rules
+	// last, so the student's text is always treated as data.
+	system = append(system, anthropic.BetaTextBlockParam{Text: untrustedInputRule})
 	if len(turns) == 0 {
 		return "", fmt.Errorf("no messages to send")
 	}

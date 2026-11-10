@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,27 @@ from .prompts import (
 )
 from .providers import resolve
 from .schema import Evaluation
+
+# The report is shown to the student as plain text. The system prompt forbids
+# links and markup (rule 20); this enforces it, so a prompt injection that got
+# past the model still cannot put a phishing link or HTML in front of anyone.
+_URL = re.compile(r"(?i)\b(?:https?://|www\.)\S+")
+_MARKUP = re.compile(r"<[^<>\n]{1,200}>")
+
+
+def scrub_output(evaluation: Evaluation) -> Evaluation:
+    """Strip web addresses and HTML-like tags from every text field."""
+
+    def clean(value: Any) -> Any:
+        if isinstance(value, str):
+            return re.sub(r"[ \t]{2,}", " ", _MARKUP.sub("", _URL.sub("", value))).strip()
+        if isinstance(value, list):
+            return [clean(v) for v in value]
+        if isinstance(value, dict):
+            return {k: clean(v) for k, v in value.items()}
+        return value
+
+    return Evaluation.model_validate(clean(evaluation.model_dump()))
 
 MODEL = "claude-opus-5"
 # Streaming keeps a large max_tokens from hitting the SDK's HTTP timeout.
@@ -111,6 +133,7 @@ def evaluate(
     # models rather than between two prompts.
     provider = resolve(model)
     evaluation, usage = provider.run(provider, system_blocks, messages, MAX_TOKENS)
+    evaluation = scrub_output(evaluation)
 
     meta = {
         **usage,

@@ -79,7 +79,7 @@ def test_retrieved_block_includes_transcripts_by_record_id():
     )
     text = format_retrieved(retrieved, full)
     assert "abc123" in text
-    assert "outcome: rejected" in text
+    assert 'outcome="rejected"' in text
     assert "Funding: loan" in text
     assert "VO: Who funds you?" in text
 
@@ -98,8 +98,8 @@ def test_student_block_lists_answers():
     )
     text = format_student(profile)
     assert "Consulate city: Chennai" in text
-    assert "1. Q: Why UTD?" in text
-    assert "A: STEM." in text
+    assert "<question>Why UTD?</question>" in text
+    assert "<text>STEM.</text>" in text
 
 
 def test_student_block_handles_no_answers():

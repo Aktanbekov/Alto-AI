@@ -72,10 +72,7 @@ func HandleGoogleLogin(c *gin.Context) {
 		redirectToFrontendWithError(c, "Google sign-in is not configured (missing GOOGLE_CLIENT_ID). Check server .env.")
 		return
 	}
-	redirect := c.Query("redirect")
-	if redirect == "" {
-		redirect = "/"
-	}
+	redirect := SafeRedirectPath(c.Query("redirect"))
 	cookieDomain := os.Getenv("COOKIE_DOMAIN")
 	if cookieDomain == "" {
 		cookieDomain = ""
@@ -261,7 +258,7 @@ func HandleGoogleCallback(c *gin.Context) {
 	// Get redirect destination from cookie (set during login initiation)
 	redirectPath := "/" // Default: authentication returns to the main page.
 	if redirectCookie, err := c.Cookie("oauth_redirect"); err == nil && redirectCookie != "" {
-		redirectPath = redirectCookie
+		redirectPath = SafeRedirectPath(redirectCookie)
 		// Clear the cookie after reading
 		cookieDomain := os.Getenv("COOKIE_DOMAIN")
 		if cookieDomain == "" {
@@ -279,8 +276,10 @@ func HandleGoogleCallback(c *gin.Context) {
 	isSecure := os.Getenv("GIN_MODE") == "release"
 	c.SetCookie("refresh_token", refreshToken, 30*24*60*60, "/", cookieDomain, isSecure, true)
 
-	// Redirect to frontend with access token and redirect in query parameters
-	redirectURL := frontendURL + "/?access_token=" + url.QueryEscape(accessToken) + "&redirect=" + url.QueryEscape(redirectPath)
+	// Hand the access token over in the URL fragment, never the query string:
+	// a fragment is not sent to any server, is left out of Referer headers,
+	// and is not recorded by page analytics, which log the path and query.
+	redirectURL := frontendURL + "/#access_token=" + url.QueryEscape(accessToken) + "&redirect=" + url.QueryEscape(redirectPath)
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
@@ -301,4 +300,26 @@ func getFrontendURL() string {
 func redirectToFrontendWithError(c *gin.Context, errMsg string) {
 	u := getFrontendURL() + "/login?error=" + url.QueryEscape(errMsg)
 	c.Redirect(http.StatusFound, u)
+}
+
+// SafeRedirectPath returns p if it is a same-site path, and "/" otherwise.
+//
+// The value arrives in a query parameter and comes back from a cookie, so it
+// is attacker-controlled. Only an absolute path on this site is kept: it must
+// start with a single "/", and may not contain a backslash (browsers read
+// "/\evil.example" as "//evil.example", another host), a scheme, or control
+// characters. Anything else signs the person in and lands them on the home page.
+func SafeRedirectPath(p string) string {
+	if p == "" || len(p) > 512 || p[0] != '/' {
+		return "/"
+	}
+	if len(p) > 1 && (p[1] == '/' || p[1] == '\\') {
+		return "/"
+	}
+	for _, r := range p {
+		if r == '\\' || r < 0x20 || r == 0x7f {
+			return "/"
+		}
+	}
+	return p
 }

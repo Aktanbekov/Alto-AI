@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 from ..evaluator.prompts import Language
 from ..evaluator.providers import DEFAULT_PROVIDER, PROVIDERS, cost_of, resolve
@@ -62,7 +62,12 @@ class ProfileRequest(BaseModel):
     funding_source: str | None = Field(default=None, max_length=MAX_FIELD_CHARS)
     scholarship: str | None = Field(default=None, max_length=500)
     attempt_number: int | None = Field(default=1, ge=1, le=20)
-    test_scores: dict[str, str] = Field(default_factory=dict)
+    # A handful of named scores (IELTS, GRE...). Bounded like every other field:
+    # it is student text that reaches the prompt.
+    test_scores: dict[
+        Annotated[str, StringConstraints(max_length=40)],
+        Annotated[str, StringConstraints(max_length=40)],
+    ] = Field(default_factory=dict, max_length=10)
     planned_answers: list[PlannedAnswer] = Field(default_factory=list, max_length=MAX_ANSWERS)
     # Which model scores this. Omitted by real users, who always get the
     # production provider; the admin comparison names one per call.
