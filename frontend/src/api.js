@@ -358,6 +358,30 @@ export const submitSurvey = (answers) => postValidation("survey", answers);
 
 export const joinWaitlist = (email) => postValidation("waitlist", { email });
 
+// ---------- Payment requests ----------
+
+// Card payments are not available yet, so the checkout asks for contact
+// details instead and an admin takes the payment by hand. On a validation
+// failure the thrown error carries `details`: field name -> message.
+export async function createPaymentRequest(body) {
+  const res = await fetchWithAuth(`${API}/api/v1/payment-requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...trackingHeaders() },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(
+      data.error && data.error !== "validation_error"
+        ? data.error
+        : "Не удалось отправить заявку. Попробуйте ещё раз."
+    );
+    err.details = data.details || {};
+    throw err;
+  }
+  return data.data ?? data;
+}
+
 // ---------- Admin panel ----------
 
 // The admin API returns 404 rather than 403 to non-admins, so callers should
@@ -470,6 +494,30 @@ export function archiveTrackingLink(code, archived = true) {
 export function deleteTrackingLink(code) {
   return adminRequest(`/links/${encodeURIComponent(code)}`, { method: "DELETE" });
 }
+
+// ---------- Payment requests (admin) ----------
+
+export function listPaymentRequests({ limit = 50, offset = 0 } = {}) {
+  const q = new URLSearchParams({ limit, offset });
+  return adminRequest(`/payment-requests?${q}`);
+}
+
+// Partial edit: any of { contacted, outcome, notes }. Returns the saved row.
+export function updatePaymentRequest(id, changes) {
+  return adminRequest(`/payment-requests/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+}
+
+// Telegram notifications for new requests. The bot token lives in the server
+// env; the chat is connected from the panel with a one-time Start link.
+export const getTelegramStatus = () => adminRequest("/telegram");
+export const getTelegramLink = () => adminRequest("/telegram/link", { method: "POST" });
+export const connectTelegram = () => adminRequest("/telegram/connect", { method: "POST" });
+export const sendTelegramTest = () => adminRequest("/telegram/test", { method: "POST" });
+export const disconnectTelegram = () => adminRequest("/telegram", { method: "DELETE" });
 
 export function listAdminUsers({ search = "", limit = 25, offset = 0 } = {}) {
   const q = new URLSearchParams({ search, limit, offset });

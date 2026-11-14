@@ -29,6 +29,9 @@ type ValidationRepo interface {
 	SaveSurvey(s SurveyResponse) (granted bool, err error)
 	HasSurvey(s Subject) (bool, error)
 	ExtraSets(s Subject) (int, error)
+	// HasPaidPlan reports whether any of the subject's grants came from a
+	// bought plan (see PaymentRequestRepo).
+	HasPaidPlan(s Subject) (bool, error)
 
 	// Premium waitlist.
 	JoinWaitlist(s Subject, email string) (added bool, err error)
@@ -288,6 +291,16 @@ func (r *validationRepo) ExtraSets(s Subject) (int, error) {
 	err := r.db.QueryRow(
 		`SELECT COALESCE(SUM(extra_sets), 0) FROM quiz_entitlements WHERE `+pred, args...).Scan(&total)
 	return total, err
+}
+
+func (r *validationRepo) HasPaidPlan(s Subject) (bool, error) {
+	if !s.SignedIn() {
+		return false, nil
+	}
+	var exists bool
+	err := r.db.QueryRow(`SELECT EXISTS (SELECT 1 FROM quiz_entitlements
+		WHERE user_id = $1 AND source LIKE $2)`, s.UserID, PlanSourcePrefix+"%").Scan(&exists)
+	return exists, err
 }
 
 // JoinWaitlist records an address, reporting whether it was new. A repeat

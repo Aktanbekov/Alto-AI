@@ -124,6 +124,20 @@ func New() (*gin.Engine, error) {
 	}
 	referralRepo := repository.NewReferralRepo(dbProvider.DB())
 
+	// "Contact me to pay" requests from the checkout, while card payments are
+	// not available and paid plans are sold by hand.
+	if err := repository.EnsurePaymentRequestSchema(dbProvider.DB()); err != nil {
+		return nil, fmt.Errorf("failed to initialize payment request storage: %v", err)
+	}
+	paymentRequestRepo := repository.NewPaymentRequestRepo(dbProvider.DB(), handlers.PaidPlanSets)
+
+	// Settings an admin changes from the panel, such as the Telegram chat
+	// that receives new payment requests.
+	if err := repository.EnsureSettingsSchema(dbProvider.DB()); err != nil {
+		return nil, fmt.Errorf("failed to initialize settings storage: %v", err)
+	}
+	settingsRepo := repository.NewSettingsRepo(dbProvider.DB())
+
 	userSvc := services.NewUserService(userRepo)
 	authSvc := services.NewAuthService(userRepo)
 	userH := handlers.NewUserHandler(userSvc)
@@ -139,6 +153,8 @@ func New() (*gin.Engine, error) {
 	analyticsH := handlers.NewAnalyticsHandler(analyticsRepo, userSvc)
 	adminAnalyticsH := handlers.NewAdminAnalyticsHandler(analyticsRepo, evalRepo)
 	adminLinksH := handlers.NewAdminLinksHandler(referralRepo, analyticsRepo)
+	paymentRequestH := handlers.NewPaymentRequestHandler(
+		paymentRequestRepo, userSvc, services.NewTelegram(settingsRepo))
 	statsH := handlers.NewStatsHandler()
 	questionsH := handlers.NewQuestionsHandler()
 
@@ -297,6 +313,10 @@ func New() (*gin.Engine, error) {
 		v1.POST("/survey", middleware.OptionalJWT(), accessH.Survey)
 		v1.POST("/waitlist", middleware.OptionalJWT(), accessH.Waitlist)
 
+		// The checkout's request form: a paid plan is paid by arrangement
+		// until a card provider is wired in.
+		v1.POST("/payment-requests", middleware.JWTAuth(), paymentRequestH.Create)
+
 		// Any authenticated user may ask whether they are an admin; the
 		// frontend uses this to decide whether to show the panel.
 		v1.GET("/admin/me", middleware.JWTAuth(), adminH.Me)
@@ -321,6 +341,13 @@ func New() (*gin.Engine, error) {
 			admin.PUT("/links/:code", adminLinksH.Update)
 			admin.POST("/links/:code/archive", adminLinksH.Archive)
 			admin.DELETE("/links/:code", adminLinksH.Delete)
+			admin.GET("/payment-requests", paymentRequestH.List)
+			admin.PATCH("/payment-requests/:id", paymentRequestH.Update)
+			admin.GET("/telegram", paymentRequestH.TelegramStatus)
+			admin.POST("/telegram/link", paymentRequestH.TelegramLink)
+			admin.POST("/telegram/connect", paymentRequestH.TelegramConnect)
+			admin.POST("/telegram/test", paymentRequestH.TelegramTest)
+			admin.DELETE("/telegram", paymentRequestH.TelegramDisconnect)
 			admin.GET("/users", adminH.ListUsers)
 			admin.GET("/users/:id", adminH.GetUser)
 			admin.DELETE("/users/:id", adminH.DeleteUser)

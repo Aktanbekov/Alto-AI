@@ -813,7 +813,7 @@ export default function CheckProfilePage() {
   // Paid accounts have nothing to upgrade to. Admins are unlimited too, but see
   // the card anyway so they can preview what students get. The admin model
   // comparison (more than one report) is not a student's report, so no card.
-  const offerUpgrade = ((!!access && !access.unlimited) || isAdmin)
+  const offerUpgrade = ((!!access && !access.unlimited && !access.paid) || isAdmin)
     && result?.length === 1 && !!result[0]?.evaluation;
   const prompt = access?.next_prompt || "";
 

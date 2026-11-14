@@ -55,6 +55,10 @@ type accessState struct {
 	// been answered or skipped. Empty is the steady state.
 	NextPrompt string `json:"next_prompt"`
 
+	// Paid is true once an admin has marked a payment request bought for this
+	// account. The report then stops offering an upgrade.
+	Paid bool `json:"paid"`
+
 	SurveyCompleted bool `json:"survey_completed"`
 	WaitlistJoined  bool `json:"waitlist_joined"`
 	SignedIn        bool `json:"signed_in"`
@@ -88,6 +92,9 @@ func computeAccess(
 			st.SetsAllowed += extra
 		} else {
 			log.Printf("access: could not read entitlements: %v", err)
+		}
+		if paid, err := val.HasPaidPlan(s); err == nil {
+			st.Paid = paid
 		}
 		if done, err := val.HasSurvey(s); err == nil {
 			st.SurveyCompleted = done

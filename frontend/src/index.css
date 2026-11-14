@@ -1508,6 +1508,74 @@ button.app-navitem {
 .tf .checkout-total strong { font-size: 26px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .tf .checkout-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 16px 0 0; font-size: 15px; }
 .tf .checkout-links a { color: var(--ink); text-underline-offset: 3px; }
+
+/* The request form that stands in for card payment. */
+.tf .checkout-form .auth-input[aria-invalid="true"] { border-color: var(--bad); }
+.tf .checkout-form .auth-input:disabled { background: var(--paper-2); color: var(--ink-muted); cursor: not-allowed; }
+.tf .checkout-err { margin: -10px 0 16px; color: var(--bad); font-size: 14.5px; }
+.tf .checkout-select {
+  appearance: none; padding-right: 40px; cursor: pointer;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2316233B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+}
+.tf .checkout-check-row {
+  display: flex; align-items: center; gap: 10px; margin: -6px 0 18px;
+  font-size: 15.5px; color: var(--ink-soft); cursor: pointer; width: fit-content;
+}
+.tf .checkout-check-row input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
+.tf .checkout-contact { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
+.tf .checkout-contact legend { padding: 0; }
+.tf .checkout-seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px;
+  background: var(--paper); border-radius: var(--r-control);
+}
+.tf .checkout-seg label {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  min-height: 44px; border-radius: calc(var(--r-control) - 3px);
+  font-weight: 500; font-size: 16px; color: var(--ink-soft); cursor: pointer;
+  transition: background-color .16s var(--press), color .16s, box-shadow .16s;
+}
+.tf .checkout-seg label.on { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(22, 35, 59, .14); }
+.tf .checkout-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.tf .checkout-seg label:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(124, 107, 168, .45); }
+.tf .checkout-at { position: relative; }
+.tf .checkout-at > span {
+  position: absolute; left: 13px; top: 12px; color: var(--ink-muted); font-size: 16px; pointer-events: none;
+}
+.tf .checkout-at .auth-input { padding-left: 30px; }
+@keyframes checkoutReveal { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Done: a green ring draws itself, then the tick. */
+.tf .checkout-done {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  max-width: 520px; margin: 0 auto; padding-block: 48px 24px;
+}
+.tf .checkout-done h1 { margin: 22px 0 10px; outline: none; }
+.tf .checkout-done .lede { margin: 0 0 6px; }
+.tf .checkout-done-via { margin: 0 0 30px; color: var(--ink-soft); font-size: 16px; }
+.tf .checkout-check { width: 96px; height: 96px; overflow: visible; }
+.tf .checkout-check-ring { fill: rgba(47, 107, 79, .1); stroke: var(--ok); stroke-width: 4; }
+.tf .checkout-check-tick {
+  fill: none; stroke: var(--ok); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round;
+}
+@keyframes checkoutRing { from { stroke-dashoffset: 277; fill-opacity: 0; } 70% { fill-opacity: 0; } to { stroke-dashoffset: 0; fill-opacity: 1; } }
+@keyframes checkoutTick { to { stroke-dashoffset: 0; } }
+@keyframes checkoutPop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes checkoutRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .tf .checkout-reveal { animation: checkoutReveal .22s var(--press) both; }
+  .tf .checkout-check { animation: checkoutPop .5s var(--press) both; transform-origin: center; }
+  .tf .checkout-check-ring {
+    stroke-dasharray: 277; stroke-dashoffset: 277;
+    transform: rotate(-90deg); transform-origin: 48px 48px;
+    animation: checkoutRing .6s .1s cubic-bezier(.65, 0, .35, 1) forwards;
+  }
+  .tf .checkout-check-tick { stroke-dasharray: 60; stroke-dashoffset: 60; animation: checkoutTick .35s .62s cubic-bezier(.65, 0, .35, 1) forwards; }
+  .tf .checkout-done > :not(svg) { animation: checkoutRise .4s var(--press) both; }
+  .tf .checkout-done > h1 { animation-delay: .75s; }
+  .tf .checkout-done > .lede { animation-delay: .82s; }
+  .tf .checkout-done > .checkout-done-via { animation-delay: .88s; }
+  .tf .checkout-done > .btn { animation-delay: .94s; }
+}
 @media (max-width: 900px) {
   .tf .checkout-grid { grid-template-columns: 1fr; gap: 28px; }
   .tf .checkout-summary { position: static; order: -1; }
