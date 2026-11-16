@@ -111,10 +111,16 @@ def create_app(processed_dir: Path, web_dir: Path):
     def health() -> dict[str, Any]:
         from ..config import api_key_status
 
+        from ..rag.retrieve import runtime_assets_problem
+
         configured, detail = api_key_status()
-        index_ready = (processed_dir / "index" / "vectors.npy").exists()
+        # Ready means the data loads, not just that a file of that name exists:
+        # an LFS placeholder exists too, and used to report ready while every
+        # evaluation failed.
+        problem = runtime_assets_problem(processed_dir)
+        index_ready = problem is None
         if configured and not index_ready:
-            detail = "The retrieval index is missing — run `visa-llm index`."
+            detail = problem
         return {
             "api_key_configured": configured and index_ready,
             "detail": detail,

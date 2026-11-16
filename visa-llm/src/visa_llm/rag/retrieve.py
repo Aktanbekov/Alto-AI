@@ -22,6 +22,44 @@ from .embed import MODEL_NAME
 # relaxed. Filtering to three Tashkent MBA records would make similarity noise.
 _MIN_POOL = 40
 
+# What the evaluator reads from data/processed to score one answer.
+RUNTIME_FILES = (
+    "index/vectors.npy",
+    "index/index_meta.parquet",
+    "index/index_manifest.json",
+    "interviews.parquet",
+)
+
+_LFS_POINTER = b"version https://git-lfs"
+
+
+def is_lfs_pointer(path: Path) -> bool:
+    """True when the file is a Git LFS placeholder rather than the real data.
+
+    A checkout or build without Git LFS gets a ~130-byte text file in place of
+    each LFS-tracked file. numpy then fails with a confusing "pickled (object)
+    data" error, so this is checked first and named plainly.
+    """
+    try:
+        with open(path, "rb") as fh:
+            return fh.read(len(_LFS_POINTER)) == _LFS_POINTER
+    except OSError:
+        return False
+
+
+def runtime_assets_problem(processed_dir: Path) -> str | None:
+    """Why the evaluator cannot score right now, or None when its data is usable."""
+    for rel in RUNTIME_FILES:
+        path = Path(processed_dir) / rel
+        if not path.exists():
+            return f"The retrieval data is missing ({rel}) - run `visa-llm index`."
+        if is_lfs_pointer(path):
+            return (
+                f"{rel} is a Git LFS placeholder, not the real file. The build "
+                "did not receive the data; store it as a normal git file."
+            )
+    return None
+
 
 @dataclass
 class StudentProfile:
@@ -91,6 +129,12 @@ class InterviewIndex:
 
     def __init__(self, index_dir: Path):
         self.index_dir = Path(index_dir)
+        for name in ("vectors.npy", "index_meta.parquet"):
+            if is_lfs_pointer(self.index_dir / name):
+                raise RuntimeError(
+                    f"{name} is a Git LFS placeholder, not the retrieval index. "
+                    "The evaluator was built without the real data file."
+                )
         self.vectors: np.ndarray = np.load(self.index_dir / "vectors.npy")
         self.meta: pd.DataFrame = pd.read_parquet(self.index_dir / "index_meta.parquet")
         self.manifest: dict[str, Any] = json.loads(

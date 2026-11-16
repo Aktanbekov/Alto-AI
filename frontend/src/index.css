@@ -949,11 +949,6 @@ button.app-navitem {
   outline: none; border-color: var(--ink);
   box-shadow: 0 0 0 3px rgba(124, 107, 168, .3);
 }
-.vz .pc-cover {
-  margin: 14px 0 0; font-size: 14px; color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
-}
-.vz .pc-cover strong { color: var(--ink); font-weight: 600; }
 
 .vz .ev-q-share { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-muted); }
 /* The question's Russian reading, under the English one the officer will ask. */

@@ -119,7 +119,7 @@ func NewPostgresRepo() (UserRepo, error) {
 func postgresConnectionString() (string, error) {
 	for _, key := range []string{"DATABASE_URL", "POSTGRES_URL", "POSTGRES_URL_NON_POOLING", "POSTGRES_PRISMA_URL"} {
 		if value := strings.TrimSpace(os.Getenv(key)); value != "" {
-			return value, nil
+			return poolerSafe(value), nil
 		}
 	}
 	for _, key := range []string{"POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB"} {
@@ -127,9 +127,31 @@ func postgresConnectionString() (string, error) {
 			return "", fmt.Errorf("missing PostgreSQL configuration: set DATABASE_URL or all POSTGRES_* connection fields")
 		}
 	}
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	return poolerSafe(fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_PORT"), os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB")), nil
+		os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))), nil
+}
+
+// poolerSafe makes a connection string work through a transaction-mode
+// pooler such as Supabase's (the POSTGRES_URL Vercel provides).
+//
+// By default lib/pq runs a query with arguments in two round trips: prepare an
+// unnamed statement, then execute it. A transaction pooler may hand those two
+// trips to different server connections, and the second fails with "pq:
+// unnamed prepared statement does not exist" - at random, on any query, which
+// is how the evaluate endpoint and admin screens failed now and then.
+// binary_parameters=yes makes lib/pq send prepare and execute in one trip.
+func poolerSafe(dsn string) string {
+	if strings.Contains(dsn, "binary_parameters=") {
+		return dsn
+	}
+	if strings.Contains(dsn, "://") {
+		if strings.Contains(dsn, "?") {
+			return dsn + "&binary_parameters=yes"
+		}
+		return dsn + "?binary_parameters=yes"
+	}
+	return dsn + " binary_parameters=yes"
 }
 
 func (r *postgresRepo) List() ([]models.User, error) {

@@ -14,9 +14,8 @@ import AccessScreen from "../components/validation/AccessScreen";
 import SurveyFlow from "../components/validation/SurveyFlow";
 import UpgradeCard from "../components/validation/UpgradeCard";
 import { questionLabel } from "../data/questionLabels";
-import { SMALL_N } from "../components/charts/useChartWidth";
 import Arrow from "../components/ui/Arrow";
-import { useLang, useCopy, plural, formatNumber, serverMessage } from "../i18n";
+import { useLang, useCopy, formatNumber, serverMessage } from "../i18n";
 
 /*
  * The profile evaluator, ported from visa-llm's own Evaluate view.
@@ -183,17 +182,6 @@ const COPY = {
       "высокая оценка, а 3.5 из 10 нет. Или очистите поле с оценками.",
     offline: "Не удалось связаться с Altovisas. Проверьте подключение и попробуйте ещё раз, ваши ответы никуда не делись.",
     failed: "При проверке ответов что-то пошло не так. Попробуйте ещё раз через минуту.",
-    coverCity: (n, name, count) => (
-      <>{name}: в данных <strong>{n} {plural("ru", count, ["собеседование", "собеседования", "собеседований"])}</strong>.</>
-    ),
-    coverNoCity: (city) => <>{city}: собеседований в данных пока нет. </>,
-    coverCountry: (n, name, count) => (
-      <>{name} в целом: <strong>{n} {plural("ru", count, ["собеседование", "собеседования", "собеседований"])}</strong>.</>
-    ),
-    coverThin: " Сравнивать особо не с чем, учитывайте это, когда будете читать цифры в отчёте.",
-    coverNone: (name) =>
-      `${name}: собеседований в данных пока мало или нет совсем. Ваши ответы всё равно ` +
-      "проверят, но сравнение будет опираться на другие консульства, в основном в Индии.",
     compareEmpty: "Заполните хотя бы один ответ, прежде чем сравнивать модели.",
     answerOne: "Ответьте хотя бы на один из трёх вопросов и проверьте снова.",
     nextThree: "Следующие три вопроса",
@@ -373,31 +361,6 @@ function coverageFor(stats, city, country) {
   if (byCountry) return { kind: "country", city: city.trim(), ...byCountry };
   if (city.trim() || country.trim()) return { kind: "none", name: city.trim() || country.trim() };
   return null;
-}
-
-function CoverageNote({ coverage }) {
-  const { lang } = useLang();
-  const c = useCopy(COPY);
-  if (!coverage) return null;
-  const n = formatNumber(lang, coverage.n_decided);
-  if (coverage.kind === "city") {
-    return (
-      <p className="pc-cover" role="status">
-        {c.coverCity(n, coverage.name, coverage.n_decided)}
-        {coverage.n_decided < SMALL_N && c.coverThin}
-      </p>
-    );
-  }
-  if (coverage.kind === "country") {
-    return (
-      <p className="pc-cover" role="status">
-        {coverage.city ? c.coverNoCity(coverage.city) : null}
-        {c.coverCountry(n, coverage.name, coverage.n_decided)}
-        {coverage.n_decided < SMALL_N && c.coverThin}
-      </p>
-    );
-  }
-  return <p className="pc-cover" role="status">{c.coverNone(coverage.name)}</p>;
 }
 
 export default function CheckProfilePage() {
@@ -1053,7 +1016,6 @@ export default function CheckProfilePage() {
                   <Field id="consulate_city" label={c.consulate}
                     hint={c.consulateHint} list="pc-cities"
                     value={profile.consulate_city} onChange={set("consulate_city")} />
-                  <CoverageNote coverage={coverage} />
                 </div>
                 <Field id="funding_source" label={c.funding}
                   hint={c.fundingHint}
