@@ -519,6 +519,34 @@ export const connectTelegram = () => adminRequest("/telegram/connect", { method:
 export const sendTelegramTest = () => adminRequest("/telegram/test", { method: "POST" });
 export const disconnectTelegram = () => adminRequest("/telegram", { method: "DELETE" });
 
+// ---------- Partners (admin) ----------
+
+// Partner links: tracking links with a commission. GET returns each partner's
+// totals plus the referred requests behind them.
+export const listPartners = () => adminRequest("/partners");
+
+export function createPartner(body) {
+  return adminRequest("/partners", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+// { partner_name, partner_contact, commission_pct, notes }. The code is fixed.
+export function updatePartner(code, body) {
+  return adminRequest(`/partners/${encodeURIComponent(code)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+// Records that everything owed to this partner has been paid. Returns
+// { amount, sales } - what was just marked paid.
+export const recordPartnerPayout = (code) =>
+  adminRequest(`/partners/${encodeURIComponent(code)}/payout`, { method: "POST" });
+
 export function listAdminUsers({ search = "", limit = 25, offset = 0 } = {}) {
   const q = new URLSearchParams({ search, limit, offset });
   return adminRequest(`/users?${q}`);
@@ -526,6 +554,16 @@ export function listAdminUsers({ search = "", limit = 25, offset = 0 } = {}) {
 
 export function getAdminUser(id) {
   return adminRequest(`/users/${encodeURIComponent(id)}`);
+}
+
+// Give a plan from a person's profile, outside the checkout form. Recorded as
+// a "manual" payment marked bought, so it can be taken back the same way.
+export function grantUserPlan(id, plan, note = "") {
+  return adminRequest(`/users/${encodeURIComponent(id)}/plan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ plan, note }),
+  });
 }
 
 export function deleteAdminUser(id) {

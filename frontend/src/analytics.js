@@ -15,6 +15,10 @@ import { API_BASE as API } from "./utils/apiBase";
 const VISITOR_KEY = "av_visitor_id";
 const SESSION_KEY = "av_session";
 const SRC_KEY = "av_src";
+const REF_KEY = "av_ref";
+// How long a partner link keeps credit for a purchase. Mirrors
+// referralWindowDays in admin_partners_handler.go.
+const REF_WINDOW_MS = 60 * 24 * 60 * 60 * 1000;
 const SESSION_IDLE_MS = 30 * 60 * 1000; // a visit ends after 30 minutes idle
 const FLUSH_MS = 10_000;
 const MAX_QUEUE = 100;
@@ -102,12 +106,28 @@ function src() {
         const tag = found.trim().slice(0, 64);
         if (tag) {
           writeStore(SRC_KEY, tag);
+          // Kept apart, with the date, for partner payouts: a purchase
+          // counts for the link clicked last, within REF_WINDOW_MS.
+          writeStore(REF_KEY, JSON.stringify({ code: tag, at: Date.now() }));
           return tag;
         }
       }
     }
   } catch { /* no URL access */ }
   return readStore(SRC_KEY) || "";
+}
+
+/*
+ * The partner link this browser arrived through, if it was clicked within the
+ * referral window. Sent with the checkout request; the server keeps it only
+ * when it names a live partner link, so any other tag is harmless here.
+ */
+function referralCode() {
+  try {
+    const ref = JSON.parse(readStore(REF_KEY) || "null");
+    if (ref?.code && Date.now() - ref.at < REF_WINDOW_MS) return String(ref.code).slice(0, 64);
+  } catch { /* corrupt value */ }
+  return "";
 }
 
 const isMobile = () => {
@@ -222,7 +242,7 @@ export function identify(token) {
 
 /**
  * Headers that let a server-side event (report_generated) be attributed to this
- * visitor. Attached to the evaluate request only.
+ * visitor, and a checkout request be credited to the partner who sent them.
  */
 export function trackingHeaders() {
   try {
@@ -230,6 +250,7 @@ export function trackingHeaders() {
       "X-Visitor-Id": visitorId(),
       "X-Session-Id": sessionId(),
       "X-Src": src(),
+      "X-Ref": referralCode(),
     };
   } catch {
     return {};

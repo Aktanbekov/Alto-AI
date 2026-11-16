@@ -26,7 +26,7 @@ Set `FRONTEND_URL` and `GOOGLE_REDIRECT_URL` to the deployed production origin
 and callback URL. Register that callback URL in Google Cloud Console.
 
 Payment requests from the checkout are sent to Telegram when `TELEGRAM_BOT_TOKEN`
-is set (the token from @BotFather). Then open Admin → Payments, press "Get the
+is set (the token from @BotFather) in the Vercel production environment and the app is redeployed. Then open Admin → Settings → Telegram, press "Get the
 connect link", press Start in the bot, and press "I pressed Start": that chat
 receives every new request. `TELEGRAM_CHAT_ID` can be set instead to fix the
 chat from the env. Without a token the requests are only in the admin table.

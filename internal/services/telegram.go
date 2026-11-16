@@ -244,8 +244,9 @@ func (t *Telegram) Disconnect() error {
 }
 
 // PaymentRequestMessage formats a new request for the admin chat. Every value
-// the visitor typed is escaped: the message is sent as HTML.
-func PaymentRequestMessage(r repository.PaymentRequest, planName, adminURL string) string {
+// the visitor typed is escaped: the message is sent as HTML. partner is the
+// referral line ("" when the buyer did not come through a partner's link).
+func PaymentRequestMessage(r repository.PaymentRequest, planName, adminURL, partner string) string {
 	e := html.EscapeString
 	var b strings.Builder
 	b.WriteString("🆕 <b>Новая заявка на оплату</b>\n\n")
@@ -272,6 +273,9 @@ func PaymentRequestMessage(r repository.PaymentRequest, planName, adminURL strin
 	}
 	if r.Email != "" {
 		fmt.Fprintf(&b, "<b>Аккаунт:</b> %s\n", e(r.Email))
+	}
+	if partner != "" {
+		fmt.Fprintf(&b, "<b>Партнёр:</b> %s\n", e(partner))
 	}
 	if adminURL != "" {
 		fmt.Fprintf(&b, "\n<a href=\"%s\">Открыть все заявки</a>", e(adminURL))

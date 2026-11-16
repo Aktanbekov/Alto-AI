@@ -21,11 +21,11 @@ func TestPaymentRequestMessageEscapesInput(t *testing.T) {
 	msg := PaymentRequestMessage(repository.PaymentRequest{
 		Name: `<b>x</b> & "y"`, Phone: "+996 555 123 456", Plan: "full", Price: 1999,
 		Contact: "whatsapp", InterviewDate: "2026-12-01",
-	}, "Полная подготовка", "https://altovisas.com/admin")
+	}, "Полная подготовка", "https://altovisas.com/admin", "Aziz <x> (aziz) · 20% = 400 сом при покупке")
 	if strings.Contains(msg, "<b>x</b>") {
 		t.Fatalf("name was not escaped: %s", msg)
 	}
-	for _, want := range []string{"&lt;b&gt;x&lt;/b&gt; &amp;", "https://wa.me/996555123456", "01.12.2026", "1999 сом"} {
+	for _, want := range []string{"&lt;b&gt;x&lt;/b&gt; &amp;", "https://wa.me/996555123456", "01.12.2026", "1999 сом", "Партнёр:</b> Aziz &lt;x&gt; (aziz)"} {
 		if !strings.Contains(msg, want) {
 			t.Errorf("message missing %q:\n%s", want, msg)
 		}

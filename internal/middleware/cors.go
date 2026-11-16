@@ -14,7 +14,7 @@ import (
 // :5173 and the API on :8080, takes the evaluator down with it. Production is
 // same-origin and never preflights, so this only ever bit local runs.
 const allowedHeaders = "Content-Type, Authorization, X-Requested-With, " +
-	"X-Visitor-Id, X-Session-Id, X-Src"
+	"X-Visitor-Id, X-Session-Id, X-Src, X-Ref"
 
 var developmentOrigins = map[string]struct{}{
 	"http://localhost:3000": {},

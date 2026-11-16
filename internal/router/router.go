@@ -146,7 +146,7 @@ func New() (*gin.Engine, error) {
 	// Shared by both handlers: the evaluate path writes failures the student was
 	// not shown, the admin path reads them.
 	evalIncidents := visallm.NewIncidentLog()
-	adminH := handlers.NewAdminHandler(userRepo, interviewRepo, evalIncidents)
+	adminH := handlers.NewAdminHandler(userRepo, interviewRepo, evalIncidents, paymentRequestRepo)
 	evaluateH := handlers.NewEvaluateHandler(
 		visallm.New(), userSvc, evalIncidents, evalRepo, analyticsRepo, validationRepo)
 	accessH := handlers.NewAccessHandler(evalRepo, validationRepo, userSvc, analyticsRepo)
@@ -154,7 +154,8 @@ func New() (*gin.Engine, error) {
 	adminAnalyticsH := handlers.NewAdminAnalyticsHandler(analyticsRepo, evalRepo)
 	adminLinksH := handlers.NewAdminLinksHandler(referralRepo, analyticsRepo)
 	paymentRequestH := handlers.NewPaymentRequestHandler(
-		paymentRequestRepo, userSvc, services.NewTelegram(settingsRepo))
+		paymentRequestRepo, userSvc, services.NewTelegram(settingsRepo), referralRepo)
+	adminPartnersH := handlers.NewAdminPartnersHandler(referralRepo, paymentRequestRepo)
 	statsH := handlers.NewStatsHandler()
 	questionsH := handlers.NewQuestionsHandler()
 
@@ -341,6 +342,11 @@ func New() (*gin.Engine, error) {
 			admin.PUT("/links/:code", adminLinksH.Update)
 			admin.POST("/links/:code/archive", adminLinksH.Archive)
 			admin.DELETE("/links/:code", adminLinksH.Delete)
+			// Partners: tracking links with a commission, and their payouts.
+			admin.GET("/partners", adminPartnersH.List)
+			admin.POST("/partners", adminPartnersH.Create)
+			admin.PUT("/partners/:code", adminPartnersH.Update)
+			admin.POST("/partners/:code/payout", adminPartnersH.Payout)
 			admin.GET("/payment-requests", paymentRequestH.List)
 			admin.PATCH("/payment-requests/:id", paymentRequestH.Update)
 			admin.GET("/telegram", paymentRequestH.TelegramStatus)
@@ -352,6 +358,7 @@ func New() (*gin.Engine, error) {
 			admin.GET("/users/:id", adminH.GetUser)
 			admin.DELETE("/users/:id", adminH.DeleteUser)
 			admin.POST("/users/:id/verify", adminH.VerifyUser)
+			admin.POST("/users/:id/plan", paymentRequestH.GrantForUser)
 			admin.GET("/interviews", adminH.ListSessions)
 			admin.GET("/interviews/:id", adminH.GetSession)
 			// Scores one profile with every comparison model at once. Admin

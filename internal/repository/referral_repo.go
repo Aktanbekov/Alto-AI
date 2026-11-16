@@ -24,6 +24,19 @@ type ReferralRepo interface {
 	Update(code string, l ReferralLink) (ReferralLink, error)
 	Archive(code string, archived bool) error
 	Delete(code string) error
+	// UpdatePartner sets who a partner link belongs to and their cut. Kept
+	// apart from Update so editing a link's label from the Links screen never
+	// wipes the partner's commission.
+	UpdatePartner(code string, p PartnerInfo) (ReferralLink, error)
+}
+
+// PartnerInfo is the part of a link that makes it a partner's: a person who
+// shares it and is paid a share of every sale it brings in.
+type PartnerInfo struct {
+	PartnerName    string `json:"partner_name"`
+	PartnerContact string `json:"partner_contact"`
+	CommissionPct  int    `json:"commission_pct"` // 0-100, share of the sale price
+	Notes          string `json:"notes"`
 }
 
 // ReferralLink is one named campaign source.
@@ -34,7 +47,15 @@ type ReferralLink struct {
 	Notes       string    `json:"notes"`
 	Archived    bool      `json:"archived"`
 	CreatedAt   time.Time `json:"created_at"`
+	// Set only on partner links. A link with a commission is a partner's: a
+	// sale that arrives through it earns them CommissionPct of the price.
+	PartnerName    string `json:"partner_name"`
+	PartnerContact string `json:"partner_contact"`
+	CommissionPct  int    `json:"commission_pct"`
 }
+
+// IsPartner reports whether sales through this link earn someone a payout.
+func (l ReferralLink) IsPartner() bool { return l.PartnerName != "" || l.CommissionPct > 0 }
 
 // ErrLinkExists is returned when a code is already taken. Codes have to be
 // unique: two links sharing one code would report as a single merged source
@@ -107,6 +128,10 @@ func EnsureReferralSchema(db *sql.DB) error {
 			created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_referral_links_created ON referral_links (created_at DESC)`,
+		// Partner links: who shares the link and what share of a sale they earn.
+		`ALTER TABLE referral_links ADD COLUMN IF NOT EXISTS partner_name VARCHAR(120) NOT NULL DEFAULT ''`,
+		`ALTER TABLE referral_links ADD COLUMN IF NOT EXISTS partner_contact VARCHAR(120) NOT NULL DEFAULT ''`,
+		`ALTER TABLE referral_links ADD COLUMN IF NOT EXISTS commission_pct INTEGER NOT NULL DEFAULT 0`,
 	}
 	for _, s := range stmts {
 		if _, err := db.Exec(s); err != nil {
@@ -116,11 +141,13 @@ func EnsureReferralSchema(db *sql.DB) error {
 	return nil
 }
 
-const referralColumns = `code, label, destination, notes, archived, created_at`
+const referralColumns = `code, label, destination, notes, archived, created_at,
+	partner_name, partner_contact, commission_pct`
 
 func scanLink(row interface{ Scan(...any) error }) (ReferralLink, error) {
 	var l ReferralLink
-	err := row.Scan(&l.Code, &l.Label, &l.Destination, &l.Notes, &l.Archived, &l.CreatedAt)
+	err := row.Scan(&l.Code, &l.Label, &l.Destination, &l.Notes, &l.Archived, &l.CreatedAt,
+		&l.PartnerName, &l.PartnerContact, &l.CommissionPct)
 	return l, err
 }
 
@@ -162,11 +189,11 @@ func (r *referralRepo) Get(code string) (ReferralLink, error) {
 // creating the same code at once cannot both succeed.
 func (r *referralRepo) Create(l ReferralLink) (ReferralLink, error) {
 	out, err := scanLink(r.db.QueryRow(`
-		INSERT INTO referral_links (code, label, destination, notes)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO referral_links (code, label, destination, notes, partner_name, partner_contact, commission_pct)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (code) DO NOTHING
 		RETURNING `+referralColumns,
-		l.Code, l.Label, l.Destination, l.Notes))
+		l.Code, l.Label, l.Destination, l.Notes, l.PartnerName, l.PartnerContact, l.CommissionPct))
 	if errors.Is(err, sql.ErrNoRows) {
 		return ReferralLink{}, ErrLinkExists
 	}
@@ -183,6 +210,22 @@ func (r *referralRepo) Update(code string, l ReferralLink) (ReferralLink, error)
 		WHERE code = $1
 		RETURNING `+referralColumns,
 		code, l.Label, l.Destination, l.Notes))
+	if errors.Is(err, sql.ErrNoRows) {
+		return ReferralLink{}, ErrLinkNotFound
+	}
+	return out, err
+}
+
+// UpdatePartner changes the partner's name, contact, commission and notes.
+// A new commission applies to sales marked bought from now on; sales already
+// counted keep the amount they earned at the time.
+func (r *referralRepo) UpdatePartner(code string, p PartnerInfo) (ReferralLink, error) {
+	out, err := scanLink(r.db.QueryRow(`
+		UPDATE referral_links
+		SET partner_name = $2, partner_contact = $3, commission_pct = $4, notes = $5
+		WHERE code = $1
+		RETURNING `+referralColumns,
+		code, p.PartnerName, p.PartnerContact, p.CommissionPct, p.Notes))
 	if errors.Is(err, sql.ErrNoRows) {
 		return ReferralLink{}, ErrLinkNotFound
 	}

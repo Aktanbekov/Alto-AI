@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
 	"altoai_mvp/internal/middleware"
+	"altoai_mvp/internal/models"
 	"altoai_mvp/internal/repository"
 	"altoai_mvp/internal/visallm"
 	"altoai_mvp/interview"
@@ -20,10 +22,81 @@ type AdminHandler struct {
 	users      repository.UserRepo
 	interviews repository.InterviewRepo
 	incidents  *visallm.IncidentLog
+	payments   repository.PaymentRequestRepo
 }
 
-func NewAdminHandler(users repository.UserRepo, interviews repository.InterviewRepo, incidents *visallm.IncidentLog) *AdminHandler {
-	return &AdminHandler{users: users, interviews: interviews, incidents: incidents}
+func NewAdminHandler(
+	users repository.UserRepo, interviews repository.InterviewRepo, incidents *visallm.IncidentLog,
+	payments repository.PaymentRequestRepo,
+) *AdminHandler {
+	return &AdminHandler{users: users, interviews: interviews, incidents: incidents, payments: payments}
+}
+
+// userPlan is one account's plan, as the Users tab shows it. Built from the
+// payment requests that account sent; nil when it has sent none.
+type userPlan struct {
+	// "paid" once any request is marked bought, otherwise "requested" while
+	// one is waiting, otherwise "declined".
+	Status string `json:"status"`
+	Plan   string `json:"plan"`   // the bought plan, or the latest requested one
+	Rounds int    `json:"rounds"` // practice rounds granted by bought plans
+}
+
+type adminUserRow struct {
+	models.User
+	Plan *userPlan `json:"plan"`
+}
+
+// summarizePlan reduces a user's requests (newest first) to one line.
+func summarizePlan(reqs []repository.PaymentRequest) *userPlan {
+	if len(reqs) == 0 {
+		return nil
+	}
+	var bought, pending *repository.PaymentRequest
+	rounds := 0
+	for i := range reqs {
+		r := &reqs[i]
+		switch r.Outcome {
+		case "bought":
+			rounds += r.GrantedSets
+			// The most expensive plan bought is the one to show.
+			if bought == nil || r.Price > bought.Price {
+				bought = r
+			}
+		case "pending":
+			if pending == nil {
+				pending = r
+			}
+		}
+	}
+	switch {
+	case bought != nil:
+		return &userPlan{Status: "paid", Plan: bought.Plan, Rounds: rounds}
+	case pending != nil:
+		return &userPlan{Status: "requested", Plan: pending.Plan}
+	default:
+		return &userPlan{Status: "declined", Plan: reqs[0].Plan}
+	}
+}
+
+// requestsByUser groups requests under the account they belong to, by id or,
+// for one the server could not link, by email.
+func requestsByUser(users []models.User, reqs []repository.PaymentRequest) map[string][]repository.PaymentRequest {
+	byEmail := map[string]string{}
+	for _, u := range users {
+		byEmail[strings.ToLower(u.Email)] = u.ID
+	}
+	out := map[string][]repository.PaymentRequest{}
+	for _, r := range reqs {
+		id := r.UserID
+		if id == "" {
+			id = byEmail[strings.ToLower(r.Email)]
+		}
+		if id != "" {
+			out[id] = append(out[id], r)
+		}
+	}
+	return out
 }
 
 // EvaluatorHealth reports the evaluation failures that students were never
@@ -119,8 +192,30 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 		end = total
 	}
 
+	page := filtered[start:end]
+	rows := make([]adminUserRow, len(page))
+	for i, u := range page {
+		rows[i] = adminUserRow{User: u}
+	}
+	if h.payments != nil && len(page) > 0 {
+		ids := make([]string, len(page))
+		emails := make([]string, len(page))
+		for i, u := range page {
+			ids[i], emails[i] = u.ID, u.Email
+		}
+		// A failure here costs the column, not the list.
+		if reqs, err := h.payments.ForUsers(ids, emails); err == nil {
+			grouped := requestsByUser(page, reqs)
+			for i := range rows {
+				rows[i].Plan = summarizePlan(grouped[rows[i].ID])
+			}
+		} else {
+			log.Printf("admin users: payment requests: %v", err)
+		}
+	}
+
 	response.OK(c, gin.H{
-		"users":  filtered[start:end],
+		"users":  rows,
 		"total":  total,
 		"limit":  limit,
 		"offset": offset,
@@ -139,7 +234,19 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "failed to load sessions")
 		return
 	}
-	response.OK(c, gin.H{"user": u, "sessions": sessions})
+	payments := []repository.PaymentRequest{}
+	if h.payments != nil {
+		if reqs, err := h.payments.ForUsers([]string{u.ID}, []string{u.Email}); err == nil {
+			payments = reqs
+		} else {
+			log.Printf("admin user: payment requests: %v", err)
+		}
+	}
+	response.OK(c, gin.H{
+		"user":             adminUserRow{User: u, Plan: summarizePlan(payments)},
+		"sessions":         sessions,
+		"payment_requests": payments,
+	})
 }
 
 // DeleteUser removes an account. Admins may not delete themselves, which would

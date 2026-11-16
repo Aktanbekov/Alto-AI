@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -33,12 +34,14 @@ type PaymentRequestHandler struct {
 	repo     repository.PaymentRequestRepo
 	users    services.UserService
 	telegram *services.Telegram
+	links    repository.ReferralRepo // resolves the partner a request came through
 }
 
 func NewPaymentRequestHandler(
 	repo repository.PaymentRequestRepo, users services.UserService, telegram *services.Telegram,
+	links repository.ReferralRepo,
 ) *PaymentRequestHandler {
-	return &PaymentRequestHandler{repo: repo, users: users, telegram: telegram}
+	return &PaymentRequestHandler{repo: repo, users: users, telegram: telegram, links: links}
 }
 
 // paidPlanPrices mirrors the paid plans in frontend/src/constants/pricing.js.
@@ -171,6 +174,12 @@ func (h *PaymentRequestHandler) Create(c *gin.Context) {
 		Contact:       contact,
 		Telegram:      telegram,
 	}
+	// The partner whose link this buyer arrived through, if any. The browser
+	// sends it only within the referral window (see analytics.js).
+	partner, referred := partnerFor(h.links, c.GetHeader("X-Ref"))
+	if referred {
+		req.RefCode = partner.Code
+	}
 	if claims, ok := currentClaims(c); ok && claims != nil {
 		req.Email = claims.Email
 		if user, err := h.users.GetByEmail(c.Request.Context(), claims.Email); err == nil {
@@ -184,7 +193,7 @@ func (h *PaymentRequestHandler) Create(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "Не удалось отправить заявку. Попробуйте ещё раз.")
 		return
 	}
-	h.notify(c, saved)
+	h.notify(c, saved, partner)
 	response.Created(c, gin.H{"id": saved.ID})
 }
 
@@ -192,13 +201,13 @@ func (h *PaymentRequestHandler) Create(c *gin.Context) {
 // response rather than in a goroutine: on a serverless host the process can be
 // frozen the moment the response is written. A failure is logged, never shown
 // to the visitor - their request is already saved.
-func (h *PaymentRequestHandler) notify(c *gin.Context, r repository.PaymentRequest) {
+func (h *PaymentRequestHandler) notify(c *gin.Context, r repository.PaymentRequest, partner repository.ReferralLink) {
 	if h.telegram == nil {
 		return
 	}
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
-	msg := services.PaymentRequestMessage(r, paidPlanNames[r.Plan], siteBase()+"/admin")
+	msg := services.PaymentRequestMessage(r, paidPlanNames[r.Plan], siteBase()+"/admin", partnerLabel(r, partner))
 	err := h.telegram.Send(ctx, msg)
 	if err != nil && !errors.Is(err, services.ErrTelegramNotConfigured) {
 		log.Printf("payment request %s: telegram: %v", r.ID, err)
@@ -261,6 +270,60 @@ func (h *PaymentRequestHandler) Update(c *gin.Context) {
 	response.OK(c, updated)
 }
 
+// GrantForUser gives a plan straight from a user's profile: paid outside the
+// form, a gift, a make-good. It is recorded as a "manual" request marked
+// bought, so it shows in the same history and can be taken back the same way.
+func (h *PaymentRequestHandler) GrantForUser(c *gin.Context) {
+	var body struct {
+		Plan string `json:"plan"`
+		Note string `json:"note"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.Error(c, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	price, ok := paidPlanPrices[body.Plan]
+	if !ok {
+		response.Error(c, http.StatusBadRequest, "plan must be quick, full or complete")
+		return
+	}
+	if utf8.RuneCountInString(body.Note) > 2000 {
+		response.Error(c, http.StatusBadRequest, "note must be 2000 characters or fewer")
+		return
+	}
+	user, err := h.users.Get(c.Request.Context(), c.Param("id"))
+	if err != nil {
+		response.Error(c, http.StatusNotFound, "user not found")
+		return
+	}
+	name := strings.TrimSpace(user.Name)
+	if name == "" {
+		name = user.Email
+	}
+	if utf8.RuneCountInString(name) > 120 {
+		name = string([]rune(name)[:120])
+	}
+	created, err := h.repo.Create(repository.PaymentRequest{
+		UserID: user.ID, Email: user.Email, Name: name,
+		Plan: body.Plan, Price: price, Contact: "manual",
+	})
+	if err != nil {
+		log.Printf("grant plan: %v", err)
+		response.Error(c, http.StatusInternalServerError, "could not give the plan")
+		return
+	}
+	bought, yes, note := "bought", true, strings.TrimSpace(body.Note)
+	granted, err := h.repo.Update(created.ID, repository.PaymentRequestUpdate{
+		Outcome: &bought, Contacted: &yes, Notes: &note,
+	})
+	if err != nil {
+		log.Printf("grant plan: %v", err)
+		response.Error(c, http.StatusInternalServerError, "could not give the plan")
+		return
+	}
+	response.Created(c, granted)
+}
+
 // ---------------------------------------------------------------- telegram --
 
 // TelegramStatus reports whether the bot is set up and who it sends to.
@@ -303,7 +366,7 @@ func (h *PaymentRequestHandler) TelegramTest(c *gin.Context) {
 		Contact: "telegram", Telegram: "username", InterviewDate: time.Now().AddDate(0, 0, 14).Format("2006-01-02"),
 	}
 	msg := "🧪 Это тестовое сообщение.\n\n" +
-		services.PaymentRequestMessage(sample, paidPlanNames["full"], siteBase()+"/admin")
+		services.PaymentRequestMessage(sample, paidPlanNames["full"], siteBase()+"/admin", "")
 	if err := h.telegram.Send(ctx, msg); err != nil {
 		h.telegramError(c, err)
 		return
@@ -332,4 +395,21 @@ func (h *PaymentRequestHandler) telegramError(c *gin.Context, err error) {
 		log.Printf("telegram: %v", err)
 		response.Error(c, http.StatusBadGateway, err.Error())
 	}
+}
+
+// partnerLabel is the partner line for the Telegram message: who referred the
+// buyer and what they earn if it is bought. "" for a request with no partner.
+func partnerLabel(r repository.PaymentRequest, p repository.ReferralLink) string {
+	if r.RefCode == "" {
+		return ""
+	}
+	name := p.PartnerName
+	if name == "" {
+		name = r.RefCode
+	}
+	if p.CommissionPct > 0 {
+		return fmt.Sprintf("%s (%s) · %d%% = %d сом при покупке",
+			name, r.RefCode, p.CommissionPct, repository.Commission(r.Price, p.CommissionPct))
+	}
+	return fmt.Sprintf("%s (%s)", name, r.RefCode)
 }
