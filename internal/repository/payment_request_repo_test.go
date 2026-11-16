@@ -59,6 +59,12 @@ func testDB(t *testing.T) *sql.DB {
 	if err := EnsureReferralSchema(db); err != nil {
 		t.Fatal(err)
 	}
+	if err := EnsureAnalyticsSchema(db); err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureEvaluationSchema(db); err != nil {
+		t.Fatal(err)
+	}
 	return db
 }
 

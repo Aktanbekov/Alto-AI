@@ -143,7 +143,9 @@ func (r *evaluationRepo) Save(e StoredEvaluation) (string, error) {
 			 attempt_number, has_consulate_data, set_index, failed)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
 		e.ID, nullable(e.UserID), nullable(e.VisitorID), e.CreatedAt,
-		profile, answers, report,
+		// JSON goes to Postgres as text: with binary_parameters=yes (see poolerSafe)
+		// a []byte is sent in binary format, which a jsonb column rejects.
+		string(profile), string(answers), string(report),
 		nullable(e.Model), e.InputTokens, e.OutputTokens, e.CachedTokens, e.CostUSD, e.LatencyMS,
 		nullable(e.Consulate), nullable(e.Country), nullable(e.DegreeLevel),
 		nullable(e.GPABand), nullable(e.ReadinessBand), e.FlagCount,

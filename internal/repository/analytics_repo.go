@@ -224,7 +224,9 @@ func (r *analyticsRepo) Insert(events []Event) error {
 		if _, err := stmt.Exec(
 			e.Name, e.VisitorID, e.SessionID, user, e.Timestamp,
 			nullable(e.Src), nullable(e.Path), nullable(e.Lang), e.IsMobile,
-			nullable(consulate), nullable(degree), props,
+			// JSON goes to Postgres as text: with binary_parameters=yes (see poolerSafe)
+			// a []byte is sent in binary format, which a jsonb column rejects.
+			nullable(consulate), nullable(degree), string(props),
 		); err != nil {
 			return err
 		}

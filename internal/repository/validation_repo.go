@@ -247,7 +247,7 @@ func (r *validationRepo) SaveSurvey(s SurveyResponse) (bool, error) {
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 		ON CONFLICT DO NOTHING`,
 		uuid.NewString(), nullable(s.UserID), nullable(s.VisitorID),
-		nullable(s.InterviewTiming), methods, nullable(s.BiggestDifficulty),
+		nullable(s.InterviewTiming), string(methods), nullable(s.BiggestDifficulty), // text, not []byte: see poolerSafe
 		nullable(s.MostUseful), nullable(s.InaccurateText),
 		nullable(s.PricePoint), nullable(s.BlockerText), time.Now().UTC()); err != nil {
 		return false, err
